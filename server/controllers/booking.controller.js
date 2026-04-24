@@ -106,6 +106,7 @@ export const createBooking = async (req, res) => {
       userId: req.user.id,
       workerId: resolvedWorkerId,
       serviceId: resolvedServiceId,
+      amount: price,
       price,
       date,
       address,
