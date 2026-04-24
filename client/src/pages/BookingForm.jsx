@@ -62,6 +62,12 @@ export default function UberBookingFlow() {
       ? service
       : service?.name || service?.title || "Professional Service";
   const servicePrice = service?.price || 499;
+  const serviceCategory =
+    (typeof service?.category === "string" &&
+      service.category.trim().toLowerCase()) ||
+    (typeof worker?.profession === "string" &&
+      worker.profession.trim().toLowerCase()) ||
+    "electrician";
 
   // 1. EXTENDED STATE
   const [formData, setFormData] = useState({
@@ -545,6 +551,7 @@ export default function UberBookingFlow() {
                   serviceId,
                   serviceName,
                   workerId,
+                  category: serviceCategory,
                   amount: servicePrice,
                   date: formData.date,
                   address: formData.address,
@@ -556,7 +563,15 @@ export default function UberBookingFlow() {
                 }}
                 onComplete={(paymentInfo) => {
                   navigate("/confirmation", {
-                    state: { ...formData, ...paymentInfo, worker, service },
+                    state: {
+                      bookingId: paymentInfo.bookingId || paymentInfo._id,
+                      bookingData: {
+                        ...formData,
+                        ...paymentInfo,
+                        worker,
+                        service,
+                      },
+                    },
                   });
                 }}
               />

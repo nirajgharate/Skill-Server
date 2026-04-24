@@ -5,7 +5,7 @@ const paymentSchema = new mongoose.Schema(
     bookingId: { type: mongoose.Schema.Types.ObjectId, ref: "Booking", required: true },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     workerId: { type: mongoose.Schema.Types.ObjectId, ref: "Worker", required: true },
-    razorpayOrderId: { type: String, required: true },
+    razorpayOrderId: { type: String },
     razorpayPaymentId: { type: String },
     razorpaySignature: { type: String },
     transactionId: { type: String }, // Unique transaction ID for reference
@@ -14,7 +14,7 @@ const paymentSchema = new mongoose.Schema(
     workerUpiId: { type: String }, // UPI ID where payment goes
     status: {
       type: String,
-      enum: ["created", "attempted", "paid", "failed", "cancelled"],
+      enum: ["created", "attempted", "paid", "failed", "cancelled", "cod_pending"],
       default: "created",
     },
     method: {

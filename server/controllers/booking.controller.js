@@ -3,9 +3,51 @@ import Booking from "../models/booking.model.js";
 import Service from "../models/service.model.js";
 import Worker from "../models/Worker.js";
 
+const VALID_SERVICE_CATEGORIES = ["electrician", "plumber", "ac-repair", "carpenter", "painter", "cleaner"];
+const CATEGORY_ALIASES = {
+  electrician: ["electrician", "electrical", "electrical service", "electrical repair"],
+  plumber: ["plumber", "plumbing"],
+  "ac-repair": ["ac", "ac repair", "ac-repair", "air conditioner", "air conditioning"],
+  carpenter: ["carpenter", "carpentry"],
+  painter: ["painter", "painting"],
+  cleaner: ["cleaner", "cleaning", "maid"],
+};
+
+const normalizeCategory = (value) => {
+  if (!value || typeof value !== "string") return null;
+  const normalized = value.trim().toLowerCase();
+  if (VALID_SERVICE_CATEGORIES.includes(normalized)) return normalized;
+  for (const [category, aliases] of Object.entries(CATEGORY_ALIASES)) {
+    if (aliases.includes(normalized)) return category;
+  }
+  return null;
+};
+
+const normalizePaymentMethod = (value) => {
+  if (!value || typeof value !== "string") return "upi";
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "cod") return "cash";
+  if (["upi", "card", "cash"].includes(normalized)) return normalized;
+  return "upi";
+};
+
 export const createBooking = async (req, res) => {
   try {
-    const { serviceId, date, address, notes, workerId, serviceName, price: requestedPrice } = req.body;
+    const {
+      serviceId,
+      date,
+      address,
+      notes,
+      workerId,
+      serviceName,
+      price: requestedPrice,
+      category: requestedCategory,
+      paymentMethod: requestedPaymentMethod,
+    } = req.body;
+
+    const paymentMethod = normalizePaymentMethod(requestedPaymentMethod);
+    const requestedCategoryValue = normalizeCategory(requestedCategory);
+
     
     if (!date || !address) {
       return res.status(400).json({
@@ -51,10 +93,11 @@ export const createBooking = async (req, res) => {
     }
 
     if (!service && resolvedWorkerId) {
+      const category = requestedCategoryValue || normalizeCategory(serviceName) || "electrician";
       const newService = await Service.create({
         title: serviceName || "Professional Service",
         description: notes?.problemDesc || notes?.description || "Service booked through platform",
-        category: "general",
+        category,
         price,
         location: "Remote",
         workerId: resolvedWorkerId,
@@ -108,9 +151,10 @@ export const createBooking = async (req, res) => {
       serviceId: resolvedServiceId,
       amount: price,
       price,
+      paymentMethod,
       date,
       address,
-      notes: notesString
+      notes: notesString,
     });
 
     // Emit socket event to worker

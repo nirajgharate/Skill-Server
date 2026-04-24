@@ -11,21 +11,12 @@ const razorpay = new Razorpay({
 
 export const createPaymentOrder = async (req, res) => {
   try {
-    const { bookingId, amount, currency = "INR", notes } = req.body;
+    const { bookingId, amount, currency = "INR", notes, method = "upi" } = req.body;
+    const paymentMethod = String(method || "upi").trim().toLowerCase();
 
     const booking = await Booking.findOne({ _id: bookingId, userId: req.user.id }).populate("serviceId");
     if (!booking) {
       return res.status(404).json({ success: false, message: "Booking not found or unauthorized" });
-    }
-
-    // Get worker details including UPI ID
-    const worker = await Worker.findById(booking.workerId);
-    if (!worker || !worker.upiId) {
-      return res.status(400).json({
-        success: false,
-        message: "⚠️ Worker payment details not configured",
-        code: "WORKER_NO_UPI"
-      });
     }
 
     const existingPayment = await Payment.findOne({ bookingId, status: "paid" });
@@ -33,23 +24,105 @@ export const createPaymentOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: "Payment already completed for this booking" });
     }
 
-    const orderOptions = {
-      amount: Number(amount) * 100,
-      currency,
-      receipt: `booking_${bookingId}_${Date.now()}`,
-      notes: {
-        bookingId: bookingId.toString(),
-        userId: req.user.id,
-        workerId: booking.workerId.toString(),
-        serviceName: booking.serviceId?.name || booking.serviceId,
-        ...notes,
-      },
+    const amountValue = Number(amount) || booking.amount || booking.price || 0;
+    const transactionId = `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+    const orderNotes = {
+      bookingId: bookingId.toString(),
+      userId: req.user.id,
+      workerId: booking.workerId.toString(),
+      serviceName: booking.serviceId?.name || booking.serviceId,
+      method: paymentMethod,
+      ...notes,
     };
 
-    const razorpayOrder = await razorpay.orders.create(orderOptions);
+    if (paymentMethod === "cash") {
+      const payment = await Payment.create({
+        bookingId,
+        userId: req.user.id,
+        workerId: booking.workerId,
+        razorpayOrderId: null,
+        transactionId,
+        amount: amountValue * 100,
+        currency,
+        workerUpiId: null,
+        status: "cod_pending",
+        description: `Cash on Delivery booking for ${booking.serviceId?.name || "service"}`,
+        notes: orderNotes,
+        method: "cash",
+      });
 
-    // Generate unique transaction ID
-    const transactionId = `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+      await Booking.findByIdAndUpdate(bookingId, { status: "pending" });
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          bookingId,
+          paymentId: payment._id,
+          status: payment.status,
+          transactionId,
+          amount: amountValue,
+          currency,
+          method: payment.method,
+          message: "Cash on Delivery selected. Your booking has been created.",
+        },
+      });
+    }
+
+    const worker = await Worker.findById(booking.workerId);
+    if (!worker) {
+      return res.status(400).json({ success: false, message: "Worker payment details not configured" });
+    }
+
+    if (paymentMethod === "upi" && !worker.upiId) {
+      return res.status(400).json({
+        success: false,
+        message: "Worker UPI details are not configured, please choose another payment method.",
+        code: "WORKER_NO_UPI",
+      });
+    }
+
+    const orderOptions = {
+      amount: amountValue * 100,
+      currency,
+      receipt: `booking_${bookingId}_${Date.now()}`,
+      notes: orderNotes,
+    };
+
+    let razorpayOrder;
+    try {
+      razorpayOrder = await razorpay.orders.create(orderOptions);
+    } catch (error) {
+      console.error("Razorpay order create failed, saving failed payment record:", error);
+      const payment = await Payment.create({
+        bookingId,
+        userId: req.user.id,
+        workerId: booking.workerId,
+        razorpayOrderId: null,
+        transactionId,
+        amount: amountValue * 100,
+        currency,
+        workerUpiId: worker.upiId || null,
+        status: "failed",
+        description: `Payment order creation failed for ${booking.serviceId?.name || "service"}`,
+        notes: orderNotes,
+        method: paymentMethod,
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          bookingId,
+          paymentId: payment._id,
+          transactionId,
+          amount: amountValue,
+          currency,
+          method: payment.method,
+          status: payment.status,
+          message: "Booking created, but payment order could not be started. You can complete payment from My Bookings.",
+          error: error.message,
+        },
+      });
+    }
 
     const payment = await Payment.create({
       bookingId,
@@ -59,11 +132,11 @@ export const createPaymentOrder = async (req, res) => {
       transactionId,
       amount: razorpayOrder.amount,
       currency: razorpayOrder.currency,
-      workerUpiId: worker.upiId,
+      workerUpiId: worker.upiId || null,
       status: "created",
       description: `Payment for ${booking.serviceId?.name || "service"} to ${worker.name}`,
-      notes: orderOptions.notes,
-      method: req.body.method || "upi",
+      notes: orderNotes,
+      method: paymentMethod,
     });
 
     res.status(200).json({
@@ -75,8 +148,10 @@ export const createPaymentOrder = async (req, res) => {
         key: process.env.RAZORPAY_KEY_ID || "rzp_test_Sf4fNNSo3H0zgA",
         paymentRecordId: payment._id,
         transactionId,
-        workerUpiId: worker.upiId,
+        workerUpiId: worker.upiId || null,
         workerName: worker.name,
+        status: payment.status,
+        method: payment.method,
       },
     });
   } catch (error) {
@@ -104,6 +179,7 @@ export const verifyPayment = async (req, res) => {
         razorpayPaymentId: razorpay_payment_id,
         razorpaySignature: razorpay_signature,
       });
+      await Booking.findByIdAndUpdate(payment.bookingId, { status: "pending" });
       return res.status(400).json({ success: false, message: "Payment verification failed" });
     }
 
@@ -119,7 +195,7 @@ export const verifyPayment = async (req, res) => {
     // Update booking status
     const updatedBooking = await Booking.findByIdAndUpdate(
       payment.bookingId,
-      { status: paymentStatus === "paid" ? "confirmed" : "cancelled" },
+      { status: paymentStatus === "paid" ? "confirmed" : "pending" },
       { new: true }
     ).populate("serviceId").populate("workerId", "name");
 
@@ -216,6 +292,9 @@ export const handlePaymentFailure = async (req, res) => {
     if (!payment) {
       return res.status(404).json({ success: false, message: "Payment record not found" });
     }
+
+    await Booking.findByIdAndUpdate(payment.bookingId, { status: "pending" });
+
     res.status(200).json({ success: true, message: "Payment failure recorded", data: payment });
   } catch (error) {
     console.error("Payment failure handling error:", error);
