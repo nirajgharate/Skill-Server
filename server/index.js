@@ -4,7 +4,6 @@ import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import connectDB from "./config/db.js";
-import { connectRedis } from "./config/redis.js";
 import authRoutes from "./routes/auth.routes.js";
 import serviceRoutes from "./routes/service.routes.js";
 import bookingRoutes from "./routes/booking.routes.js";
@@ -14,9 +13,6 @@ import { initializeSocketIO } from "./controllers/socketio.controller.js";
 
 dotenv.config();
 connectDB();
-connectRedis().catch((error) => {
-  console.warn("Redis failed to connect:", error.message || error);
-});
 
 const app = express();
 const httpServer = createServer(app);
