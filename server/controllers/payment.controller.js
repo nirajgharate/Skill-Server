@@ -4,9 +4,18 @@ import Payment from "../models/payment.model.js";
 import Booking from "../models/booking.model.js";
 import Worker from "../models/Worker.js";
 
+const razorpayKeyId = process.env.RAZORPAY_KEY_ID;
+const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
+
+if (!razorpayKeyId || !razorpayKeySecret) {
+  throw new Error(
+    "Missing Razorpay environment variables: RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET"
+  );
+}
+
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || "rzp_test_Sf4fNNSo3H0zgA",
-  key_secret: process.env.RAZORPAY_KEY_SECRET || "kfubHGuKGuzmv3mmDNybAVQs",
+  key_id: razorpayKeyId,
+  key_secret: razorpayKeySecret,
 });
 
 export const createPaymentOrder = async (req, res) => {
@@ -145,7 +154,7 @@ export const createPaymentOrder = async (req, res) => {
         orderId: razorpayOrder.id,
         amount: razorpayOrder.amount,
         currency: razorpayOrder.currency,
-        key: process.env.RAZORPAY_KEY_ID || "rzp_test_Sf4fNNSo3H0zgA",
+        key: razorpayKeyId,
         paymentRecordId: payment._id,
         transactionId,
         workerUpiId: worker.upiId || null,
@@ -169,7 +178,7 @@ export const verifyPayment = async (req, res) => {
     }
 
     const generatedSignature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || "kfubHGuKGuzmv3mmDNybAVQs")
+      .createHmac("sha256", razorpayKeySecret)
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest("hex");
 
