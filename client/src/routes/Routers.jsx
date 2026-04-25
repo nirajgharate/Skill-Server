@@ -31,6 +31,8 @@ import ProfilePageProfessional from "../pages/profile/ProfilePageProfessional";
 import WorkerProfileEdit from "../pages/profile/WorkerProfileEdit";
 import WorkerSchedule from "../pages/dashboard/WorkerSchedule";
 import WorkerEarnings from "../pages/dashboard/WorkerEarnings";
+import WorkerBookings from "../pages/dashboard/WorkerBookings";
+import WorkerBookingDetails from "../pages/dashboard/WorkerBookingDetails";
 import NotificationPage from "../pages/NotificationPage";
 
 export default function Routers() {
@@ -133,6 +135,22 @@ export default function Routers() {
         element={
           <ProtectedRoute allowedRole="worker">
             <WorkerEarnings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/worker/bookings"
+        element={
+          <ProtectedRoute allowedRole="worker">
+            <WorkerBookings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/worker/bookings/:bookingId"
+        element={
+          <ProtectedRoute allowedRole="worker">
+            <WorkerBookingDetails />
           </ProtectedRoute>
         }
       />

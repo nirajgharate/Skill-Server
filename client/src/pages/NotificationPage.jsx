@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
@@ -12,73 +12,145 @@ import {
   X,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useSocket } from "../hooks/useSocket";
 
 export default function NotificationPage() {
   const navigate = useNavigate();
+  const { registerUser, on, off } = useSocket();
 
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      type: "job_request",
-      title: "New Job Request",
-      message: "Aditi Verma requested electrical repair service",
-      time: "5 mins ago",
-      read: false,
-      icon: Briefcase,
-      color: "bg-blue-100 text-blue-600",
-    },
-    {
-      id: 2,
-      type: "job_accepted",
-      title: "Job Accepted",
-      message: "Your electrical repair job on Apr 18 has been confirmed",
-      time: "1 hour ago",
-      read: false,
-      icon: CheckCircle2,
-      color: "bg-green-100 text-green-600",
-    },
-    {
-      id: 3,
-      type: "payment",
-      title: "Payment Received",
-      message: "₹500 has been added to your wallet from completed job",
-      time: "2 hours ago",
-      read: true,
-      icon: Zap,
-      color: "bg-amber-100 text-amber-600",
-    },
-    {
-      id: 4,
-      type: "review",
-      title: "New Review",
-      message: "Rahul Singh left you a 5-star review: Excellent work!",
-      time: "3 hours ago",
-      read: true,
-      icon: Star,
-      color: "bg-purple-100 text-purple-600",
-    },
-    {
-      id: 5,
-      type: "system",
-      title: "Profile Incomplete",
-      message:
-        "Complete your profile to increase visibility in worker listings",
-      time: "Yesterday",
-      read: true,
-      icon: AlertCircle,
-      color: "bg-slate-100 text-slate-600",
-    },
-    {
-      id: 6,
-      type: "message",
-      title: "New Message",
-      message: "Priya Sharma sent you a message about plumbing services",
-      time: "Yesterday",
-      read: true,
-      icon: MessageSquare,
-      color: "bg-indigo-100 text-indigo-600",
-    },
-  ]);
+  const [notifications, setNotifications] = useState([]);
+
+  const saveNotifications = (items) => {
+    localStorage.setItem("skillserverNotifications", JSON.stringify(items));
+    setNotifications(items);
+  };
+
+  const addNotification = useCallback((notification) => {
+    setNotifications((prev) => {
+      const next = [notification, ...prev].slice(0, 50);
+      localStorage.setItem("skillserverNotifications", JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    const stored = JSON.parse(
+      localStorage.getItem("skillserverNotifications") || "[]",
+    );
+    if (stored.length) {
+      setNotifications(stored);
+      return;
+    }
+
+    const initial = [
+      {
+        id: 1,
+        type: "job_request",
+        title: "New Job Request",
+        message: "Aditi Verma requested electrical repair service",
+        time: "5 mins ago",
+        read: false,
+        icon: Briefcase,
+        color: "bg-blue-100 text-blue-600",
+      },
+      {
+        id: 2,
+        type: "job_accepted",
+        title: "Job Accepted",
+        message: "Your electrical repair job on Apr 18 has been confirmed",
+        time: "1 hour ago",
+        read: false,
+        icon: CheckCircle2,
+        color: "bg-green-100 text-green-600",
+      },
+      {
+        id: 3,
+        type: "payment",
+        title: "Payment Received",
+        message: "₹500 has been added to your wallet from completed job",
+        time: "2 hours ago",
+        read: true,
+        icon: Zap,
+        color: "bg-amber-100 text-amber-600",
+      },
+      {
+        id: 4,
+        type: "review",
+        title: "New Review",
+        message: "Rahul Singh left you a 5-star review: Excellent work!",
+        time: "3 hours ago",
+        read: true,
+        icon: Star,
+        color: "bg-purple-100 text-purple-600",
+      },
+      {
+        id: 5,
+        type: "system",
+        title: "Profile Incomplete",
+        message:
+          "Complete your profile to increase visibility in worker listings",
+        time: "Yesterday",
+        read: true,
+        icon: AlertCircle,
+        color: "bg-slate-100 text-slate-600",
+      },
+      {
+        id: 6,
+        type: "message",
+        title: "New Message",
+        message: "Priya Sharma sent you a message about plumbing services",
+        time: "Yesterday",
+        read: true,
+        icon: MessageSquare,
+        color: "bg-indigo-100 text-indigo-600",
+      },
+    ];
+    saveNotifications(initial);
+  }, [saveNotifications]);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("skillserverUser");
+    if (!stored) return;
+
+    const user = JSON.parse(stored);
+    registerUser(user._id, user.role || "user");
+
+    const handleBookingAccepted = (data) => {
+      if (data.userId !== user._id) return;
+      addNotification({
+        id: `${Date.now()}-accepted`,
+        type: "job_accepted",
+        title: "Worker Accepted Your Booking",
+        message: `${data.workerName} accepted your booking for ${data.serviceName}.`,
+        time: "Just now",
+        read: false,
+        icon: CheckCircle2,
+        color: "bg-green-100 text-green-600",
+      });
+    };
+
+    const handleBookingRejected = (data) => {
+      if (data.userId !== user._id) return;
+      addNotification({
+        id: `${Date.now()}-rejected`,
+        type: "job_rejected",
+        title: "Booking Rejected",
+        message: data.message || "Your booking was rejected.",
+        time: "Just now",
+        read: false,
+        icon: AlertCircle,
+        color: "bg-red-100 text-red-600",
+      });
+    };
+
+    on("booking_accepted", handleBookingAccepted);
+    on("booking_rejected", handleBookingRejected);
+
+    return () => {
+      off("booking_accepted", handleBookingAccepted);
+      off("booking_rejected", handleBookingRejected);
+    };
+  }, [addNotification, off, on, registerUser]);
 
   const removeNotification = (id) => {
     setNotifications(notifications.filter((n) => n.id !== id));

@@ -25,10 +25,35 @@ export default function ConfirmationPage() {
   // Get booking data from state
   const { bookingId, bookingData } = location.state || {};
   const booking = bookingData || {};
+  const bookingIdentifier = booking._id || bookingId || "--";
+  const bookingStatus = String(
+    booking.status || booking.bookingStatus || "pending",
+  ).toLowerCase();
+  const isPending = ["pending", "created", "cod_pending"].includes(
+    bookingStatus,
+  );
+  const isAccepted = [
+    "accepted",
+    "confirmed",
+    "paid",
+    "active",
+    "in-progress",
+  ].includes(bookingStatus);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+
+    if (!bookingId && !bookingData) {
+      navigate("/dashboard", { replace: true });
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      navigate("/dashboard", { replace: true });
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [bookingData, bookingId, navigate]);
 
   const handleCopy = (text, id) => {
     navigator.clipboard.writeText(text);
@@ -88,7 +113,7 @@ export default function ConfirmationPage() {
             <p className="text-sm font-bold text-gray-600">
               Booking ID:{" "}
               <span className="text-blue-600">
-                {bookingInfo._id?.substring(0, 8)}...
+                {String(bookingIdentifier).substring(0, 8)}...
               </span>
             </p>
           </motion.div>

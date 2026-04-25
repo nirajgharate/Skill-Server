@@ -71,6 +71,14 @@ export default function UserDashboard() {
     loadUserData();
   }, [authUser]);
 
+  const saveNotification = (notification) => {
+    const existing = JSON.parse(
+      localStorage.getItem("skillserverNotifications") || "[]",
+    );
+    const next = [notification, ...existing].slice(0, 50);
+    localStorage.setItem("skillserverNotifications", JSON.stringify(next));
+  };
+
   useEffect(() => {
     const stored = localStorage.getItem("skillserverUser");
     if (stored) {
@@ -80,7 +88,41 @@ export default function UserDashboard() {
       const handleBookingUpdate = (data) => {
         console.log("📡 Booking status changed:", data);
         if (data.userId === userData._id) {
-          loadUserData(); // Refresh dashboard data
+          loadUserData();
+        }
+      };
+
+      const handleBookingAccepted = (data) => {
+        console.log("📡 Booking accepted:", data);
+        if (data.userId === userData._id) {
+          loadUserData();
+          saveNotification({
+            id: `${Date.now()}-accepted`,
+            type: "job_accepted",
+            title: "Worker Accepted Your Booking",
+            message: `${data.workerName} accepted your booking for ${data.serviceName}.`,
+            time: "Just now",
+            read: false,
+            icon: CheckCircle2,
+            color: "bg-green-100 text-green-600",
+          });
+        }
+      };
+
+      const handleBookingRejected = (data) => {
+        console.log("📡 Booking rejected:", data);
+        if (data.userId === userData._id) {
+          loadUserData();
+          saveNotification({
+            id: `${Date.now()}-rejected`,
+            type: "job_rejected",
+            title: "Booking Rejected",
+            message: data.message || "Your booking request was rejected.",
+            time: "Just now",
+            read: false,
+            icon: AlertCircle,
+            color: "bg-red-100 text-red-600",
+          });
         }
       };
 
@@ -92,10 +134,14 @@ export default function UserDashboard() {
       };
 
       on("booking_status_changed", handleBookingUpdate);
+      on("booking_accepted", handleBookingAccepted);
+      on("booking_rejected", handleBookingRejected);
       on("user_profile_updated", handleUserUpdate);
 
       return () => {
         off("booking_status_changed", handleBookingUpdate);
+        off("booking_accepted", handleBookingAccepted);
+        off("booking_rejected", handleBookingRejected);
         off("user_profile_updated", handleUserUpdate);
       };
     }

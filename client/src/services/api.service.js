@@ -219,6 +219,17 @@ export const bookingService = {
     }
   },
 
+  // Get worker bookings
+  async getWorkerBookings() {
+    try {
+      const response = await API.get("/bookings/worker/me");
+      return response.data?.data || [];
+    } catch (error) {
+      console.error("Error fetching worker bookings:", error);
+      throw error;
+    }
+  },
+
   // Update booking status
   async updateBookingStatus(bookingId, status) {
     try {

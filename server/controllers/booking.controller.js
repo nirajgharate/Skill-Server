@@ -364,8 +364,14 @@ export const completeBooking = async (req, res) => {
       return res.status(403).json({ success: false, message: "Unauthorized" });
     }
 
-    if (booking.status !== "active") {
-      return res.status(400).json({ success: false, message: "Only active bookings can be completed" });
+    const bookingStatus = String(booking.status || "").toLowerCase();
+    const allowedStatuses = ["active", "confirmed", "accepted", "in-progress"];
+
+    if (!allowedStatuses.includes(bookingStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: `Only active bookings can be completed. Current status: ${booking.status}`,
+      });
     }
 
     booking.status = "completed";
@@ -417,20 +423,26 @@ export const getUserDashboardStats = async (req, res) => {
 
     // Calculate stats
     const totalBookings = bookings.length;
-    const completedBookings = bookings.filter(b => b.status === "completed").length;
+    const completedBookings = bookings.filter(
+      (b) => String(b.status || "").toLowerCase() === "completed",
+    ).length;
     const totalSpent = bookings
-      .filter(b => b.status === "completed")
+      .filter((b) => String(b.status || "").toLowerCase() === "completed")
       .reduce((sum, b) => sum + b.price, 0);
 
     // Calculate average rating from completed bookings
-    const ratedBookings = bookings.filter(b => b.status === "completed" && b.workerId?.rating);
+    const ratedBookings = bookings.filter(
+      (b) => String(b.status || "").toLowerCase() === "completed" && b.workerId?.rating,
+    );
     const averageRating = ratedBookings.length > 0
       ? ratedBookings.reduce((sum, b) => sum + b.workerId.rating, 0) / ratedBookings.length
       : 0;
 
-    // Get active bookings (pending, confirmed, in-progress)
-    const activeBookings = bookings.filter(b =>
-      ["pending", "confirmed", "accepted", "in-progress"].includes(b.status)
+    // Get active bookings (pending, confirmed, accepted, in-progress, active, paid)
+    const activeBookings = bookings.filter((b) =>
+      ["pending", "confirmed", "accepted", "in-progress", "active", "paid"].includes(
+        String(b.status || "").toLowerCase(),
+      ),
     );
 
     // Get recent bookings (last 5)
@@ -508,6 +520,16 @@ export const acceptBooking = async (req, res) => {
       userId: booking.userId._id,
       workerName: booking.workerId.name,
       serviceName: booking.serviceId.name,
+      status: booking.status,
+    });
+
+    req.io.emit("booking_status_changed", {
+      bookingId: booking._id,
+      userId: booking.userId._id,
+      status: booking.status,
+      workerName: booking.workerId.name,
+      serviceName: booking.serviceId.name,
+      message: `${booking.workerId.name} accepted your booking for ${booking.serviceId.name}`,
     });
 
     res.status(200).json({ success: true, message: "Booking accepted successfully", data: booking });
@@ -548,7 +570,16 @@ export const rejectBooking = async (req, res) => {
     req.io.emit("booking_rejected", {
       bookingId: booking._id,
       userId: booking.userId._id,
+      status: booking.status,
       reason,
+    });
+
+    req.io.emit("booking_status_changed", {
+      bookingId: booking._id,
+      userId: booking.userId._id,
+      status: booking.status,
+      reason,
+      message: `Your booking has been rejected${reason ? `: ${reason}` : ""}`,
     });
 
     res.status(200).json({ success: true, message: "Booking rejected", data: booking });
@@ -580,27 +611,24 @@ export const markWorkDone = async (req, res) => {
       return res.status(403).json({ success: false, message: "Unauthorized: Worker cannot mark other's work" });
     }
 
-    if (booking.status !== "accepted" && booking.status !== "in-progress") {
+    const bookingStatus = String(booking.status || "").toLowerCase();
+    const allowedStatuses = ["accepted", "in-progress", "confirmed", "active", "paid"];
+
+    if (!allowedStatuses.includes(bookingStatus)) {
       return res.status(400).json({ success: false, message: `Cannot mark work done. Booking status is: ${booking.status}` });
     }
 
-    // Mark work done
+    // Mark work done and complete immediately for the actor.
     if (role === "user") {
       booking.userMarkedDoneAt = new Date();
-    } else {
+    }
+
+    if (role === "worker") {
       booking.workerMarkedDoneAt = new Date();
     }
 
-    // Set status to in-progress if not already
-    if (booking.status === "accepted") {
-      booking.status = "in-progress";
-    }
-
-    // Check if both have marked as done
-    if (booking.userMarkedDoneAt && booking.workerMarkedDoneAt) {
-      booking.status = "completed";
-      booking.completedAt = new Date();
-    }
+    booking.status = "completed";
+    booking.completedAt = new Date();
 
     await booking.save();
 

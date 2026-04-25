@@ -38,9 +38,9 @@ export default function MyBookingsDashboard() {
       setLoading(true);
       setError(null);
       const response = await API.get("/bookings/user/me");
-      
+
       console.log("Bookings API Response:", response.data); // Debug log
-      
+
       if (response.data && response.data.data) {
         setBookings(response.data.data);
       } else if (Array.isArray(response.data)) {
@@ -50,7 +50,10 @@ export default function MyBookingsDashboard() {
       }
     } catch (err) {
       console.error("Error fetching bookings:", err);
-      setError(err.response?.data?.message || "Failed to load bookings. Please try again.");
+      setError(
+        err.response?.data?.message ||
+          "Failed to load bookings. Please try again.",
+      );
       setBookings([]);
     } finally {
       setLoading(false);
@@ -64,34 +67,72 @@ export default function MyBookingsDashboard() {
       fetchBookings();
     } catch (err) {
       console.error("Failed to mark work done:", err);
+      window.alert(
+        err.response?.data?.message ||
+          "Unable to complete booking. Please refresh and try again.",
+      );
     }
   };
 
+  const normalizeStatus = (status) => String(status || "").toLowerCase();
+  const activeStatuses = [
+    "active",
+    "accepted",
+    "pending",
+    "confirmed",
+    "in-progress",
+    "paid",
+  ];
+
+  const formatDate = (value) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "TBD";
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const formatTime = (value) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "TBD";
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
   const getStatusColor = (status) => {
-    switch (status) {
-      case "Confirmed":
-      case "Active":
+    const normalized = normalizeStatus(status);
+    switch (normalized) {
+      case "confirmed":
+      case "active":
+      case "accepted":
         return {
           bg: "bg-blue-50",
           text: "text-blue-700",
           icon: "text-blue-500",
           badge: "bg-blue-100",
         };
-      case "Completed":
+      case "completed":
         return {
           bg: "bg-emerald-50",
           text: "text-emerald-700",
           icon: "text-emerald-500",
           badge: "bg-emerald-100",
         };
-      case "Cancelled":
+      case "cancelled":
+      case "rejected":
         return {
           bg: "bg-red-50",
           text: "text-red-700",
           icon: "text-red-500",
           badge: "bg-red-100",
         };
-      case "Pending":
+      case "pending":
+      case "cod_pending":
         return {
           bg: "bg-amber-50",
           text: "text-amber-700",
@@ -109,12 +150,15 @@ export default function MyBookingsDashboard() {
   };
 
   const getStatusIcon = (status) => {
-    switch (status) {
-      case "Completed":
+    const normalized = normalizeStatus(status);
+    switch (normalized) {
+      case "completed":
         return <CheckCircle2 size={18} />;
-      case "Cancelled":
+      case "cancelled":
+      case "rejected":
         return <XCircle size={18} />;
-      case "Pending":
+      case "pending":
+      case "cod_pending":
         return <AlertCircle size={18} />;
       default:
         return <Calendar size={18} />;
@@ -122,91 +166,113 @@ export default function MyBookingsDashboard() {
   };
 
   const filteredBookings = bookings.filter((booking) => {
-    if (activeTab === "Active") return booking.status === "Active";
-    if (activeTab === "Completed") return booking.status === "Completed";
-    if (activeTab === "Cancelled") return booking.status === "Cancelled";
+    const status = normalizeStatus(booking.status);
+    if (activeTab === "Active")
+      return [
+        "active",
+        "accepted",
+        "pending",
+        "confirmed",
+        "in-progress",
+        "paid",
+      ].includes(status);
+    if (activeTab === "Completed") return status === "completed";
+    if (activeTab === "Cancelled")
+      return ["cancelled", "rejected"].includes(status);
     return true;
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 pt-32 pb-24 px-4 md:px-8">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-50 via-sky-50 to-slate-100 pt-32 pb-24 px-4 md:px-8">
+      <div className="absolute -top-20 left-0 h-72 w-72 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
+      <div className="absolute top-24 right-0 h-64 w-64 rounded-full bg-sky-400/10 blur-3xl pointer-events-none" />
       <div className="max-w-7xl mx-auto">
         {/* HEADER SECTION */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-16"
+          className="mb-16 relative"
         >
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-8">
-            <div>
-              <h1 className="text-5xl md:text-6xl font-black text-slate-900 tracking-tight mb-3">
-                My Bookings
-              </h1>
-              <p className="text-lg text-slate-600 font-semibold">
-                Track and manage all your professional service bookings
-              </p>
+          <div className="relative overflow-hidden rounded-[2.5rem] border border-slate-200 bg-white/95 backdrop-blur-xl p-8 shadow-xl shadow-slate-200/10">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-8">
+              <div>
+                <h1 className="text-5xl md:text-6xl font-black text-slate-900 tracking-tight mb-3">
+                  My Bookings
+                </h1>
+                <p className="text-lg text-slate-600 font-semibold">
+                  Track and manage all your professional service bookings
+                </p>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => navigate("/services")}
+                className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-black text-sm rounded-xl flex items-center gap-2 shadow-lg shadow-indigo-200/50 hover:shadow-xl hover:shadow-indigo-300/60 transition-all uppercase tracking-widest"
+              >
+                <Plus size={18} />
+                New Booking
+              </motion.button>
             </div>
-            <motion.button
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => navigate("/services")}
-              className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-black text-sm rounded-xl flex items-center gap-2 shadow-lg shadow-indigo-200/50 hover:shadow-xl hover:shadow-indigo-300/60 transition-all uppercase tracking-widest"
-            >
-              <Plus size={18} />
-              New Booking
-            </motion.button>
-          </div>
 
-          {/* STATS BAR */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="grid grid-cols-3 gap-5"
-          >
-            {[
-              {
-                label: "Total Bookings",
-                value: bookings.length,
-                color: "from-blue-600 to-blue-700",
-                icon: Calendar,
-              },
-              {
-                label: "Active",
-                value: bookings.filter((b) => b.status === "Active").length,
-                color: "from-indigo-600 to-indigo-700",
-                icon: Clock,
-              },
-              {
-                label: "Completed",
-                value: bookings.filter((b) => b.status === "Completed").length,
-                color: "from-emerald-600 to-emerald-700",
-                icon: CheckCircle2,
-              },
-            ].map((stat, idx) => {
-              const Icon = stat.icon;
-              return (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.08 }}
-                  className={`bg-gradient-to-br ${stat.color} rounded-xl p-5 text-white shadow-lg shadow-${stat.color.split(" ")[0]}/20`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-white/80 text-xs font-bold uppercase tracking-widest mb-2">
-                        {stat.label}
-                      </p>
-                      <p className="text-4xl font-black">{stat.value}</p>
+            {/* STATS BAR */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="grid grid-cols-3 gap-5"
+            >
+              {[
+                {
+                  label: "Total Bookings",
+                  value: bookings.length,
+                  color: "from-blue-600 to-blue-700",
+                  icon: Calendar,
+                },
+                {
+                  label: "Active",
+                  value: bookings.filter((b) =>
+                    activeStatuses.includes(normalizeStatus(b.status)),
+                  ).length,
+                  color: "from-indigo-600 to-indigo-700",
+                  icon: Clock,
+                },
+                {
+                  label: "Completed",
+                  value: bookings.filter(
+                    (b) => normalizeStatus(b.status) === "completed",
+                  ).length,
+                  color: "from-emerald-600 to-emerald-700",
+                  icon: CheckCircle2,
+                },
+              ].map((stat, idx) => {
+                const Icon = stat.icon;
+                return (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.08 }}
+                    className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">
+                          {stat.label}
+                        </p>
+                        <p className="text-4xl font-black text-slate-900">
+                          {stat.value}
+                        </p>
+                      </div>
+                      <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-200/30">
+                        <Icon size={24} />
+                      </div>
                     </div>
-                    <Icon size={28} className="opacity-25" />
-                  </div>
-                </motion.div>
-              );
-            })}
-          </motion.div>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          </div>
         </motion.div>
 
         {/* TAB SELECTOR */}
@@ -218,9 +284,19 @@ export default function MyBookingsDashboard() {
         >
           {["Active", "Completed", "Cancelled"].map((tab) => {
             const tabCount = bookings.filter((b) => {
-              if (tab === "Active") return b.status === "Active";
-              if (tab === "Completed") return b.status === "Completed";
-              if (tab === "Cancelled") return b.status === "Cancelled";
+              const status = String(b.status || "").toLowerCase();
+              if (tab === "Active")
+                return [
+                  "active",
+                  "accepted",
+                  "pending",
+                  "confirmed",
+                  "in-progress",
+                  "paid",
+                ].includes(status);
+              if (tab === "Completed") return status === "completed";
+              if (tab === "Cancelled")
+                return ["cancelled", "rejected"].includes(status);
               return false;
             }).length;
 
@@ -328,20 +404,28 @@ export default function MyBookingsDashboard() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ delay: idx * 0.08 }}
-                    className={`group bg-gradient-to-br ${colors.bg} border border-slate-200 rounded-2xl shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden`}
+                    className={`group bg-white border border-slate-200 rounded-[2rem] shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden`}
                   >
                     {/* Status indicator bar */}
                     <div className={`h-1 ${colors.icon}`} />
 
-                    <div className="p-7">
+                    <div className="px-7 py-6">
                       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start md:items-center">
                         {/* Worker Info */}
                         <div className="md:col-span-3">
                           <div className="flex items-start gap-4">
                             <div className="relative">
                               <img
-                                src={booking.expertImage}
-                                alt={booking.expert}
+                                src={
+                                  booking.expertImage ||
+                                  booking.workerId?.photo ||
+                                  "https://images.pexels.com/photos/5935858/pexels-photo-5935858.jpeg?auto=compress&cs=tinysrgb&w=400"
+                                }
+                                alt={
+                                  booking.workerId?.name ||
+                                  booking.expert ||
+                                  "Expert"
+                                }
                                 className="w-16 h-16 rounded-xl object-cover shadow-lg group-hover:shadow-2xl transition-shadow"
                               />
                               <div
@@ -352,7 +436,9 @@ export default function MyBookingsDashboard() {
                             </div>
                             <div className="flex-1">
                               <p className="font-black text-slate-900 mb-1 line-clamp-1">
-                                {booking.expert}
+                                {booking.workerId?.name ||
+                                  booking.expert ||
+                                  "Service Expert"}
                               </p>
                               <div className="flex items-center gap-1 mb-2">
                                 <div className="flex gap-0.5">
@@ -360,7 +446,12 @@ export default function MyBookingsDashboard() {
                                     <span
                                       key={i}
                                       className={
-                                        i < Math.floor(booking.rating)
+                                        i <
+                                        Math.floor(
+                                          booking.workerId?.rating ??
+                                            booking.rating ??
+                                            0,
+                                        )
                                           ? "text-amber-400"
                                           : "text-slate-300"
                                       }
@@ -370,7 +461,9 @@ export default function MyBookingsDashboard() {
                                   ))}
                                 </div>
                                 <span className="text-xs font-bold text-amber-600 ml-1">
-                                  {booking.rating}
+                                  {booking.workerId?.rating ??
+                                    booking.rating ??
+                                    "0.0"}
                                 </span>
                               </div>
                               <p className="text-xs text-slate-500 font-semibold">
@@ -382,54 +475,62 @@ export default function MyBookingsDashboard() {
 
                         {/* SERVICE DETAILS */}
                         <div className="md:col-span-3 space-y-3">
-                          <p className="text-xs font-bold text-slate-600 uppercase tracking-widest">
+                          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
                             Service Details
                           </p>
                           <div>
                             <p className="text-lg font-black text-slate-900 mb-3">
-                              {booking.service}
+                              {booking.serviceId?.name ||
+                                booking.service ||
+                                "Service"}
                             </p>
                           </div>
-                          <div className="space-y-2.5">
+                          <div className="space-y-3">
                             <div className="flex items-center gap-3 text-slate-700 text-sm">
-                              <div className="p-2 rounded-lg bg-indigo-100">
+                              <div className="p-3 rounded-2xl bg-indigo-100">
                                 <Calendar
-                                  size={14}
+                                  size={16}
                                   className="text-indigo-600"
                                 />
                               </div>
                               <div>
-                                <p className="text-xs text-slate-500 font-bold">
+                                <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
                                   Date
                                 </p>
                                 <span className="font-black">
-                                  {booking.date}
+                                  {formatDate(
+                                    booking.date || booking.createdAt,
+                                  )}
                                 </span>
                               </div>
                             </div>
                             <div className="flex items-center gap-3 text-slate-700 text-sm">
-                              <div className="p-2 rounded-lg bg-blue-100">
-                                <Clock size={14} className="text-blue-600" />
+                              <div className="p-3 rounded-2xl bg-blue-100">
+                                <Clock size={16} className="text-blue-600" />
                               </div>
                               <div>
-                                <p className="text-xs text-slate-500 font-bold">
+                                <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
                                   Time
                                 </p>
                                 <span className="font-black">
-                                  {booking.time}
+                                  {formatTime(
+                                    booking.date || booking.createdAt,
+                                  )}
                                 </span>
                               </div>
                             </div>
                             <div className="flex items-center gap-3 text-slate-700 text-sm">
-                              <div className="p-2 rounded-lg bg-purple-100">
-                                <MapPin size={14} className="text-purple-600" />
+                              <div className="p-3 rounded-2xl bg-sky-100">
+                                <MapPin size={16} className="text-sky-600" />
                               </div>
                               <div className="flex-1">
-                                <p className="text-xs text-slate-500 font-bold">
+                                <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
                                   Location
                                 </p>
-                                <span className="font-black line-clamp-1 text-xs">
-                                  {booking.location}
+                                <span className="font-black line-clamp-1 text-sm">
+                                  {booking.address ||
+                                    booking.location ||
+                                    "Location not provided"}
                                 </span>
                               </div>
                             </div>
@@ -437,35 +538,46 @@ export default function MyBookingsDashboard() {
                         </div>
 
                         {/* AMOUNT & STATUS */}
-                        <div className="md:col-span-2 rounded-xl p-5 border-2 border-indigo-200 bg-gradient-to-br from-indigo-50/80 to-blue-50/80">
-                          <p className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-3">
+                        <div className="md:col-span-2 rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
                             Payment
                           </p>
-                          <p className="text-3xl font-black text-indigo-700 mb-4 flex items-baseline gap-1">
-                            <IndianRupee size={22} />
-                            {booking.amount?.toLocaleString()}
+                          <p className="text-3xl font-black text-slate-900 mb-4 flex items-baseline gap-1">
+                            <IndianRupee
+                              size={22}
+                              className="text-indigo-700"
+                            />
+                            {(
+                              (booking.amount ?? booking.price ?? 0) ||
+                              0
+                            ).toLocaleString()}
                           </p>
-                          <div className="flex flex-col gap-2">
+                          <div className="flex flex-col gap-3">
                             <div
-                              className={`px-3 py-2 rounded-lg text-xs font-black uppercase tracking-widest w-fit ${colors.badge} ${colors.text} shadow-sm`}
+                              className={`inline-flex px-3 py-2 rounded-full text-[11px] font-black uppercase tracking-widest ${colors.badge} ${colors.text} shadow-sm`}
                             >
-                              {booking.status}
+                              {String(booking.status || "").replace(/_/g, " ")}
                             </div>
                             <p className="text-xs text-slate-600 font-semibold">
-                              Payment Verified ✓
+                              Status updated automatically
                             </p>
                           </div>
                         </div>
 
                         {/* ACTION BUTTONS */}
                         <div className="md:col-span-4 flex flex-col gap-2">
-                          {booking.status === "Confirmed" ||
-                          booking.status === "Active" ? (
+                          {["confirmed", "active", "in-progress"].includes(
+                            normalizeStatus(booking.status),
+                          ) ? (
                             <>
                               <motion.button
                                 whileHover={{ scale: 1.05, y: -2 }}
                                 whileTap={{ scale: 0.95 }}
-                                onClick={() => navigate("/tracking")}
+                                onClick={() =>
+                                  navigate("/tracking", {
+                                    state: { bookingId: booking._id },
+                                  })
+                                }
                                 className="w-full px-4 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-black rounded-xl text-xs uppercase tracking-widest shadow-lg shadow-indigo-200/60 hover:shadow-xl transition-all flex items-center justify-center gap-2 border border-indigo-300/30"
                               >
                                 <Map size={16} />
@@ -475,7 +587,9 @@ export default function MyBookingsDashboard() {
                                 <motion.button
                                   whileHover={{ scale: 1.05, y: -2 }}
                                   whileTap={{ scale: 0.95 }}
-                                  onClick={() => window.open(`tel:${booking.phone}`, '_self')}
+                                  onClick={() =>
+                                    window.open(`tel:${booking.phone}`, "_self")
+                                  }
                                   className="px-3 py-3 bg-white text-slate-700 font-black rounded-lg text-xs uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center justify-center gap-1.5 border border-slate-300 shadow-sm"
                                 >
                                   <Phone size={14} />
@@ -492,7 +606,9 @@ export default function MyBookingsDashboard() {
                                 <motion.button
                                   whileHover={{ scale: 1.05, y: -2 }}
                                   whileTap={{ scale: 0.95 }}
-                                  onClick={() => handleMarkWorkDone(booking._id)}
+                                  onClick={() =>
+                                    handleMarkWorkDone(booking._id)
+                                  }
                                   className="px-3 py-3 bg-emerald-50 text-emerald-700 font-black rounded-lg text-xs uppercase tracking-widest hover:bg-emerald-100 transition-all flex items-center justify-center gap-1.5 border border-emerald-300 shadow-sm"
                                 >
                                   <CheckCircle2 size={14} />
@@ -500,7 +616,8 @@ export default function MyBookingsDashboard() {
                                 </motion.button>
                               </div>
                             </>
-                          ) : booking.status === "Completed" ? (
+                          ) : normalizeStatus(booking.status) ===
+                            "completed" ? (
                             <>
                               <motion.button
                                 whileHover={{ scale: 1.05, y: -2 }}

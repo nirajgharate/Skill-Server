@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Clock,
+  Map,
   MapPin,
   Star,
   Calendar,
@@ -27,12 +28,13 @@ import {
   ArrowDownRight,
   Activity,
   BarChart3,
+  Loader2,
 } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import API from "../../api/api";
 import { useAuth } from "../../hooks/useAuth";
 import { useSocket } from "../../hooks/useSocket";
-import { workerService } from "../../services/api.service";
+import { workerService, bookingService } from "../../services/api.service";
 import EditProfileWorker from "./EditProfileWorker";
 
 export default function WorkerDashboard() {
@@ -48,56 +50,149 @@ export default function WorkerDashboard() {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [workerBookings, setWorkerBookings] = useState([]);
   const [bookingLoading, setBookingLoading] = useState(true);
-  const [activeJobs] = useState([
-    {
-      id: 1,
-      customer: "Aditi Verma",
-      service: "Electrical Repair",
-      location: "Sector 45, Gurugram",
-      time: "Today, 2:00 PM",
-      amount: "₹500",
-      status: "confirmed",
-      rating: null,
-    },
-    {
-      id: 2,
-      customer: "Rahul Singh",
-      service: "Plumbing Work",
-      location: "Sector 50, Gurugram",
-      time: "Tomorrow, 10:00 AM",
-      amount: "₹600",
-      status: "pending",
-      rating: null,
-    },
-  ]);
+  const [actionLoading, setActionLoading] = useState({});
+  const [actionError, setActionError] = useState(null);
+  const [activeTab, setActiveTab] = useState("Active");
 
-  const [pendingRequests] = useState([
-    {
-      id: 1,
-      customer: "Priya Sharma",
-      service: "Home Cleaning",
-      location: "DLF Phase 2, Gurugram",
-      distance: "2.4 km away",
-      amount: "₹800",
-      urgency: "high",
-    },
-    {
-      id: 2,
-      customer: "Vikram Patel",
-      service: "AC Repair",
-      location: "MG Road, Gurugram",
-      distance: "1.8 km away",
-      amount: "₹1,200",
-      urgency: "medium",
-    },
-  ]);
+  const pendingRequests = workerBookings.filter(
+    (job) => (job.status || "pending").toLowerCase() === "pending",
+  );
 
-  const [earnings] = useState({
-    today: 1250,
-    thisWeek: 8400,
-    thisMonth: 45230,
-    total: 245670,
-  });
+  const normalizeStatus = (status) => String(status || "").toLowerCase();
+
+  const trackingStatus = [
+    "accepted",
+    "in-progress",
+    "confirmed",
+    "active",
+    "completed",
+    "paid",
+  ];
+  const activeStatus = [
+    "pending",
+    "accepted",
+    "in-progress",
+    "confirmed",
+    "active",
+    "paid",
+  ];
+  const cancelledStatus = ["cancelled", "rejected"];
+
+  const getFilteredWorkerBookings = () => {
+    return workerBookings.filter((job) => {
+      const status = normalizeStatus(job.status);
+      if (activeTab === "Active") return activeStatus.includes(status);
+      if (activeTab === "Completed") return status === "completed";
+      if (activeTab === "Cancelled") return cancelledStatus.includes(status);
+      return true;
+    });
+  };
+
+  const getTabCount = (tab) => {
+    return workerBookings.filter((job) => {
+      const status = normalizeStatus(job.status);
+      if (tab === "Active") return activeStatus.includes(status);
+      if (tab === "Completed") return status === "completed";
+      if (tab === "Cancelled") return cancelledStatus.includes(status);
+      return false;
+    }).length;
+  };
+
+  const handleTrackBooking = (bookingId) => {
+    navigate("/tracking", { state: { bookingId } });
+  };
+
+  const handleViewDetails = (bookingId) => {
+    navigate(`/worker/bookings/${bookingId}`);
+  };
+
+  const handleMessage = (booking) => {
+    const phone = booking.userId?.phone || booking.phone;
+    const email = booking.userId?.email || booking.email;
+
+    if (phone) {
+      window.open(`sms:${phone}`, "_blank");
+      return;
+    }
+    if (email) {
+      window.open(`mailto:${email}`, "_blank");
+      return;
+    }
+    window.alert("No contact details are available for this booking.");
+  };
+
+  const handleCall = (booking) => {
+    const phone = booking.userId?.phone || booking.phone;
+    if (!phone) {
+      window.alert("Phone number not available for this user.");
+      return;
+    }
+    window.open(`tel:${phone}`, "_self");
+  };
+
+  const handleMarkWorkDone = async (bookingId) => {
+    setActionError(null);
+    setActionLoading((prev) => ({ ...prev, [bookingId]: true }));
+    try {
+      await bookingService.markWorkDone(bookingId, { role: "worker" });
+      await loadWorkerBookings();
+    } catch (err) {
+      console.error("Mark work done error:", err);
+      setActionError(
+        err.response?.data?.message ||
+          "Unable to mark work complete. Please try again.",
+      );
+    } finally {
+      setActionLoading((prev) => ({ ...prev, [bookingId]: false }));
+    }
+  };
+
+  const today = new Date();
+  const dayString = today.toISOString().split("T")[0];
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - today.getDay() + 1);
+  weekStart.setHours(0, 0, 0, 0);
+  const weekEnd = new Date(today);
+  weekEnd.setDate(today.getDate() + (7 - today.getDay()));
+  weekEnd.setHours(23, 59, 59, 999);
+  const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+  const monthEnd = new Date(
+    today.getFullYear(),
+    today.getMonth() + 1,
+    0,
+    23,
+    59,
+    59,
+    999,
+  );
+
+  const getAmount = (job) => Number(job.amount ?? job.price ?? 0);
+
+  const completedWorkerJobs = workerBookings.filter((job) =>
+    ["completed", "paid", "confirmed"].includes(normalizeStatus(job.status)),
+  );
+
+  const earnings = {
+    today: completedWorkerJobs.reduce((sum, job) => {
+      const date = new Date(job.date || job.createdAt);
+      return date.toISOString().split("T")[0] === dayString
+        ? sum + getAmount(job)
+        : sum;
+    }, 0),
+    thisWeek: completedWorkerJobs.reduce((sum, job) => {
+      const date = new Date(job.date || job.createdAt);
+      return date >= weekStart && date <= weekEnd ? sum + getAmount(job) : sum;
+    }, 0),
+    thisMonth: completedWorkerJobs.reduce((sum, job) => {
+      const date = new Date(job.date || job.createdAt);
+      return date >= monthStart && date <= monthEnd
+        ? sum + getAmount(job)
+        : sum;
+    }, 0),
+    total: completedWorkerJobs.reduce((sum, job) => sum + getAmount(job), 0),
+  };
+
+  const completedJobCount = completedWorkerJobs.length;
 
   useEffect(() => {
     // Load from localStorage immediately
@@ -162,7 +257,7 @@ export default function WorkerDashboard() {
     }
   };
 
-  const activeWorkerJobs = (workerBookings.length ? workerBookings : activeJobs)
+  const activeWorkerJobs = workerBookings
     .filter((job) => {
       const status = (job.status || "pending").toLowerCase();
       return [
@@ -198,6 +293,45 @@ export default function WorkerDashboard() {
     await loadWorkerData();
     await loadWorkerBookings();
     setRefreshing(false);
+  };
+
+  const handleAccept = async (bookingId) => {
+    setActionError(null);
+    setActionLoading((prev) => ({ ...prev, [bookingId]: true }));
+    try {
+      await bookingService.acceptBooking(bookingId);
+      await loadWorkerBookings();
+    } catch (err) {
+      console.error("Accept booking error:", err);
+      setActionError(
+        err.response?.data?.message ||
+          "Unable to accept the booking. Please try again.",
+      );
+    } finally {
+      setActionLoading((prev) => ({ ...prev, [bookingId]: false }));
+    }
+  };
+
+  const handleReject = async (bookingId) => {
+    const reason = window.prompt(
+      "Please enter a reason for rejecting this booking (optional):",
+    );
+    if (reason === null) return;
+
+    setActionError(null);
+    setActionLoading((prev) => ({ ...prev, [bookingId]: true }));
+    try {
+      await bookingService.rejectBooking(bookingId, reason);
+      await loadWorkerBookings();
+    } catch (err) {
+      console.error("Reject booking error:", err);
+      setActionError(
+        err.response?.data?.message ||
+          "Unable to reject the booking. Please try again.",
+      );
+    } finally {
+      setActionLoading((prev) => ({ ...prev, [bookingId]: false }));
+    }
   };
 
   if (loading) {
@@ -405,15 +539,15 @@ export default function WorkerDashboard() {
             },
             {
               label: "Completed",
-              value: "127",
+              value: completedJobCount,
               icon: CheckCircle2,
               color: "from-purple-500 to-pink-500",
-              trend: "+12",
-              trendUp: true,
+              trend: completedJobCount > 0 ? `+${completedJobCount}` : "0",
+              trendUp: completedJobCount > 0,
             },
             {
               label: "Rating",
-              value: "4.8★",
+              value: worker?.rating ? `${worker.rating}★` : "4.8★",
               icon: Star,
               color: "from-amber-500 to-orange-500",
               trend: "+0.2",
@@ -579,16 +713,44 @@ export default function WorkerDashboard() {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                      <p className="text-slate-900 font-black text-xl">
-                        {job.amount}
-                      </p>
-                      <motion.button
-                        whileHover={{ x: 4 }}
-                        className="text-indigo-600 hover:text-indigo-700 font-bold flex items-center gap-2 transition-all"
-                      >
-                        Details <ChevronRight size={18} />
-                      </motion.button>
+                    <div className="flex flex-col gap-4 pt-2 border-t border-slate-100">
+                      <div className="flex items-center justify-between">
+                        <p className="text-slate-900 font-black text-xl">
+                          {job.amount}
+                        </p>
+                        <motion.button
+                          whileHover={{ x: 4 }}
+                          onClick={() => handleViewDetails(job.id)}
+                          className="text-indigo-600 hover:text-indigo-700 font-bold flex items-center gap-2 transition-all"
+                        >
+                          Details <ChevronRight size={18} />
+                        </motion.button>
+                      </div>
+
+                      {job.status === "pending" && (
+                        <div className="grid grid-cols-2 gap-3">
+                          <button
+                            onClick={() => handleAccept(job.id)}
+                            disabled={actionLoading[job.id]}
+                            className="px-4 py-3 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 transition-all disabled:opacity-50"
+                          >
+                            {actionLoading[job.id] ? "Accepting..." : "Accept"}
+                          </button>
+                          <button
+                            onClick={() => handleReject(job.id)}
+                            disabled={actionLoading[job.id]}
+                            className="px-4 py-3 bg-white text-slate-900 font-bold rounded-2xl border border-slate-200 hover:bg-slate-100 transition-all disabled:opacity-50"
+                          >
+                            {actionLoading[job.id] ? "Processing..." : "Deny"}
+                          </button>
+                        </div>
+                      )}
+
+                      {actionError && job.status === "pending" && (
+                        <div className="text-sm text-red-600 font-semibold">
+                          {actionError}
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 ))}
@@ -596,7 +758,7 @@ export default function WorkerDashboard() {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {[
                 {
                   title: "Schedule",
@@ -609,6 +771,12 @@ export default function WorkerDashboard() {
                   icon: Wallet,
                   link: "/worker/earnings",
                   color: "from-emerald-500 to-teal-500",
+                },
+                {
+                  title: "My Bookings",
+                  icon: Briefcase,
+                  link: "/worker/bookings",
+                  color: "from-indigo-500 to-violet-500",
                 },
                 {
                   title: "Profile",
@@ -722,7 +890,7 @@ export default function WorkerDashboard() {
               </h3>
 
               <div className="space-y-3">
-                {activeJobs.slice(0, 3).map((job, idx) => (
+                {activeWorkerJobs.slice(0, 3).map((job, idx) => (
                   <motion.div
                     key={job.id}
                     initial={{ opacity: 0, x: -10 }}
@@ -761,6 +929,7 @@ export default function WorkerDashboard() {
 
               <motion.button
                 whileHover={{ x: 5 }}
+                onClick={() => navigate("/worker/bookings")}
                 className="w-full mt-4 flex items-center justify-center gap-2 p-2.5 bg-gradient-to-r from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100 rounded-lg transition-all border border-indigo-200 hover:border-indigo-300 text-sm font-semibold text-indigo-700"
               >
                 View All Jobs <ChevronRight size={14} />
