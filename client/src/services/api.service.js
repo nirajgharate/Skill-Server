@@ -56,7 +56,8 @@ export const userService = {
   async getDashboardStats() {
     try {
       const response = await API.get("/bookings/user/dashboard");
-      return response.data;
+      const payload = response.data || {};
+      return payload.data ?? payload?.data?.data ?? payload;
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
       throw error;
@@ -212,7 +213,8 @@ export const bookingService = {
   async getBookingDetails(bookingId) {
     try {
       const response = await API.get(`/bookings/${bookingId}/details`);
-      return response.data;
+      const payload = response.data || {};
+      return payload.data ?? payload;
     } catch (error) {
       console.error("Error fetching booking details:", error);
       throw error;

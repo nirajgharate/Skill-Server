@@ -41,6 +41,14 @@ import { useAuth } from "../../hooks/useAuth";
 import { useSocket } from "../../hooks/useSocket";
 import { userService } from "../../services/api.service";
 
+const formatCurrency = (value) => {
+  const amount = Number(value || 0);
+  return `₹${amount.toLocaleString("en-US")}`;
+};
+
+const getBookingAmount = (booking) =>
+  Number(booking?.amount ?? booking?.price ?? 0);
+
 export default function UserDashboard() {
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
@@ -153,23 +161,69 @@ export default function UserDashboard() {
       if (stored) {
         const userData = JSON.parse(stored);
         setUser(userData);
+        const currentUserId = authUser?._id || userData?._id;
 
-        if (authUser?._id) {
+        if (currentUserId) {
           try {
             // Load dashboard stats using service file - background load
             const statsResponse = await userService.getDashboardStats();
-            setDashboardStats(statsResponse.data);
-          } catch (err) {
-            console.log("Using default stats");
-            // Set default stats from stored data
+            const statsData = statsResponse?.data || statsResponse || {};
             setDashboardStats({
-              totalBookings: 0,
-              completedBookings: 0,
-              totalSpent: 0,
-              averageRating: 0,
-              activeBookings: [],
-              recentBookings: [],
+              totalBookings: statsData.totalBookings || 0,
+              completedBookings: statsData.completedBookings || 0,
+              totalSpent: statsData.totalSpent || 0,
+              averageRating: statsData.averageRating || 0,
+              activeBookings: statsData.activeBookings || [],
+              recentBookings: statsData.recentBookings || [],
             });
+          } catch (err) {
+            console.log("Using fallback booking stats", err);
+            try {
+              const bookingsResponse = await userService.getUserBookings();
+              const bookings = Array.isArray(bookingsResponse)
+                ? bookingsResponse
+                : bookingsResponse?.data || [];
+              const totalBookings = bookings.length;
+              const completedBookings = bookings.filter(
+                (b) => String(b.status || "").toLowerCase() === "completed",
+              ).length;
+              const totalSpent = bookings
+                .filter(
+                  (b) => String(b.status || "").toLowerCase() === "completed",
+                )
+                .reduce((sum, b) => sum + getBookingAmount(b), 0);
+              const activeBookings = bookings.filter((b) =>
+                [
+                  "pending",
+                  "confirmed",
+                  "accepted",
+                  "in-progress",
+                  "active",
+                  "paid",
+                ].includes(String(b.status || "").toLowerCase()),
+              );
+              const recentBookings = bookings
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .slice(0, 5);
+              setDashboardStats({
+                totalBookings,
+                completedBookings,
+                totalSpent,
+                averageRating: 0,
+                activeBookings,
+                recentBookings,
+              });
+            } catch (bookingErr) {
+              console.log("Fallback booking stats failed", bookingErr);
+              setDashboardStats({
+                totalBookings: 0,
+                completedBookings: 0,
+                totalSpent: 0,
+                averageRating: 0,
+                activeBookings: [],
+                recentBookings: [],
+              });
+            }
           }
         }
       }
@@ -319,7 +373,7 @@ export default function UserDashboard() {
                 </p>
                 <div className="flex items-center gap-2">
                   <p className="text-4xl font-black text-white">
-                    ₹{dashboardStats.totalSpent}
+                    {formatCurrency(dashboardStats.totalSpent)}
                   </p>
                   <motion.div
                     animate={{ y: [0, -5, 0] }}
@@ -390,7 +444,7 @@ export default function UserDashboard() {
             },
             {
               label: "Total Spent",
-              value: `₹${dashboardStats.totalSpent}`,
+              value: formatCurrency(dashboardStats.totalSpent),
               icon: DollarSign,
               color: "from-purple-500 to-pink-500",
               trend: "+25%",
@@ -463,7 +517,7 @@ export default function UserDashboard() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.1 }}
                       className="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-lg hover:border-indigo-200 transition-all group cursor-pointer overflow-hidden relative"
-                      onClick={() => navigate("/bookings")}
+                      onClick={() => navigate(`/user/bookings/${booking._id}`)}
                     >
                       {/* Status Indicator Bar */}
                       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-blue-500" />
@@ -512,7 +566,7 @@ export default function UserDashboard() {
                         </div>
                         <div className="text-right">
                           <p className="text-slate-900 font-black text-xl mb-2">
-                            ₹{booking.price}
+                            {formatCurrency(getBookingAmount(booking))}
                           </p>
                           <motion.span
                             whileHover={{ scale: 1.05 }}
@@ -610,7 +664,7 @@ export default function UserDashboard() {
                   </div>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
-                    onClick={() => navigate("/bookings")}
+                    onClick={() => navigate("/dashboard")}
                     className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
                   >
                     View All <ChevronRight size={14} />
@@ -625,7 +679,7 @@ export default function UserDashboard() {
                       transition={{ delay: idx * 0.05 }}
                       whileHover={{ x: 5 }}
                       className="bg-white border border-slate-200 rounded-xl p-4 hover:shadow-md hover:border-indigo-200 transition-all cursor-pointer group"
-                      onClick={() => navigate("/bookings")}
+                      onClick={() => navigate(`/user/bookings/${booking._id}`)}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3 flex-1">
@@ -643,7 +697,7 @@ export default function UserDashboard() {
                         </div>
                         <div className="text-right">
                           <p className="text-slate-900 font-bold">
-                            ₹{booking.price}
+                            {formatCurrency(getBookingAmount(booking))}
                           </p>
                           <motion.span
                             whileHover={{ scale: 1.05 }}
@@ -704,7 +758,7 @@ export default function UserDashboard() {
                 </motion.button>
                 <motion.button
                   whileHover={{ x: 5 }}
-                  onClick={() => navigate("/bookings")}
+                  onClick={() => navigate("/dashboard")}
                   className="w-full flex items-center gap-3 p-3 bg-gradient-to-br from-slate-50 to-slate-100 hover:from-slate-100 hover:to-slate-200 rounded-xl transition-all group border border-slate-200 hover:border-slate-300"
                 >
                   <div className="p-2 rounded-lg bg-white group-hover:bg-slate-600 transition-all">
@@ -745,13 +799,33 @@ export default function UserDashboard() {
 
             {/* Transaction Details */}
             <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-indigo-200 transition-all">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
-                  <DollarSign size={16} className="text-green-600" />
+              <div className="flex flex-col gap-4 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
+                    <DollarSign size={16} className="text-green-600" />
+                  </div>
+                  <h3 className="text-slate-900 font-bold text-lg">
+                    Transactions
+                  </h3>
                 </div>
-                <h3 className="text-slate-900 font-bold text-lg">
-                  Transactions
-                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-600">
+                  <div className="rounded-2xl bg-slate-50 p-3 border border-slate-200">
+                    <p className="text-slate-500 uppercase tracking-wider text-[11px] font-semibold">
+                      Total transactions
+                    </p>
+                    <p className="mt-2 text-slate-900 font-black text-xl">
+                      {dashboardStats.totalBookings || 0}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl bg-slate-50 p-3 border border-slate-200">
+                    <p className="text-slate-500 uppercase tracking-wider text-[11px] font-semibold">
+                      Total amount
+                    </p>
+                    <p className="mt-2 text-slate-900 font-black text-xl">
+                      {formatCurrency(dashboardStats.totalSpent)}
+                    </p>
+                  </div>
+                </div>
               </div>
               <div className="space-y-3">
                 {dashboardStats.recentBookings &&
@@ -781,7 +855,7 @@ export default function UserDashboard() {
                           </div>
                           <div className="text-right flex-shrink-0">
                             <p className="text-sm font-bold text-slate-900">
-                              ₹{booking.price || booking.amount || 0}
+                              {formatCurrency(getBookingAmount(booking))}
                             </p>
                             <span
                               className={`text-xs font-semibold px-2 py-0.5 rounded inline-block mt-0.5 ${
@@ -816,7 +890,7 @@ export default function UserDashboard() {
               </div>
               <motion.button
                 whileHover={{ x: 5 }}
-                onClick={() => navigate("/bookings")}
+                onClick={() => navigate("/transactions")}
                 className="w-full mt-4 flex items-center justify-center gap-2 p-2.5 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 rounded-lg transition-all group border border-green-200 hover:border-green-300 text-sm font-semibold text-green-700"
               >
                 View All Transactions <ChevronRight size={14} />

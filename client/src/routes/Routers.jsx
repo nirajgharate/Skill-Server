@@ -15,6 +15,7 @@ import Signup from "../pages/auth/Signup";
 
 // --- DASHBOARDS ---
 import UserDashboard from "../pages/dashboard/UserDashboard";
+import UserTransactions from "../pages/dashboard/UserTransactions";
 import WorkerDashboard from "../pages/dashboard/WorkerDashboard";
 
 // --- SECURITY ---
@@ -33,6 +34,7 @@ import WorkerSchedule from "../pages/dashboard/WorkerSchedule";
 import WorkerEarnings from "../pages/dashboard/WorkerEarnings";
 import WorkerBookings from "../pages/dashboard/WorkerBookings";
 import WorkerBookingDetails from "../pages/dashboard/WorkerBookingDetails";
+import UserBookingDetails from "../pages/dashboard/UserBookingDetails";
 import NotificationPage from "../pages/NotificationPage";
 
 export default function Routers() {
@@ -75,6 +77,14 @@ export default function Routers() {
         element={
           <ProtectedRoute allowedRole="user">
             <UserDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/transactions"
+        element={
+          <ProtectedRoute allowedRole="user">
+            <UserTransactions />
           </ProtectedRoute>
         }
       />
@@ -151,6 +161,14 @@ export default function Routers() {
         element={
           <ProtectedRoute allowedRole="worker">
             <WorkerBookingDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/user/bookings/:bookingId"
+        element={
+          <ProtectedRoute allowedRole="user">
+            <UserBookingDetails />
           </ProtectedRoute>
         }
       />

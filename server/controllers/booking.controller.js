@@ -428,7 +428,7 @@ export const getUserDashboardStats = async (req, res) => {
     ).length;
     const totalSpent = bookings
       .filter((b) => String(b.status || "").toLowerCase() === "completed")
-      .reduce((sum, b) => sum + b.price, 0);
+      .reduce((sum, b) => sum + (b.amount ?? b.price ?? 0), 0);
 
     // Calculate average rating from completed bookings
     const ratedBookings = bookings.filter(
