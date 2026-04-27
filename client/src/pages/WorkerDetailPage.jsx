@@ -175,9 +175,22 @@ export default function WorkerDetailPage() {
 
   // Helper function to get testimonials
   const getTestimonials = () => {
+    if (
+      worker.reviews &&
+      Array.isArray(worker.reviews) &&
+      worker.reviews.length > 0
+    ) {
+      return worker.reviews.slice(0, 3).map((review) => ({
+        name: review.userName || review.userId || "Satisfied Customer",
+        text: review.comment || "Great work and communication.",
+        rating: review.rating || 5,
+      }));
+    }
+
     if (worker.testimonials && Array.isArray(worker.testimonials)) {
       return worker.testimonials.slice(0, 2);
     }
+
     return [
       {
         name: "Satisfied Customer",
@@ -251,7 +264,8 @@ export default function WorkerDetailPage() {
                   <Star size={16} className="fill-amber-400 text-amber-400" />
                   {worker.rating || 4.8}{" "}
                   <span className="text-[#0F172A]/40">
-                    ({worker.reviews || 120} Reviews)
+                    ({worker.reviewCount || worker.reviews?.length || 0}{" "}
+                    Reviews)
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5 text-sm font-bold text-[#0F172A]/40">
@@ -534,7 +548,8 @@ export default function WorkerDetailPage() {
               <div className="space-y-4">
                 <h3 className="text-lg font-black text-[#0F172A] mb-6 flex items-center gap-2">
                   <MessageSquare size={20} className="text-[#4F46E5]" />
-                  Client Reviews ({worker.reviews || "120"})
+                  Client Reviews (
+                  {worker.reviewCount || worker.reviews?.length || 0})
                 </h3>
                 {getTestimonials().map((t, i) => (
                   <motion.div

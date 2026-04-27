@@ -46,6 +46,19 @@ const workerSchema = new mongoose.Schema(
       min: 0,
       max: 5,
     },
+    reviewCount: {
+      type: Number,
+      default: 0,
+    },
+    reviews: [
+      {
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        userName: { type: String, default: "Customer" },
+        rating: { type: Number, min: 1, max: 5 },
+        comment: { type: String, default: "" },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
     totalJobs: {
       type: Number,
       default: 0,
@@ -104,7 +117,7 @@ const workerSchema = new mongoose.Schema(
     gender: {
       type: String,
       enum: ["male", "female", "other"],
-      default: "",
+      default: undefined,
     },
     coreExpertise: {
       type: [String],

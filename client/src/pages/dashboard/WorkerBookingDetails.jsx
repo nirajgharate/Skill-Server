@@ -5,16 +5,38 @@ import { ArrowLeft, Phone, MessageSquare } from "lucide-react";
 import BookingDetailsCard from "../../components/dashboard/BookingDetailsCard";
 import { bookingService } from "../../services/api.service";
 
+const parseBookingNotes = (notes) => {
+  if (!notes) return null;
+  if (typeof notes === "string") {
+    try {
+      return JSON.parse(notes);
+    } catch {
+      return { description: notes };
+    }
+  }
+  if (typeof notes === "object") return notes;
+  return null;
+};
+
 const formatBooking = (booking) => {
   if (!booking) return null;
 
-  const formattedStatus = booking.status
-    ? booking.status.charAt(0).toUpperCase() + booking.status.slice(1)
-    : "Pending";
+  const parsedNotes = parseBookingNotes(booking.notes);
+  const noteTime = parsedNotes?.time || parsedNotes?.scheduledTime;
+  const bookingDate = booking.date ? new Date(booking.date) : null;
+  const formattedDate = bookingDate
+    ? bookingDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "Not scheduled";
 
   return {
     ...booking,
-    status: formattedStatus,
+    status: booking.status
+      ? booking.status.charAt(0).toUpperCase() + booking.status.slice(1)
+      : "Pending",
     service: booking.serviceId?.name || booking.serviceName || "Service",
     amount: booking.amount ?? booking.price ?? 0,
     workerName: booking.workerId?.name || "Professional",
@@ -22,22 +44,20 @@ const formatBooking = (booking) => {
       booking.workerId?.photo ||
       "https://api.dicebear.com/7.x/avataaars/svg?seed=Worker",
     userName: booking.userId?.name || "Customer",
-    date: booking.date
-      ? new Date(booking.date).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        })
-      : "Not scheduled",
-    time: booking.date
-      ? new Date(booking.date).toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        })
-      : "Not scheduled",
+    noteTime,
+    date: formattedDate,
+    time: noteTime
+      ? noteTime
+      : bookingDate
+        ? bookingDate.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          })
+        : "Not scheduled",
     location: booking.address || "Not provided",
     phone: booking.userId?.phone || booking.workerId?.phone || "",
+    notes: parsedNotes || booking.notes,
   };
 };
 
@@ -55,8 +75,9 @@ export default function WorkerBookingDetails() {
   const loadBooking = async () => {
     try {
       setLoading(true);
-      const response = await bookingService.getBookingDetails(bookingId);
-      setBooking(formatBooking(response.data));
+      const bookingData = await bookingService.getBookingDetails(bookingId);
+      setBooking(formatBooking(bookingData));
+      setError(null);
     } catch (err) {
       console.error("Error loading booking details:", err);
       setError("Unable to load booking details. Please try again.");
@@ -112,14 +133,16 @@ export default function WorkerBookingDetails() {
     );
   }
 
-  if (error) {
+  if (error || !booking) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center px-4">
         <div className="max-w-lg w-full bg-white rounded-3xl p-8 shadow-xl border border-slate-200 text-center">
           <p className="text-slate-900 text-lg font-bold mb-4">
             Unable to load booking
           </p>
-          <p className="text-slate-600 mb-6">{error}</p>
+          <p className="text-slate-600 mb-6">
+            {error || "Booking information is unavailable."}
+          </p>
           <button
             onClick={loadBooking}
             className="px-5 py-3 bg-indigo-600 text-white rounded-2xl font-semibold hover:bg-indigo-700 transition-all"
@@ -159,7 +182,7 @@ export default function WorkerBookingDetails() {
               <Phone size={16} /> Call
             </button>
             <button
-              onClick={handleMessage}
+              onClick={() => navigate(`/messages/${bookingId}`)}
               className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 transition-all"
             >
               <MessageSquare size={16} /> Message
@@ -244,7 +267,11 @@ export default function WorkerBookingDetails() {
                 <h3 className="text-xl font-black text-slate-900 mb-4">
                   Booking overview
                 </h3>
-                <BookingDetailsCard booking={booking} />
+                <BookingDetailsCard
+                  booking={booking}
+                  onCall={handleCall}
+                  onMessage={() => navigate(`/messages/${bookingId}`)}
+                />
               </div>
 
               <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">

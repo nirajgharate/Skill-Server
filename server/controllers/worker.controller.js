@@ -1,5 +1,6 @@
 import Worker from "../models/Worker.js";
 import { getCachedValue, setCachedValue, deleteCacheByPattern } from "../config/redis.js";
+import { uploadBase64ToCloudinary } from "../services/cloudinary.service.js";
 
 // Helper function to calculate profile completion percentage
 const calculateProfileCompletion = (worker) => {
@@ -100,7 +101,8 @@ export const updateWorkerProfile = async (req, res) => {
   try {
     const { name, phone, profession, experienceYears, serviceArea, bio, profilePhoto, certificatePhoto, hourlyRate, skills, aadharCard, panCard, degreeCertificate, gender, coreExpertise, portfolio } = req.body;
 
-    let worker = await Worker.findById(req.params.id);
+    const workerId = req.params.id || req.user.id;
+    let worker = await Worker.findById(workerId);
     if (!worker) {
       return res.status(404).json({ message: "Worker not found" });
     }
@@ -112,24 +114,93 @@ export const updateWorkerProfile = async (req, res) => {
     if (experienceYears !== undefined) worker.experienceYears = experienceYears;
     if (serviceArea) worker.serviceArea = serviceArea;
     if (bio) worker.bio = bio;
-    if (profilePhoto) worker.profilePhoto = profilePhoto;
-    if (certificatePhoto) worker.certificatePhoto = certificatePhoto;
+    if (profilePhoto) {
+      if (typeof profilePhoto === "string" && profilePhoto.startsWith("data:")) {
+        const uploadResult = await uploadBase64ToCloudinary(profilePhoto, "skill-server/worker-profiles");
+        worker.profilePhoto = uploadResult.url;
+      } else {
+        worker.profilePhoto = profilePhoto;
+      }
+    }
+    if (certificatePhoto) {
+      if (typeof certificatePhoto === "string" && certificatePhoto.startsWith("data:")) {
+        const uploadResult = await uploadBase64ToCloudinary(certificatePhoto, "skill-server/worker-certificates");
+        worker.certificatePhoto = uploadResult.url;
+      } else {
+        worker.certificatePhoto = certificatePhoto;
+      }
+    }
     if (hourlyRate !== undefined) worker.hourlyRate = hourlyRate;
     if (skills) worker.skills = skills;
-    if (aadharCard) worker.aadharCard = aadharCard;
+    if (aadharCard) {
+      if (typeof aadharCard === "string" && aadharCard.startsWith("data:")) {
+        const uploadResult = await uploadBase64ToCloudinary(
+          aadharCard,
+          "skill-server/worker-aadhar",
+        );
+        worker.aadharCard = uploadResult.url;
+      } else {
+        worker.aadharCard = aadharCard;
+      }
+    }
     if (panCard) worker.panCard = panCard;
-    if (degreeCertificate) worker.degreeCertificate = degreeCertificate;
+    if (degreeCertificate) {
+      if (typeof degreeCertificate === "string" && degreeCertificate.startsWith("data:")) {
+        const uploadResult = await uploadBase64ToCloudinary(
+          degreeCertificate,
+          "skill-server/worker-degrees",
+        );
+        worker.degreeCertificate = uploadResult.url;
+      } else {
+        worker.degreeCertificate = degreeCertificate;
+      }
+    }
     if (gender) worker.gender = gender;
     if (coreExpertise) worker.coreExpertise = coreExpertise;
-    if (portfolio !== undefined) worker.portfolio = portfolio;
+    if (portfolio !== undefined) {
+      const normalizedPortfolio = Array.isArray(portfolio) ? portfolio : [portfolio];
+      const processedPortfolio = await Promise.all(
+        normalizedPortfolio.map(async (item) => {
+          if (!item) return item;
+
+          if (typeof item === "string") {
+            return {
+              url: item,
+              mediaType: "photo",
+              uploadedAt: new Date(),
+            };
+          }
+
+          const mediaItem = {
+            ...item,
+            mediaType: item.mediaType || "photo",
+            uploadedAt: item.uploadedAt ? new Date(item.uploadedAt) : new Date(),
+          };
+
+          if (typeof item.url === "string" && item.url.startsWith("data:")) {
+            const uploadResult = await uploadBase64ToCloudinary(
+              item.url,
+              "skill-server/worker-portfolio",
+            );
+            return {
+              ...mediaItem,
+              url: uploadResult.url,
+            };
+          }
+
+          return mediaItem;
+        }),
+      );
+      worker.portfolio = processedPortfolio;
+    }
 
     // Calculate and update profile completion
     worker.profileCompletionPercentage = calculateProfileCompletion(worker);
 
     await worker.save();
     await deleteCacheByPattern("workers:*");
-    await deleteCacheByPattern(`worker:${req.params.id}`);
-    await deleteCacheByPattern(`worker_profile:${req.params.id}`);
+    await deleteCacheByPattern(`worker:${workerId}`);
+    await deleteCacheByPattern(`worker_profile:${workerId}`);
 
     // Emit Socket.io event for profile update
     if (req.io) {

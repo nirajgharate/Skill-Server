@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Booking from "../models/booking.model.js";
 import Service from "../models/service.model.js";
 import Worker from "../models/Worker.js";
+import User from "../models/User.js";
 
 const VALID_SERVICE_CATEGORIES = ["electrician", "plumber", "ac-repair", "carpenter", "painter", "cleaner"];
 const CATEGORY_ALIASES = {
@@ -11,6 +12,36 @@ const CATEGORY_ALIASES = {
   carpenter: ["carpenter", "carpentry"],
   painter: ["painter", "painting"],
   cleaner: ["cleaner", "cleaning", "maid"],
+};
+
+const parseTimeString = (value) => {
+  if (!value || typeof value !== "string") return null;
+  const normalized = value.trim().toUpperCase();
+  const match = normalized.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?$/);
+  if (!match) return null;
+
+  let hour = Number(match[1]);
+  const minute = Number(match[2] || "0");
+  const period = match[3];
+
+  if (period) {
+    if (period === "PM" && hour < 12) hour += 12;
+    if (period === "AM" && hour === 12) hour = 0;
+  }
+
+  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+  return { hour, minute };
+};
+
+const combineDateAndTime = (dateValue, timeValue) => {
+  if (!dateValue) return undefined;
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return undefined;
+  const time = parseTimeString(timeValue);
+  if (!time) return date;
+
+  date.setHours(time.hour, time.minute, 0, 0);
+  return date;
 };
 
 const normalizeCategory = (value) => {
@@ -145,6 +176,8 @@ export const createBooking = async (req, res) => {
       notesString = JSON.stringify(notes);
     }
 
+    const bookingDate = combineDateAndTime(date, notes?.time) || new Date(date);
+
     const booking = await Booking.create({
       userId: req.user.id,
       workerId: resolvedWorkerId,
@@ -152,7 +185,7 @@ export const createBooking = async (req, res) => {
       amount: price,
       price,
       paymentMethod,
-      date,
+      date: bookingDate,
       address,
       notes: notesString,
     });
@@ -195,13 +228,14 @@ export const createMockBooking = async (req, res) => {
       });
     }
 
+    const structuredDate = combineDateAndTime(date, notes?.time) || new Date(date);
     const booking = await Booking.create({
       userId: req.user.id,
       workerId,
       amount,
       serviceName: serviceName || "Professional Service",
       status: "pending",
-      date: date ? new Date(date) : undefined,
+      date: structuredDate,
       address,
       notes: typeof notes === "object" ? JSON.stringify(notes) : notes,
     });
@@ -255,6 +289,13 @@ export const getUserBookings = async (req, res) => {
         status: statusMap[booking.status] || booking.status,
         expertImage: `https://i.pravatar.cc/150?u=${encodeURIComponent(booking.workerId?.name || "worker")}`,
         rating: booking.workerId?.rating || 5.0,
+        review: booking.review
+          ? {
+              rating: booking.review.rating,
+              comment: booking.review.comment,
+              createdAt: booking.review.createdAt,
+            }
+          : null,
         phone: booking.workerId?.phone || "",
       };
     });
@@ -307,6 +348,13 @@ export const getBookingsForUser = async (req, res) => {
         status: statusMap[booking.status] || booking.status,
         expertImage: `https://i.pravatar.cc/150?u=${encodeURIComponent(booking.workerId?.name || "worker")}`,
         rating: booking.workerId?.rating || 5.0,
+        review: booking.review
+          ? {
+              rating: booking.review.rating,
+              comment: booking.review.comment,
+              createdAt: booking.review.createdAt,
+            }
+          : null,
         phone: booking.workerId?.phone || "",
       };
     });
@@ -384,7 +432,68 @@ export const completeBooking = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+export const submitBookingReview = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const { rating, comment } = req.body;
 
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ success: false, message: "Rating must be between 1 and 5" });
+    }
+
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+
+    if (!req.user || req.user.id !== booking.userId.toString()) {
+      return res.status(403).json({ success: false, message: "Unauthorized review submission" });
+    }
+
+    if (String(booking.status || "").toLowerCase() !== "completed") {
+      return res.status(400).json({ success: false, message: "Only completed bookings can be reviewed" });
+    }
+
+    if (booking.review && booking.review.rating) {
+      return res.status(400).json({ success: false, message: "You have already reviewed this booking" });
+    }
+
+    const user = await User.findById(req.user.id).select("name");
+    const reviewerName = user?.name || "Customer";
+
+    booking.review = {
+      rating,
+      comment: comment?.trim() || "",
+      userName: reviewerName,
+      createdAt: new Date(),
+    };
+    booking.reviewedAt = new Date();
+    await booking.save();
+
+    if (booking.workerId) {
+      const workerId = booking.workerId._id ? booking.workerId._id : booking.workerId;
+      const worker = await Worker.findById(workerId);
+      if (worker) {
+        worker.reviews.push({
+          userId: req.user.id,
+          userName: reviewerName,
+          rating,
+          comment: comment?.trim() || "",
+          createdAt: new Date(),
+        });
+        worker.reviewCount = worker.reviews.length;
+        const totalRating = worker.reviews.reduce((sum, review) => sum + (review.rating || 0), 0);
+        worker.rating = totalRating / Math.max(worker.reviews.length, 1);
+        await worker.save();
+      }
+    }
+
+    res.status(200).json({ success: true, message: "Review submitted successfully", data: booking });
+  } catch (error) {
+    console.error("Submit review error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 export const updateBookingStatus = async (req, res) => {
   try {
     const { status } = req.body;

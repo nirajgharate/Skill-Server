@@ -10,6 +10,7 @@ import {
   formatBookingEvent,
   formatNotification,
 } from '../utils/socketio.utils.js';
+import chatService from '../services/chat.service.js';
 
 // Track connected users
 const connectedUsers = new Map(); // userId -> socketId
@@ -265,18 +266,37 @@ export const initializeSocketIO = (io) => {
     /**
      * Message sent
      */
-    socket.on(SOCKET_EVENTS.MESSAGE_SENT, (data) => {
-      const { senderId, recipientId, message, bookingId } = data;
-      console.log(`💬 Message from ${senderId} to ${recipientId}`);
+    socket.on(SOCKET_EVENTS.MESSAGE_SENT, async (data) => {
+      try {
+        const { senderId, recipientId, message, bookingId, senderRole, senderName } = data;
+        console.log(`💬 Message from ${senderId} to ${recipientId} for booking ${bookingId}`);
 
-      emitToUser(io, recipientId, SOCKET_EVENTS.MESSAGE_SENT, {
-        senderId,
-        message,
-        bookingId,
-        timestamp: new Date().toISOString(),
-      });
+        const payload = {
+          bookingId,
+          senderId,
+          senderRole: senderRole || 'user',
+          senderName: senderName || 'Unknown',
+          content: message,
+        };
 
-      sendAck(data.ack, true, 'Message sent');
+        const { message: savedMessage, recipientId: targetRecipientId } = await chatService.appendChatMessage(payload);
+
+        const finalRecipientId = recipientId || targetRecipientId;
+
+        emitToUser(io, finalRecipientId, SOCKET_EVENTS.MESSAGE_SENT, {
+          senderId,
+          senderRole: payload.senderRole,
+          senderName: payload.senderName,
+          message: payload.content,
+          bookingId,
+          createdAt: savedMessage.createdAt,
+        });
+
+        sendAck(data.ack, true, 'Message sent');
+      } catch (error) {
+        console.error('💬 Chat socket error:', error);
+        sendAck(data.ack, false, error.message);
+      }
     });
 
     // ===== ERROR HANDLING =====

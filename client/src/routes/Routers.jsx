@@ -35,6 +35,8 @@ import WorkerEarnings from "../pages/dashboard/WorkerEarnings";
 import WorkerBookings from "../pages/dashboard/WorkerBookings";
 import WorkerBookingDetails from "../pages/dashboard/WorkerBookingDetails";
 import UserBookingDetails from "../pages/dashboard/UserBookingDetails";
+import WorkerWorkPhotos from "../pages/dashboard/WorkerWorkPhotos";
+import MessagePage from "../pages/MessagePage";
 import NotificationPage from "../pages/NotificationPage";
 
 export default function Routers() {
@@ -60,7 +62,7 @@ export default function Routers() {
       {/* These pages dynamically detect the role from localStorage */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
-      // Inside your Routers function:
+      {/* Inside your Routers function: */}
       <Route
         path="/track"
         element={
@@ -88,21 +90,21 @@ export default function Routers() {
           </ProtectedRoute>
         }
       />
+      {/* �️ PROTECTED PROFILE ROUTES */}
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute allowedRole="user">
+            <ProfilePageProfessional />
+          </ProtectedRoute>
+        }
+      />
       {/* 🛠️ PROTECTED ROUTES (WORKER) */}
       <Route
         path="/worker-dashboard"
         element={
           <ProtectedRoute allowedRole="worker">
             <WorkerDashboard />
-          </ProtectedRoute>
-        }
-      />
-      {/* This is your Premium Profile Route */}
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute allowedRole="user">
-            <ProfilePage />
           </ProtectedRoute>
         }
       />
@@ -165,10 +167,26 @@ export default function Routers() {
         }
       />
       <Route
+        path="/worker/work-photos"
+        element={
+          <ProtectedRoute allowedRole="worker">
+            <WorkerWorkPhotos />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/user/bookings/:bookingId"
         element={
           <ProtectedRoute allowedRole="user">
             <UserBookingDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/messages/:bookingId"
+        element={
+          <ProtectedRoute>
+            <MessagePage />
           </ProtectedRoute>
         }
       />

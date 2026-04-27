@@ -67,6 +67,8 @@ export const AuthProvider = ({ children }) => {
         name: userData.name,
         email: userData.email,
         role: userData.role,
+        profilePhoto: userData.profilePhoto || "",
+        profileCompletionPercentage: userData.profileCompletionPercentage || 0,
       }),
     );
     setUser({
@@ -74,13 +76,33 @@ export const AuthProvider = ({ children }) => {
       name: userData.name,
       email: userData.email,
       role: userData.role,
+      profilePhoto: userData.profilePhoto || "",
+      profileCompletionPercentage: userData.profileCompletionPercentage || 0,
     });
     return userData;
   };
 
+  // 🛡️ Update local auth profile state and persist it
+  const updateUser = (updates) => {
+    setUser((prev) => {
+      const next = { ...prev, ...updates };
+      localStorage.setItem("skillserverUser", JSON.stringify(next));
+      return next;
+    });
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, signup, logout, isAuthenticated: !!user }}
+      value={{
+        user,
+        authUser: user,
+        loading,
+        login,
+        signup,
+        logout,
+        updateUser,
+        isAuthenticated: !!user,
+      }}
     >
       {children}
     </AuthContext.Provider>

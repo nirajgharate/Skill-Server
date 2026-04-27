@@ -16,6 +16,19 @@ import {
 import BookingDetailsCard from "../../components/dashboard/BookingDetailsCard";
 import { bookingService } from "../../services/api.service";
 
+const parseBookingNotes = (notes) => {
+  if (!notes) return null;
+  if (typeof notes === "string") {
+    try {
+      return JSON.parse(notes);
+    } catch {
+      return { description: notes };
+    }
+  }
+  if (typeof notes === "object") return notes;
+  return null;
+};
+
 const formatCurrency = (value) => {
   const amount = Number(value || 0);
   return `₹${amount.toLocaleString("en-US")}`;
@@ -24,35 +37,42 @@ const formatCurrency = (value) => {
 const formatBooking = (booking) => {
   if (!booking) return null;
 
-  const formattedStatus = booking.status
-    ? booking.status.charAt(0).toUpperCase() + booking.status.slice(1)
-    : "Pending";
+  const parsedNotes = parseBookingNotes(booking.notes);
+  const noteTime = parsedNotes?.time || parsedNotes?.scheduledTime;
+  const bookingDate = booking.date ? new Date(booking.date) : null;
+  const formattedDate = bookingDate
+    ? bookingDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "Not scheduled";
 
   return {
     ...booking,
-    status: formattedStatus,
+    status: booking.status
+      ? booking.status.charAt(0).toUpperCase() + booking.status.slice(1)
+      : "Pending",
     service: booking.serviceId?.name || booking.serviceName || "Service",
     amount: booking.amount ?? booking.serviceId?.price ?? 0,
     workerName: booking.workerId?.name || "Professional",
     workerImage:
       booking.workerId?.photo ||
       "https://api.dicebear.com/7.x/avataaars/svg?seed=Worker",
-    date: booking.date
-      ? new Date(booking.date).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        })
-      : "Not scheduled",
-    time: booking.date
-      ? new Date(booking.date).toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        })
-      : "Not scheduled",
+    noteTime,
+    date: formattedDate,
+    time: noteTime
+      ? noteTime
+      : bookingDate
+        ? bookingDate.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          })
+        : "Not scheduled",
     location: booking.address || "Not provided",
     phone: booking.workerId?.phone || "",
+    notes: parsedNotes || booking.notes,
   };
 };
 
@@ -154,7 +174,7 @@ export default function UserBookingDetails() {
               <Phone size={16} /> Call Worker
             </button>
             <button
-              onClick={handleMessage}
+              onClick={() => navigate(`/messages/${bookingId}`)}
               className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 transition-all"
             >
               <MessageSquare size={16} /> Message
@@ -223,7 +243,11 @@ export default function UserBookingDetails() {
                 <h3 className="text-xl font-black text-slate-900 mb-4">
                   Booking overview
                 </h3>
-                <BookingDetailsCard booking={booking} />
+                <BookingDetailsCard
+                  booking={booking}
+                  onCall={handleCall}
+                  onMessage={() => navigate(`/messages/${bookingId}`)}
+                />
               </div>
 
               <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">

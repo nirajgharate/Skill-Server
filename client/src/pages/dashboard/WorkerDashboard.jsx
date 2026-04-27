@@ -234,8 +234,25 @@ export default function WorkerDashboard() {
         setWorker(userData);
         setProfileCompletion(userData.profileCompletionPercentage || 75);
 
-        // Don't fetch again if we already have the data
-        // Use service layer for any additional data if needed
+        if (userData._id) {
+          try {
+            const response = await API.get(`/workers/${userData._id}`);
+            const workerProfile = response.data.data || response.data;
+            if (workerProfile) {
+              setWorker(workerProfile);
+              setProfileCompletion(
+                workerProfile.profileCompletionPercentage ||
+                  userData.profileCompletionPercentage ||
+                  75,
+              );
+            }
+          } catch (err) {
+            console.warn(
+              "Worker dashboard profile fetch failed, using local data",
+              err,
+            );
+          }
+        }
       }
     } catch (err) {
       console.error("Error loading data:", err);
@@ -417,6 +434,13 @@ export default function WorkerDashboard() {
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
               </Link>
 
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                onClick={() => navigate("/worker/work-photos")}
+                className="px-4 py-2 bg-white text-slate-900 rounded-lg font-semibold text-sm border border-slate-200 hover:border-indigo-300 hover:bg-slate-50 transition-all hidden sm:block"
+              >
+                Work Photos
+              </motion.button>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 onClick={() => setShowEditProfile(true)}

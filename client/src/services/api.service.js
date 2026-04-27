@@ -8,7 +8,7 @@ export const userService = {
   async getProfile() {
     try {
       const response = await API.get("/auth/profile");
-      return response.data;
+      return response.data?.data ?? response.data;
     } catch (error) {
       console.error("Error fetching user profile:", error);
       throw error;
@@ -19,7 +19,7 @@ export const userService = {
   async updateProfile(profileData) {
     try {
       const response = await API.patch("/auth/profile", profileData);
-      return response.data;
+      return response.data?.data ?? response.data;
     } catch (error) {
       console.error("Error updating user profile:", error);
       throw error;
@@ -120,9 +120,20 @@ export const workerService = {
   async updateProfile(profileData) {
     try {
       const response = await API.patch("/workers/profile", profileData);
-      return response.data;
+      return response.data?.worker ?? response.data;
     } catch (error) {
       console.error("Error updating worker profile:", error);
+      throw error;
+    }
+  },
+
+  // Upload work photo to worker portfolio
+  async uploadWorkPhoto(portfolio) {
+    try {
+      const response = await API.patch("/workers/profile", { portfolio });
+      return response.data?.worker ?? response.data;
+    } catch (error) {
+      console.error("Error uploading work photo:", error);
       throw error;
     }
   },

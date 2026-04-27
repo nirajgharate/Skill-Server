@@ -43,6 +43,20 @@ const EXPERTISE_SUGGESTIONS = {
     "Epoxy Coating",
     "Waterproofing",
   ],
+  cleaner: [
+    "Home Deep Cleaning",
+    "Office Cleaning",
+    "Carpet Cleaning",
+    "Window Cleaning",
+    "Post-Construction Cleaning",
+  ],
+  "appliance-repair": [
+    "Refrigerator Repair",
+    "Washing Machine Repair",
+    "Air Conditioner Repair",
+    "Microwave Repair",
+    "TV Repair",
+  ],
 };
 
 export default function EditProfileWorker({ worker, onClose, onSave }) {
@@ -154,15 +168,22 @@ export default function EditProfileWorker({ worker, onClose, onSave }) {
     setLoading(true);
     try {
       const response = await API.put(`/workers/${worker._id}`, formData);
-      if (response.data.success) {
+      const savedWorker =
+        response.data?.data || response.data?.worker || response.data;
+      if (savedWorker) {
         setMessage({
           type: "success",
           text: "✅ Profile updated successfully!",
         });
         setTimeout(() => {
-          if (onSave) onSave(response.data.data);
+          if (onSave) onSave(savedWorker);
           if (onClose) onClose();
         }, 1500);
+      } else {
+        setMessage({
+          type: "error",
+          text: "Failed to update profile. Please try again.",
+        });
       }
     } catch (error) {
       setMessage({
@@ -341,6 +362,10 @@ export default function EditProfileWorker({ worker, onClose, onSave }) {
                         <option value="plumber">Plumber</option>
                         <option value="carpenter">Carpenter</option>
                         <option value="painter">Painter</option>
+                        <option value="cleaner">Cleaner</option>
+                        <option value="appliance-repair">
+                          Appliance Repair
+                        </option>
                       </select>
                     </div>
                     <div>

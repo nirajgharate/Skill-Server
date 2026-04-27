@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
@@ -34,7 +34,7 @@ import { userService, workerService } from "../../services/api.service";
 
 export default function ProfilePageProfessional() {
   const navigate = useNavigate();
-  const { authUser, logout } = useAuth();
+  const { authUser, logout, updateUser } = useAuth();
   const { registerUser, on, off } = useSocket();
 
   const [loading, setLoading] = useState(true);
@@ -46,6 +46,7 @@ export default function ProfilePageProfessional() {
   const [isAvailable, setIsAvailable] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const fileInputRef = useRef(null);
 
   const isWorker = user?.role === "worker";
 
@@ -81,22 +82,35 @@ export default function ProfilePageProfessional() {
   const loadProfile = async () => {
     try {
       setLoading(true);
-      const storedUser = localStorage.getItem("skillserverUser");
-      if (storedUser) {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
-        setFormData(userData);
-        setIsAvailable(userData.isAvailable !== false);
+      let userData = null;
+      try {
+        const profileRes = await userService.getProfile();
+        userData = profileRes.data || profileRes;
+      } catch (err) {
+        const storedUser = localStorage.getItem("skillserverUser");
+        if (storedUser) userData = JSON.parse(storedUser);
+      }
 
-        try {
-          const statsRes =
-            userData.role === "worker"
-              ? await workerService.getDashboardStats()
-              : await userService.getDashboardStats();
-          setStats(statsRes.data);
-        } catch (err) {
-          console.log("Using default stats");
+      if (userData) {
+        setUser(userData);
+        setFormData({
+          ...userData,
+          location: userData.location || userData.address || "",
+        });
+        setIsAvailable(userData.isAvailable !== false);
+        if (updateUser) {
+          updateUser(userData);
         }
+      }
+
+      try {
+        const statsRes =
+          userData?.role === "worker"
+            ? await workerService.getDashboardStats()
+            : await userService.getDashboardStats();
+        setStats(statsRes.data);
+      } catch (err) {
+        console.log("Using default stats");
       }
     } catch (err) {
       console.error("Error loading profile:", err);
@@ -113,17 +127,49 @@ export default function ProfilePageProfessional() {
     }));
   };
 
+  const handlePhotoChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData((prev) => ({
+        ...prev,
+        profilePhoto: reader.result,
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSave = async () => {
     try {
       setSaving(true);
       const service = isWorker ? workerService : userService;
-      await service.updateProfile(formData);
-      setUser(formData);
+      const updatedData = await service.updateProfile(formData);
+      setUser(updatedData);
+      setFormData((prev) => ({
+        ...prev,
+        ...updatedData,
+        location: updatedData.location || prev.location || "",
+      }));
+      const stored = JSON.parse(
+        localStorage.getItem("skillserverUser") || "{}",
+      );
+      const merged = { ...stored, ...updatedData };
+      localStorage.setItem("skillserverUser", JSON.stringify(merged));
+      if (updateUser) {
+        updateUser(updatedData);
+      }
       setIsEditing(false);
       alert("Profile updated successfully!");
     } catch (err) {
-      console.error("Error saving profile:", err);
-      alert("Failed to update profile");
+      console.error(
+        "Error saving profile:",
+        err.response?.data || err.message || err,
+      );
+      alert(
+        "Failed to update profile: " +
+          (err.response?.data?.message || err.message || "Unknown error"),
+      );
     } finally {
       setSaving(false);
     }
@@ -504,7 +550,7 @@ export default function ProfilePageProfessional() {
                     {
                       icon: MapPin,
                       label: "Location",
-                      value: user.address || "Not set",
+                      value: user.location || user.address || "Not set",
                     },
                   ].map((item, idx) => (
                     <div
@@ -725,16 +771,30 @@ export default function ProfilePageProfessional() {
                     alt="Profile"
                     className="w-24 h-24 rounded-xl object-cover"
                   />
-                  <button
-                    className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:shadow-lg transition-all ${
-                      isWorker
-                        ? "bg-purple-600 hover:bg-purple-700"
-                        : "bg-blue-600 hover:bg-blue-700"
-                    }`}
-                  >
-                    <Upload size={18} />
-                    Upload Photo
-                  </button>
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:shadow-lg transition-all ${
+                        isWorker
+                          ? "bg-purple-600 hover:bg-purple-700"
+                          : "bg-blue-600 hover:bg-blue-700"
+                      }`}
+                    >
+                      <Upload size={18} />
+                      Upload Photo
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handlePhotoChange}
+                    />
+                    {formData.profilePhoto && (
+                      <p className="text-xs text-slate-500">Photo selected</p>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -784,8 +844,8 @@ export default function ProfilePageProfessional() {
                   </label>
                   <input
                     type="text"
-                    name="address"
-                    value={formData.address || ""}
+                    name="location"
+                    value={formData.location || ""}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
                   />

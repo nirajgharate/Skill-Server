@@ -14,7 +14,7 @@ import {
   Shield,
 } from "lucide-react";
 
-export default function BookingDetailsCard({ booking }) {
+export default function BookingDetailsCard({ booking, onCall, onMessage }) {
   const getStatusColor = (status) => {
     const colors = {
       Active: {
@@ -50,6 +50,55 @@ export default function BookingDetailsCard({ booking }) {
     };
     return colors[status] || colors["Pending"];
   };
+
+  const parseBookingNotes = (notes) => {
+    if (!notes) return null;
+    if (typeof notes === "string") {
+      try {
+        return JSON.parse(notes);
+      } catch {
+        return { description: notes };
+      }
+    }
+    if (typeof notes === "object") return notes;
+    return null;
+  };
+
+  const noteData = parseBookingNotes(booking?.notes);
+  const noteCards = [];
+
+  if (noteData?.time) {
+    noteCards.push({
+      title: "Note Schedule",
+      content: noteData.time,
+    });
+  }
+
+  if (noteData?.problemDesc || noteData?.description) {
+    noteCards.push({
+      title: "Issue Summary",
+      content: noteData.problemDesc || noteData.description,
+    });
+  }
+
+  if (
+    Array.isArray(noteData?.requirements) &&
+    noteData.requirements.length > 0
+  ) {
+    noteCards.push({
+      title: "Required Tools",
+      content: noteData.requirements,
+    });
+  }
+
+  if (!noteData && typeof booking?.notes === "string") {
+    noteCards.push({
+      title: "Additional Notes",
+      content: booking.notes,
+    });
+  }
+
+  const hasNoteCards = noteCards.length > 0;
 
   const statusColor = getStatusColor(booking?.status);
 
@@ -219,14 +268,39 @@ export default function BookingDetailsCard({ booking }) {
         </div>
 
         {/* Additional Notes */}
-        {booking?.notes && (
-          <div className="mb-8 p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
-            <p className="text-white/70 text-xs font-bold uppercase tracking-tighter mb-2">
+        {hasNoteCards && (
+          <div className="mb-8 space-y-4">
+            <p className="text-white/70 text-xs font-bold uppercase tracking-tighter">
               Additional Notes
             </p>
-            <p className="text-sm font-semibold text-white/90">
-              {booking?.notes}
-            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {noteCards.map((card) => (
+                <div
+                  key={card.title}
+                  className="rounded-3xl bg-white/10 p-5 border border-white/20"
+                >
+                  <p className="text-white/60 text-[10px] font-black uppercase tracking-[0.2em] mb-3">
+                    {card.title}
+                  </p>
+                  {Array.isArray(card.content) ? (
+                    <div className="flex flex-wrap gap-2">
+                      {card.content.map((item) => (
+                        <span
+                          key={item}
+                          className="rounded-full bg-white/20 px-3 py-1 text-xs text-white/90"
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm font-semibold text-white/90 leading-6">
+                      {card.content}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -235,7 +309,9 @@ export default function BookingDetailsCard({ booking }) {
           <motion.button
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
-            className="flex-1 px-4 py-3 bg-white text-gray-900 font-black rounded-lg text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all"
+            onClick={onCall}
+            disabled={!onCall}
+            className="flex-1 px-4 py-3 bg-white text-gray-900 font-black rounded-lg text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Phone size={14} />
             Call Professional
@@ -243,7 +319,9 @@ export default function BookingDetailsCard({ booking }) {
           <motion.button
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
-            className="flex-1 px-4 py-3 bg-white/20 text-white font-black rounded-lg text-xs uppercase tracking-widest flex items-center justify-center gap-2 border border-white/30 hover:bg-white/30 transition-all shadow-lg"
+            onClick={onMessage}
+            disabled={!onMessage}
+            className="flex-1 px-4 py-3 bg-white/20 text-white font-black rounded-lg text-xs uppercase tracking-widest flex items-center justify-center gap-2 border border-white/30 hover:bg-white/30 transition-all shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
           >
             <MessageSquare size={14} />
             Send Message

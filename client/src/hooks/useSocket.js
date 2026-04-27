@@ -1,49 +1,65 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import io from 'socket.io-client';
 
 const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-let socket = null;
+let sharedSocket = null;
 
 /**
  * Custom hook for Socket.io connection and event handling
- * Usage: const { socket, emit, on, off } = useSocket();
+ * Usage: const { socket, emit, on, off, registerUser } = useSocket();
  */
 export const useSocket = () => {
+  const [socket, setSocket] = useState(null);
   const socketRef = useRef(null);
   const isConnectedRef = useRef(false);
+  const pendingRegisterRef = useRef(null);
 
   // Initialize socket connection
   useEffect(() => {
-    if (!socket) {
-      socket = io(SOCKET_URL, {
+    if (!sharedSocket) {
+      sharedSocket = io(SOCKET_URL, {
         reconnection: true,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
         reconnectionAttempts: 5,
       });
 
-      socket.on('connect', () => {
-        console.log('🟢 Socket.io connected:', socket.id);
+      sharedSocket.on('connect', () => {
+        console.log('🟢 Socket.io connected:', sharedSocket.id);
         isConnectedRef.current = true;
+        setSocket(sharedSocket);
+
+        if (pendingRegisterRef.current) {
+          sharedSocket.emit('user_register', {
+            ...pendingRegisterRef.current,
+            ack: (response) => {
+              console.log('✅ User registered:', response);
+            },
+          });
+        }
       });
 
-      socket.on('disconnect', () => {
+      sharedSocket.on('disconnect', () => {
         console.log('🔴 Socket.io disconnected');
         isConnectedRef.current = false;
       });
 
-      socket.on('error', (error) => {
+      sharedSocket.on('error', (error) => {
         console.error('❌ Socket.io error:', error);
       });
     }
 
-    socketRef.current = socket;
+    socketRef.current = sharedSocket;
+
+    if (sharedSocket && !socket) {
+      setSocket(sharedSocket);
+    }
 
     return () => {
-      // Don't disconnect on unmount - keep connection for other components
+      // Keep shared socket alive across components
     };
-  }, []);
+  }, [socket]);
 
   // Emit event
   const emit = useCallback((eventName, data) => {
@@ -70,6 +86,8 @@ export const useSocket = () => {
 
   // Register user
   const registerUser = useCallback((userId, role) => {
+    pendingRegisterRef.current = { userId, role };
+
     if (socketRef.current?.connected) {
       socketRef.current.emit('user_register', {
         userId,
@@ -82,7 +100,7 @@ export const useSocket = () => {
   }, []);
 
   return {
-    socket: socketRef.current,
+    socket,
     emit,
     on,
     off,

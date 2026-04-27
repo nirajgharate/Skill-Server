@@ -8,6 +8,7 @@ import {
   completeBooking,
   getUserBookings, 
   getBookingsForUser,
+  submitBookingReview,
   updateBookingStatus, 
   getUserDashboardStats,
   getBookingDetails,
@@ -28,6 +29,7 @@ router.get("/user/me", verifyToken, isUser, getUserBookings);
 router.get("/user/:userId", verifyToken, isUser, getBookingsForUser);
 router.get("/user/dashboard", verifyToken, isUser, getUserDashboardStats);
 router.get("/:bookingId/details", verifyToken, getBookingDetails);
+router.patch("/:bookingId/review", verifyToken, isUser, submitBookingReview);
 
 // Worker routes
 router.get("/worker/me", verifyToken, isWorker, getWorkerBookings);

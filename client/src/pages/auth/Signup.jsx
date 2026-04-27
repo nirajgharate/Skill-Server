@@ -11,8 +11,6 @@ import {
   Loader2,
   Briefcase,
   DollarSign,
-  Camera,
-  X as XIcon,
 } from "lucide-react";
 import authService from "../../services/auth.service";
 import { useAuth } from "../../hooks/useAuth";
@@ -36,23 +34,11 @@ export default function Signup() {
     profession: "electrician",
     hourlyRate: 0,
     bio: "",
-    profilePhoto: "",
+    gender: "",
   });
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  // PHOTO UPLOAD HANDLER
-  const handlePhotoUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData({ ...formData, profilePhoto: reader.result });
-      };
-      reader.readAsDataURL(file);
-    }
   };
 
   const handleSignupComplete = async () => {
@@ -73,6 +59,7 @@ export default function Signup() {
           serviceArea: formData.serviceArea,
           hourlyRate: parseInt(formData.hourlyRate),
           bio: formData.bio,
+          gender: formData.gender || undefined,
         });
       }
 
@@ -399,6 +386,23 @@ export default function Signup() {
 
                     <div className="space-y-1.5 group">
                       <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                        Gender
+                      </label>
+                      <select
+                        name="gender"
+                        value={formData.gender}
+                        onChange={handleInputChange}
+                        className="w-full pl-4 py-4 bg-slate-50 border border-slate-200/60 rounded-2xl outline-none focus:border-indigo-500 transition-all font-medium text-slate-900"
+                      >
+                        <option value="">Select gender (optional)</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5 group">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
                         Brief Bio
                       </label>
                       <textarea
@@ -409,76 +413,6 @@ export default function Signup() {
                         rows="2"
                         className="w-full px-5 py-4 bg-slate-50 border border-slate-200/60 rounded-2xl outline-none focus:border-indigo-500 transition-all font-medium text-slate-900 resize-none text-sm"
                       />
-                    </div>
-
-                    {/* PROFILE PHOTO UPLOAD */}
-                    <div className="space-y-1.5 group">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                        Profile Photo
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handlePhotoUpload}
-                          className="hidden"
-                          id="photo-input"
-                        />
-                        {formData.profilePhoto ? (
-                          <label
-                            htmlFor="photo-input"
-                            className="block relative cursor-pointer"
-                          >
-                            <motion.div
-                              className="relative w-full h-48 bg-slate-100 rounded-2xl overflow-hidden border-2 border-indigo-500 flex items-center justify-center group"
-                              whileHover={{ scale: 1.02 }}
-                            >
-                              <img
-                                src={formData.profilePhoto}
-                                alt="Profile"
-                                className="w-full h-full object-cover"
-                              />
-                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2">
-                                <Camera size={20} className="text-white" />
-                                <span className="text-white text-xs font-bold">
-                                  Change Photo
-                                </span>
-                              </div>
-                            </motion.div>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setFormData({
-                                  ...formData,
-                                  profilePhoto: "",
-                                });
-                              }}
-                              className="absolute top-2 right-2 bg-rose-500 text-white p-1 rounded-full hover:bg-rose-600 transition-all"
-                            >
-                              <XIcon size={16} />
-                            </button>
-                          </label>
-                        ) : (
-                          <label
-                            htmlFor="photo-input"
-                            className="flex items-center justify-center w-full h-40 px-5 py-4 bg-slate-50/50 border-2 border-dashed border-slate-300 rounded-2xl cursor-pointer hover:border-indigo-500 hover:bg-indigo-50/30 transition-all group"
-                          >
-                            <div className="text-center">
-                              <Camera
-                                className="mx-auto mb-2 text-slate-400 group-hover:text-indigo-500 transition-all"
-                                size={24}
-                              />
-                              <p className="text-[10px] font-bold text-slate-600 group-hover:text-indigo-600 uppercase tracking-widest">
-                                Click to upload photo
-                              </p>
-                              <p className="text-[8px] text-slate-400 mt-1">
-                                JPG, PNG max 5MB
-                              </p>
-                            </div>
-                          </label>
-                        )}
-                      </div>
                     </div>
 
                     <motion.button

@@ -15,6 +15,13 @@ const bookingSchema = new mongoose.Schema({
   date: { type: Date },
   address: { type: String },
   notes: { type: String },
+  review: {
+    rating: { type: Number, min: 1, max: 5 },
+    comment: { type: String, default: "" },
+    userName: { type: String, default: "" },
+    createdAt: { type: Date },
+  },
+  reviewedAt: { type: Date },
   paidAt: { type: Date },
   activatedAt: { type: Date },
   completedAt: { type: Date },

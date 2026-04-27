@@ -138,12 +138,12 @@ export default function WorkerBookings() {
   };
 
   const handleMessage = (booking) => {
-    const phone = getBookingPhone(booking);
-    if (!phone) {
-      window.alert("Phone number not available.");
+    const bookingId = booking._id || booking.id;
+    if (!bookingId) {
+      window.alert("Booking ID not available for messaging.");
       return;
     }
-    window.open(`sms:${phone}`, "_blank");
+    navigate(`/messages/${bookingId}`);
   };
 
   const totals = {
@@ -394,6 +394,12 @@ export default function WorkerBookings() {
                       {actionLoading[booking._id] ? "Updating..." : "Work Done"}
                     </button>
                   )}
+                  <button
+                    onClick={() => handleMessage(booking)}
+                    className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50 transition-all"
+                  >
+                    <MessageSquare size={16} /> Message
+                  </button>
                   {normalizeStatus(booking.status) === "completed" && (
                     <div className="rounded-2xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">
                       Completed on{" "}

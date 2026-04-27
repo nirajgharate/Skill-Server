@@ -9,6 +9,7 @@ import serviceRoutes from "./routes/service.routes.js";
 import bookingRoutes from "./routes/booking.routes.js";
 import workerRoutes from "./routes/worker.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
+import chatRoutes from "./routes/chat.routes.js";
 import { initializeSocketIO } from "./controllers/socketio.controller.js";
 
 dotenv.config();
@@ -43,13 +44,14 @@ app.use("/api/services", serviceRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/workers", workerRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/chat", chatRoutes);
 
 // Base Route
 app.get("/", (req, res) => {
   res.send("SkillServer API is live.");
 });
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5004;
 
 httpServer.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);

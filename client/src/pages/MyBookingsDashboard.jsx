@@ -28,6 +28,11 @@ export default function MyBookingsDashboard() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
 
   useEffect(() => {
     fetchBookings();
@@ -71,6 +76,46 @@ export default function MyBookingsDashboard() {
         err.response?.data?.message ||
           "Unable to complete booking. Please refresh and try again.",
       );
+    }
+  };
+
+  const openReviewModal = (booking) => {
+    setSelectedBooking(booking);
+    setReviewRating(booking.review?.rating || 5);
+    setReviewComment(booking.review?.comment || "");
+    setReviewModalOpen(true);
+  };
+
+  const closeReviewModal = () => {
+    setReviewModalOpen(false);
+    setSelectedBooking(null);
+    setReviewRating(5);
+    setReviewComment("");
+  };
+
+  const handleSubmitReview = async () => {
+    if (!selectedBooking) return;
+    if (reviewRating < 1 || reviewRating > 5) {
+      window.alert("Please select a rating between 1 and 5.");
+      return;
+    }
+
+    try {
+      setReviewSubmitting(true);
+      await API.patch(`/bookings/${selectedBooking._id}/review`, {
+        rating: reviewRating,
+        comment: reviewComment.trim(),
+      });
+      closeReviewModal();
+      fetchBookings();
+    } catch (err) {
+      console.error("Submit review failed:", err);
+      window.alert(
+        err.response?.data?.message ||
+          "Failed to submit review. Please try again.",
+      );
+    } finally {
+      setReviewSubmitting(false);
     }
   };
 
@@ -183,147 +228,148 @@ export default function MyBookingsDashboard() {
   });
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-50 via-sky-50 to-slate-100 pt-32 pb-24 px-4 md:px-8">
-      <div className="absolute -top-20 left-0 h-72 w-72 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
-      <div className="absolute top-24 right-0 h-64 w-64 rounded-full bg-sky-400/10 blur-3xl pointer-events-none" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pt-24 pb-24 px-4 md:px-8">
       <div className="max-w-7xl mx-auto">
-        {/* HEADER SECTION */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-16 relative"
+          transition={{ duration: 0.5 }}
+          className="mb-8 rounded-[2.5rem] border border-slate-200 bg-white shadow-xl shadow-slate-200/10 p-6"
         >
-          <div className="relative overflow-hidden rounded-[2.5rem] border border-slate-200 bg-white/95 backdrop-blur-xl p-8 shadow-xl shadow-slate-200/10">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-8">
-              <div>
-                <h1 className="text-5xl md:text-6xl font-black text-slate-900 tracking-tight mb-3">
-                  My Bookings
-                </h1>
-                <p className="text-lg text-slate-600 font-semibold">
-                  Track and manage all your professional service bookings
-                </p>
-              </div>
-              <motion.button
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => navigate("/services")}
-                className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-black text-sm rounded-xl flex items-center gap-2 shadow-lg shadow-indigo-200/50 hover:shadow-xl hover:shadow-indigo-300/60 transition-all uppercase tracking-widest"
-              >
-                <Plus size={18} />
-                New Booking
-              </motion.button>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.35em] text-indigo-600 mb-2">
+                My Bookings
+              </p>
+              <h1 className="text-4xl font-black text-slate-900">
+                Booking dashboard
+              </h1>
+              <p className="mt-2 text-slate-600 max-w-2xl">
+                Track all your orders and service requests with a clean, modern
+                dashboard.
+              </p>
             </div>
-
-            {/* STATS BAR */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="grid grid-cols-3 gap-5"
-            >
-              {[
-                {
-                  label: "Total Bookings",
-                  value: bookings.length,
-                  color: "from-blue-600 to-blue-700",
-                  icon: Calendar,
-                },
-                {
-                  label: "Active",
-                  value: bookings.filter((b) =>
-                    activeStatuses.includes(normalizeStatus(b.status)),
-                  ).length,
-                  color: "from-indigo-600 to-indigo-700",
-                  icon: Clock,
-                },
-                {
-                  label: "Completed",
-                  value: bookings.filter(
-                    (b) => normalizeStatus(b.status) === "completed",
-                  ).length,
-                  color: "from-emerald-600 to-emerald-700",
-                  icon: CheckCircle2,
-                },
-              ].map((stat, idx) => {
-                const Icon = stat.icon;
-                return (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.08 }}
-                    className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm"
-                  >
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">
-                          {stat.label}
-                        </p>
-                        <p className="text-4xl font-black text-slate-900">
-                          {stat.value}
-                        </p>
-                      </div>
-                      <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-200/30">
-                        <Icon size={24} />
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
+            <div className="flex flex-wrap gap-3 items-center">
+              <button
+                onClick={() => navigate("/services")}
+                className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-200/40 hover:bg-indigo-700 transition-all"
+              >
+                <Plus size={16} /> New Booking
+              </button>
+              <button
+                onClick={fetchBookings}
+                className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-all"
+              >
+                <RotateCcw size={16} /> Refresh
+              </button>
+            </div>
           </div>
         </motion.div>
 
-        {/* TAB SELECTOR */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="mb-10 flex gap-3 flex-wrap"
-        >
-          {["Active", "Completed", "Cancelled"].map((tab) => {
-            const tabCount = bookings.filter((b) => {
-              const status = String(b.status || "").toLowerCase();
-              if (tab === "Active")
-                return [
-                  "active",
-                  "accepted",
-                  "pending",
-                  "confirmed",
-                  "in-progress",
-                  "paid",
-                ].includes(status);
-              if (tab === "Completed") return status === "completed";
-              if (tab === "Cancelled")
-                return ["cancelled", "rejected"].includes(status);
-              return false;
-            }).length;
-
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          {[
+            {
+              label: "Total Bookings",
+              value: bookings.length,
+              color: "from-slate-500 to-slate-700",
+              icon: Calendar,
+            },
+            {
+              label: "Active",
+              value: bookings.filter((b) =>
+                activeStatuses.includes(normalizeStatus(b.status)),
+              ).length,
+              color: "from-indigo-500 to-blue-500",
+              icon: Clock,
+            },
+            {
+              label: "Completed",
+              value: bookings.filter(
+                (b) => normalizeStatus(b.status) === "completed",
+              ).length,
+              color: "from-emerald-500 to-teal-500",
+              icon: CheckCircle2,
+            },
+          ].map((stat, idx) => {
+            const Icon = stat.icon;
             return (
-              <motion.button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className={`px-6 py-3 rounded-lg font-bold text-sm uppercase tracking-widest transition-all ${
-                  activeTab === tab
-                    ? "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-200/50"
-                    : "bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:bg-slate-50"
-                }`}
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.08 }}
+                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
               >
-                {tab}
-                <span
-                  className={`ml-2 px-3 py-0.5 rounded-md text-xs font-black ${
-                    activeTab === tab ? "bg-white/20" : "bg-slate-100"
-                  }`}
-                >
-                  {tabCount}
-                </span>
-              </motion.button>
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-500 mb-2">
+                      {stat.label}
+                    </p>
+                    <p className="text-4xl font-black text-slate-900">
+                      {stat.value}
+                    </p>
+                  </div>
+                  <div
+                    className={`flex h-14 w-14 items-center justify-center rounded-3xl bg-gradient-to-br ${stat.color} text-white shadow-lg`}
+                  >
+                    <Icon size={22} />
+                  </div>
+                </div>
+              </motion.div>
             );
           })}
-        </motion.div>
+        </div>
+
+        <div className="flex flex-wrap gap-3 mb-8">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="mb-10 flex gap-3 flex-wrap"
+          >
+            {["Active", "Completed", "Cancelled"].map((tab) => {
+              const tabCount = bookings.filter((b) => {
+                const status = String(b.status || "").toLowerCase();
+                if (tab === "Active")
+                  return [
+                    "active",
+                    "accepted",
+                    "pending",
+                    "confirmed",
+                    "in-progress",
+                    "paid",
+                  ].includes(status);
+                if (tab === "Completed") return status === "completed";
+                if (tab === "Cancelled")
+                  return ["cancelled", "rejected"].includes(status);
+                return false;
+              }).length;
+
+              return (
+                <motion.button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`px-6 py-3 rounded-lg font-bold text-sm uppercase tracking-widest transition-all ${
+                    activeTab === tab
+                      ? "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-200/50"
+                      : "bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:bg-slate-50"
+                  }`}
+                >
+                  {tab}
+                  <span
+                    className={`ml-2 px-3 py-0.5 rounded-md text-xs font-black ${
+                      activeTab === tab ? "bg-white/20" : "bg-slate-100"
+                    }`}
+                  >
+                    {tabCount}
+                  </span>
+                </motion.button>
+              );
+            })}
+          </motion.div>
+        </div>
 
         {/* BOOKINGS LIST */}
         {error ? (
@@ -598,6 +644,11 @@ export default function MyBookingsDashboard() {
                                 <motion.button
                                   whileHover={{ scale: 1.05, y: -2 }}
                                   whileTap={{ scale: 0.95 }}
+                                  onClick={() =>
+                                    navigate(
+                                      `/messages/${booking._id || booking.id}`,
+                                    )
+                                  }
                                   className="px-3 py-3 bg-white text-slate-700 font-black rounded-lg text-xs uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center justify-center gap-1.5 border border-slate-300 shadow-sm"
                                 >
                                   <MessageSquare size={14} />
@@ -622,10 +673,20 @@ export default function MyBookingsDashboard() {
                               <motion.button
                                 whileHover={{ scale: 1.05, y: -2 }}
                                 whileTap={{ scale: 0.95 }}
-                                className="w-full px-4 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-black rounded-xl text-xs uppercase tracking-widest shadow-lg shadow-emerald-200/60 hover:shadow-xl transition-all flex items-center justify-center gap-2 border border-emerald-300/30"
+                                onClick={() =>
+                                  !booking.review && openReviewModal(booking)
+                                }
+                                className={`w-full px-4 py-3 font-black rounded-xl text-xs uppercase tracking-widest shadow-lg transition-all flex items-center justify-center gap-2 border ${
+                                  booking.review
+                                    ? "bg-slate-200 text-slate-600 border-slate-300 cursor-not-allowed"
+                                    : "bg-gradient-to-r from-emerald-600 to-emerald-700 text-white border-emerald-300/30 hover:shadow-emerald-200/60 hover:shadow-xl"
+                                }`}
+                                disabled={Boolean(booking.review)}
                               >
                                 <Star size={16} />
-                                <span>Leave Review</span>
+                                <span>
+                                  {booking.review ? "Reviewed" : "Leave Review"}
+                                </span>
                               </motion.button>
                               <motion.button
                                 whileHover={{ scale: 1.05, y: -2 }}
@@ -636,6 +697,12 @@ export default function MyBookingsDashboard() {
                                 <RotateCcw size={14} />
                                 <span>Book Again</span>
                               </motion.button>
+                              {booking.review && (
+                                <p className="text-xs text-slate-500 mt-2 text-center">
+                                  Review submitted: "
+                                  {booking.review.comment?.slice(0, 50)}"
+                                </p>
+                              )}
                             </>
                           ) : (
                             <motion.button
@@ -658,6 +725,94 @@ export default function MyBookingsDashboard() {
           </motion.div>
         )}
       </div>
+      <AnimatePresence>
+        {reviewModalOpen && selectedBooking && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4"
+          >
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 20, opacity: 0 }}
+              className="w-full max-w-2xl overflow-hidden rounded-[2rem] bg-white shadow-2xl"
+            >
+              <div className="flex items-center justify-between px-6 py-5 border-b border-slate-200">
+                <div>
+                  <h2 className="text-xl font-black text-slate-900">
+                    {selectedBooking.review ? "Edit Review" : "Leave a Review"}
+                  </h2>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Review {selectedBooking.expert} for booking on{" "}
+                    {formatDate(selectedBooking.date)}.
+                  </p>
+                </div>
+                <button
+                  onClick={closeReviewModal}
+                  className="text-slate-400 hover:text-slate-700"
+                >
+                  Close
+                </button>
+              </div>
+              <div className="px-6 py-6 space-y-5">
+                <div>
+                  <label className="block text-sm font-bold text-slate-900 mb-2">
+                    Rating
+                  </label>
+                  <div className="flex items-center gap-2">
+                    {[1, 2, 3, 4, 5].map((value) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setReviewRating(value)}
+                        className={`px-4 py-3 rounded-full border text-sm font-black transition ${
+                          reviewRating === value
+                            ? "bg-emerald-600 text-white border-emerald-600"
+                            : "bg-slate-50 text-slate-700 border-slate-200"
+                        }`}
+                      >
+                        {value}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-slate-900 mb-2">
+                    Review comment
+                  </label>
+                  <textarea
+                    value={reviewComment}
+                    onChange={(e) => setReviewComment(e.target.value)}
+                    rows={5}
+                    className="w-full rounded-3xl border border-slate-200 px-4 py-3 text-sm text-slate-900 resize-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                    placeholder="Tell us about your experience..."
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-3 px-6 py-4 border-t border-slate-200 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={closeReviewModal}
+                  className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSubmitReview}
+                  disabled={reviewSubmitting}
+                  className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-all disabled:cursor-not-allowed disabled:bg-emerald-300"
+                >
+                  {reviewSubmitting ? "Submitting..." : "Submit Review"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
