@@ -1,4 +1,4 @@
-import ChatThread from "../models/chat.model.js";
+import { ChatThread, ChatMessage } from "../models/chat.model.js";
 import Booking from "../models/booking.model.js";
 
 export const fetchChatThread = async (bookingId, requesterId) => {
@@ -30,12 +30,18 @@ export const fetchChatThread = async (bookingId, requesterId) => {
       bookingId,
       userId: booking.userId._id,
       workerId: booking.workerId._id,
-      messages: [],
       lastUpdatedAt: new Date(),
     });
   }
 
-  return thread;
+  const messages = await ChatMessage.find({ bookingId })
+    .sort({ createdAt: 1 })
+    .lean();
+
+  return {
+    ...thread.toObject(),
+    messages,
+  };
 };
 
 export const appendChatMessage = async ({ bookingId, senderId, senderRole, senderName, content }) => {
@@ -66,34 +72,34 @@ export const appendChatMessage = async ({ bookingId, senderId, senderRole, sende
   }
 
   const recipientId = isUserSender ? booking.workerId._id : booking.userId._id;
+  const bookingSenderName = isUserSender
+    ? booking.userId?.name
+    : booking.workerId?.name;
+  const finalSenderName = senderName?.trim() || bookingSenderName || "Unknown";
 
-  const update = {
-    $push: {
-      messages: {
-        senderId,
-        senderRole,
-        senderName,
-        content: content.trim(),
-        createdAt: new Date(),
-      },
-    },
-    $set: {
-      lastMessage: content.trim(),
-      lastUpdatedAt: new Date(),
-    },
-    $setOnInsert: {
+  let thread = await ChatThread.findOne({ bookingId });
+  if (!thread) {
+    thread = await ChatThread.create({
       bookingId,
       userId: booking.userId._id,
       workerId: booking.workerId._id,
-    },
-  };
+      lastUpdatedAt: new Date(),
+    });
+  }
 
-  const thread = await ChatThread.findOneAndUpdate({ bookingId }, update, {
-    new: true,
-    upsert: true,
+  const message = await ChatMessage.create({
+    bookingId,
+    threadId: thread._id,
+    senderId,
+    senderRole,
+    senderName: finalSenderName,
+    content: content.trim(),
+    createdAt: new Date(),
   });
 
-  const message = thread.messages[thread.messages.length - 1];
+  thread.lastMessage = content.trim();
+  thread.lastUpdatedAt = new Date();
+  await thread.save();
 
   return {
     thread,

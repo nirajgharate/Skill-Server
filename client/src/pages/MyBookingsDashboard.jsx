@@ -21,6 +21,7 @@ import {
   IndianRupee,
 } from "lucide-react";
 import API from "../api/api";
+import { bookingService } from "../services/api.service";
 
 export default function MyBookingsDashboard() {
   const navigate = useNavigate();
@@ -68,7 +69,16 @@ export default function MyBookingsDashboard() {
   // User action to mark an active booking as completed
   const handleMarkWorkDone = async (bookingId) => {
     try {
-      await API.post(`/bookings/complete/${bookingId}`);
+      const response = await bookingService.markWorkDone(bookingId, {
+        role: "user",
+      });
+      const updatedBooking = response.data || response;
+      if (
+        updatedBooking &&
+        String(updatedBooking.status || "").toLowerCase() === "completed"
+      ) {
+        openReviewModal(updatedBooking);
+      }
       fetchBookings();
     } catch (err) {
       console.error("Failed to mark work done:", err);
@@ -102,10 +112,11 @@ export default function MyBookingsDashboard() {
 
     try {
       setReviewSubmitting(true);
-      await API.patch(`/bookings/${selectedBooking._id}/review`, {
-        rating: reviewRating,
-        comment: reviewComment.trim(),
-      });
+      await bookingService.submitBookingReview(
+        selectedBooking._id,
+        reviewRating,
+        reviewComment.trim(),
+      );
       closeReviewModal();
       fetchBookings();
     } catch (err) {
@@ -612,7 +623,18 @@ export default function MyBookingsDashboard() {
 
                         {/* ACTION BUTTONS */}
                         <div className="md:col-span-4 flex flex-col gap-2">
-                          {["confirmed", "active", "in-progress"].includes(
+                          <motion.button
+                            whileHover={{ scale: 1.05, y: -2 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() =>
+                              navigate(`/user/bookings/${booking._id}`)
+                            }
+                            className="w-full px-4 py-3 bg-slate-900 text-white font-black rounded-xl text-xs uppercase tracking-widest shadow-lg shadow-slate-200/30 hover:bg-slate-800 transition-all flex items-center justify-center gap-2 border border-slate-800/30"
+                          >
+                            <ChevronRight size={14} />
+                            <span>View Details</span>
+                          </motion.button>
+                          {activeStatuses.includes(
                             normalizeStatus(booking.status),
                           ) ? (
                             <>
@@ -745,8 +767,11 @@ export default function MyBookingsDashboard() {
                     {selectedBooking.review ? "Edit Review" : "Leave a Review"}
                   </h2>
                   <p className="text-sm text-slate-500 mt-1">
-                    Review {selectedBooking.expert} for booking on{" "}
-                    {formatDate(selectedBooking.date)}.
+                    Review{" "}
+                    {selectedBooking.workerId?.name ||
+                      selectedBooking.expert ||
+                      "the worker"}{" "}
+                    for booking on {formatDate(selectedBooking.date)}.
                   </p>
                 </div>
                 <button

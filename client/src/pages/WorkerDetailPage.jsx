@@ -38,14 +38,11 @@ export default function WorkerDetailPage() {
         setLoading(true);
         setError(null);
 
-        // First, try to get worker from location.state (passed from listing page)
         if (location.state?.worker) {
           setWorker(location.state.worker);
-          setLoading(false);
-          return;
         }
 
-        // Otherwise, fetch from API using worker ID
+        // Always fetch the latest worker details, especially to show recent reviews.
         const response = await API.get(`/workers/${id}`);
         const fetchedWorker = response.data.data || response.data;
 
@@ -65,21 +62,46 @@ export default function WorkerDetailPage() {
     loadWorkerData();
   }, [id, location.state]);
 
+  const getBookingWorker = () => {
+    return {
+      _id: worker?._id || worker?.id || id,
+      name: worker?.name || "Expert Professional",
+      role: worker?.profession || worker?.role || "Professional",
+      experience: worker?.experienceYears
+        ? `${worker.experienceYears}+ years`
+        : worker?.experience || "8+ years",
+      img:
+        worker?.profilePhoto ||
+        worker?.photo ||
+        worker?.img ||
+        `https://i.pravatar.cc/150?u=${worker?._id || worker?.name || "expert"}`,
+      rating: worker?.rating ?? 4.8,
+      reviews:
+        worker?.reviewCount ??
+        (Array.isArray(worker?.reviews)
+          ? worker.reviews.length
+          : (worker?.reviews ?? 0)),
+      profession: worker?.profession || worker?.role || "Professional Service",
+    };
+  };
+
   const handleBooking = () => {
     if (!worker) return;
 
+    const bookingWorker = getBookingWorker();
+
     const selectedService = location.state?.service || {
       _id: null,
-      title: worker.profession || "Professional Service",
-      name: worker.profession || "Professional Service",
-      price: worker.price || 499,
-      category: worker.profession || "service",
-      workerId: worker._id || id,
+      title: bookingWorker.profession,
+      name: bookingWorker.profession,
+      price: worker?.price || worker?.hourlyRate || 499,
+      category: worker?.profession || worker?.role || "service",
+      workerId: bookingWorker._id,
     };
 
     navigate("/booking", {
       state: {
-        worker,
+        worker: bookingWorker,
         service: selectedService,
       },
     });
@@ -180,11 +202,23 @@ export default function WorkerDetailPage() {
       Array.isArray(worker.reviews) &&
       worker.reviews.length > 0
     ) {
-      return worker.reviews.slice(0, 3).map((review) => ({
-        name: review.userName || review.userId || "Satisfied Customer",
-        text: review.comment || "Great work and communication.",
-        rating: review.rating || 5,
-      }));
+      return worker.reviews
+        .slice()
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 3)
+        .map((review, index) => ({
+          id: review._id || index,
+          name: review.userName || review.userId || "Satisfied Customer",
+          text: review.comment || "Great work and communication.",
+          rating: review.rating || 5,
+          date: review.createdAt
+            ? new Date(review.createdAt).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })
+            : "Recent",
+        }));
     }
 
     if (worker.testimonials && Array.isArray(worker.testimonials)) {
@@ -551,9 +585,9 @@ export default function WorkerDetailPage() {
                   Client Reviews (
                   {worker.reviewCount || worker.reviews?.length || 0})
                 </h3>
-                {getTestimonials().map((t, i) => (
+                {getTestimonials().map((t) => (
                   <motion.div
-                    key={i}
+                    key={t.id}
                     whileHover={{ y: -4 }}
                     className="p-6 bg-white border border-black/5 rounded-[2rem] shadow-sm hover:shadow-lg transition-all"
                   >
@@ -568,7 +602,7 @@ export default function WorkerDetailPage() {
                         ))}
                       </div>
                       <span className="text-[10px] font-bold text-[#0F172A]/40">
-                        Recently
+                        {t.date || "Recent"}
                       </span>
                     </div>
                     <p className="italic text-sm text-[#0F172A]/70 mb-3">

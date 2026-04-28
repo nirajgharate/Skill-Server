@@ -3,6 +3,7 @@ import Booking from "../models/booking.model.js";
 import Service from "../models/service.model.js";
 import Worker from "../models/Worker.js";
 import User from "../models/User.js";
+import Review from "../models/review.model.js";
 
 const VALID_SERVICE_CATEGORIES = ["electrician", "plumber", "ac-repair", "carpenter", "painter", "cleaner"];
 const CATEGORY_ALIASES = {
@@ -461,11 +462,21 @@ export const submitBookingReview = async (req, res) => {
     const user = await User.findById(req.user.id).select("name");
     const reviewerName = user?.name || "Customer";
 
+    const reviewRecord = await Review.create({
+      bookingId: booking._id,
+      workerId: booking.workerId,
+      userId: req.user.id,
+      userName: reviewerName,
+      rating,
+      comment: comment?.trim() || "",
+      createdAt: new Date(),
+    });
+
     booking.review = {
       rating,
       comment: comment?.trim() || "",
       userName: reviewerName,
-      createdAt: new Date(),
+      createdAt: reviewRecord.createdAt,
     };
     booking.reviewedAt = new Date();
     await booking.save();
@@ -479,7 +490,7 @@ export const submitBookingReview = async (req, res) => {
           userName: reviewerName,
           rating,
           comment: comment?.trim() || "",
-          createdAt: new Date(),
+          createdAt: reviewRecord.createdAt,
         });
         worker.reviewCount = worker.reviews.length;
         const totalRating = worker.reviews.reduce((sum, review) => sum + (review.rating || 0), 0);

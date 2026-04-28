@@ -1,7 +1,9 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import io from 'socket.io-client';
 
-const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5004/api';
+const socketHost = rawApiUrl.replace(/\/api\/?$/, '').replace(/\/+$/, '');
+const SOCKET_URL = socketHost || 'http://localhost:5004';
 
 let sharedSocket = null;
 

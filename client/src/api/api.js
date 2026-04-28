@@ -1,7 +1,13 @@
 import axios from 'axios';
 
+const rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5004/api';
+const normalizedApiUrl = rawApiUrl.replace(/\/+$/, '');
+const baseUrl = normalizedApiUrl.endsWith('/api')
+  ? normalizedApiUrl
+  : `${normalizedApiUrl}/api`;
+
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5004/api',
+  baseURL: baseUrl,
 });
 
 // Request: Attach Token

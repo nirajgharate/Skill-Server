@@ -101,11 +101,7 @@ export default function WorkerBookingDetails() {
   };
 
   const handleMessage = () => {
-    if (!booking?.phone) {
-      window.alert("Phone number not available.");
-      return;
-    }
-    window.open(`sms:${booking.phone}`, "_blank");
+    navigate(`/messages/${bookingId}`);
   };
 
   const handleMarkDone = async () => {

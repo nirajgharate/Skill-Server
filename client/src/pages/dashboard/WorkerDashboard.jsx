@@ -107,6 +107,11 @@ export default function WorkerDashboard() {
   };
 
   const handleMessage = (booking) => {
+    if (booking?._id) {
+      navigate(`/messages/${booking._id}`);
+      return;
+    }
+
     const phone = booking.userId?.phone || booking.phone;
     const email = booking.userId?.email || booking.email;
 

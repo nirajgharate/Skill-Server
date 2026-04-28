@@ -19,21 +19,36 @@ import useSocket from "../hooks/useSocket";
 const formatBooking = (booking) => {
   if (!booking) return null;
 
+  const service =
+    booking.serviceId?.name ||
+    booking.service ||
+    booking.serviceName ||
+    "Service";
+  const userInfo =
+    booking.userId && typeof booking.userId === "object" ? booking.userId : {};
+  const workerInfo =
+    booking.workerId && typeof booking.workerId === "object"
+      ? booking.workerId
+      : {};
+
+  const user = {
+    ...userInfo,
+    name: userInfo?.name || booking.customer || "Customer",
+    phone: userInfo?.phone || "",
+  };
+  const worker = {
+    ...workerInfo,
+    name: workerInfo?.name || booking.expert || "Professional",
+    phone: workerInfo?.phone || "",
+  };
+
   return {
     ...booking,
-    service:
-      booking.serviceId?.name ||
-      booking.service ||
-      booking.serviceName ||
-      "Service",
-    contactName:
-      booking.workerId?.name ||
-      booking.userId?.name ||
-      booking.expert ||
-      booking.customer ||
-      "Contact",
-    phone:
-      booking.workerId?.phone || booking.userId?.phone || booking.phone || "",
+    service,
+    user,
+    worker,
+    contactName: worker.name || user.name || "Contact",
+    phone: worker.phone || user.phone || booking.phone || "",
     status:
       booking.status?.charAt(0).toUpperCase() + booking.status?.slice(1) ||
       "Pending",
@@ -70,28 +85,43 @@ export default function MessagePage() {
 
   useEffect(() => {
     const loadChat = async () => {
+      if (!bookingId) {
+        setError(
+          "Booking ID is missing. Please return to your booking list and try again.",
+        );
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
 
-        const [bookingData, chatThread] = await Promise.all([
-          bookingService.getBookingDetails(bookingId),
-          chatService.getChatThread(bookingId),
-        ]);
+        const bookingData = await bookingService.getBookingDetails(bookingId);
+        const chatThread = await chatService.getChatThread(bookingId);
+
+        if (!chatThread || !Array.isArray(chatThread.messages)) {
+          throw new Error("Invalid chat history returned from the server.");
+        }
 
         setBooking(formatBooking(bookingData));
         setMessages(chatThread.messages || []);
       } catch (err) {
-        console.error("Unable to load chat thread:", err);
-        setError("Unable to load booking or chat history. Please try again.");
+        console.error(
+          "Unable to load chat thread:",
+          err.response?.data || err.message || err,
+        );
+        setError(
+          err.response?.data?.message ||
+            err.message ||
+            "Unable to load booking or chat history. Please try again.",
+        );
       } finally {
         setLoading(false);
       }
     };
 
-    if (bookingId) {
-      loadChat();
-    }
+    loadChat();
   }, [bookingId]);
 
   useEffect(() => {
@@ -111,9 +141,10 @@ export default function MessagePage() {
       setConnected(false);
     };
 
+    const authUserId = String(authUser?._id || authUser?.id || "");
     const handleIncomingMessage = (data) => {
       if (!data || data.bookingId !== bookingId) return;
-      if (data.senderId === authUser._id) return;
+      if (String(data.senderId) === authUserId) return;
 
       setMessages((prev) => [
         ...prev,
@@ -142,8 +173,6 @@ export default function MessagePage() {
       }
     };
   }, [authUser, bookingId, socket, on, off, registerUser]);
-
-  const contactPhone = booking?.phone || "";
 
   const handleCopy = async () => {
     if (!contactPhone) return;
@@ -183,8 +212,14 @@ export default function MessagePage() {
     }
   };
 
-  const chatTitle = booking?.contactName || "Booking Chat";
+  const isWorker =
+    authUser?.role === "worker" || booking?.worker?._id === authUser?._id;
+  const partner = booking ? (isWorker ? booking.user : booking.worker) : null;
+  const selfRoleLabel = isWorker ? "Worker" : "Customer";
+  const partnerRoleLabel = isWorker ? "Customer" : "Professional";
+  const chatTitle = partner?.name || booking?.contactName || "Booking Chat";
   const bookingServiceTitle = booking?.service || "Service";
+  const contactPhone = partner?.phone || booking?.phone || "";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pb-12">
@@ -222,13 +257,25 @@ export default function MessagePage() {
           <div className="flex flex-col rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm min-h-[680px]">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-4 mb-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-indigo-50 text-indigo-600">
-                  <User size={20} />
+                <div className="relative h-14 w-14 rounded-3xl overflow-hidden border border-slate-200 bg-slate-100">
+                  <img
+                    src={
+                      partner?.profilePhoto ||
+                      `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(chatTitle)}`
+                    }
+                    alt={chatTitle}
+                    className="h-full w-full object-cover"
+                  />
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500">Talking with</p>
+                  <p className="text-sm text-slate-500">
+                    Chatting with {partnerRoleLabel}
+                  </p>
                   <p className="text-xl font-black text-slate-900">
                     {chatTitle}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    You are signed in as {selfRoleLabel}
                   </p>
                 </div>
               </div>
@@ -268,7 +315,9 @@ export default function MessagePage() {
                     </div>
                   ) : (
                     messages.map((msg, index) => {
-                      const isMine = msg.senderId === authUser?._id;
+                      const isMine =
+                        String(msg.senderId) ===
+                        String(authUser?._id || authUser?.id);
                       return (
                         <div
                           key={`${msg.createdAt}-${index}`}
@@ -387,10 +436,21 @@ export default function MessagePage() {
                   Contact
                 </p>
                 <p className="mt-2 text-lg font-black text-slate-900">
-                  {booking?.contactName}
+                  {chatTitle}
                 </p>
                 <p className="text-sm text-slate-500 mt-1">
-                  {contactPhone || "No phone set"}
+                  {partnerRoleLabel} • {contactPhone || "No phone provided"}
+                </p>
+              </div>
+              <div className="rounded-3xl bg-slate-50 p-5">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
+                  You are
+                </p>
+                <p className="mt-2 text-lg font-black text-slate-900">
+                  {authUser?.name || selfRoleLabel}
+                </p>
+                <p className="text-sm text-slate-500 mt-1">
+                  {selfRoleLabel} • {authUser?.email || "No email set"}
                 </p>
               </div>
             </div>

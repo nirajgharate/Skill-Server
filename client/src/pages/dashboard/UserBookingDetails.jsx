@@ -59,6 +59,7 @@ const formatBooking = (booking) => {
     workerImage:
       booking.workerId?.photo ||
       "https://api.dicebear.com/7.x/avataaars/svg?seed=Worker",
+    userName: booking.userId?.name || "You",
     noteTime,
     date: formattedDate,
     time: noteTime
@@ -82,6 +83,8 @@ export default function UserBookingDetails() {
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState(null);
 
   const loadBooking = async () => {
     try {
@@ -112,11 +115,24 @@ export default function UserBookingDetails() {
   };
 
   const handleMessage = () => {
-    if (!booking?.phone) {
-      window.alert("Phone number not available.");
-      return;
+    navigate(`/messages/${bookingId}`);
+  };
+
+  const handleMarkDone = async () => {
+    setActionError(null);
+    setActionLoading(true);
+    try {
+      await bookingService.markWorkDone(bookingId, { role: "user" });
+      await loadBooking();
+    } catch (err) {
+      console.error("Mark work done error:", err);
+      setActionError(
+        err.response?.data?.message ||
+          "Unable to mark work as done. Please try again.",
+      );
+    } finally {
+      setActionLoading(false);
     }
-    window.open(`sms:${booking.phone}`, "_blank");
   };
 
   if (loading) {
@@ -162,7 +178,7 @@ export default function UserBookingDetails() {
                 Booking Details
               </h1>
               <p className="text-xs font-semibold text-slate-500">
-                View the full booking summary, worker details, and schedule.
+                Professional booking overview and contact details.
               </p>
             </div>
           </div>
@@ -200,7 +216,7 @@ export default function UserBookingDetails() {
                 </h2>
                 <p className="mt-3 text-sm text-slate-200/90 leading-7">
                   {booking.workerName} will handle this booking. Review the
-                  schedule and contact details below.
+                  schedule, contact details, and booking status here.
                 </p>
               </div>
               <div className="space-y-3 text-right">
@@ -263,27 +279,103 @@ export default function UserBookingDetails() {
                       {booking.workerName}
                     </p>
                   </div>
+                  {booking.workerId?.email && (
+                    <div>
+                      <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">
+                        Email
+                      </p>
+                      <p className="font-medium text-slate-900">
+                        {booking.workerId.email}
+                      </p>
+                    </div>
+                  )}
                   {booking.workerId?.phone && (
                     <div>
                       <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">
                         Phone
                       </p>
-                      <p className="font-semibold text-slate-900">
+                      <p className="font-medium text-slate-900">
                         {booking.workerId.phone}
                       </p>
                     </div>
                   )}
-                  {booking.workerId?.upiId && (
-                    <div>
-                      <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">
-                        UPI
-                      </p>
-                      <p className="font-semibold text-slate-900">
-                        {booking.workerId.upiId}
-                      </p>
-                    </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="text-xl font-black text-slate-900 mb-4">
+                  Booking reference
+                </h3>
+                <div className="space-y-4 text-slate-700">
+                  <div className="rounded-3xl bg-slate-50 p-4">
+                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">
+                      Reference
+                    </p>
+                    <p className="font-semibold text-slate-900">
+                      {booking._id?.substring(0, 14)}
+                    </p>
+                  </div>
+                  <div className="rounded-3xl bg-slate-50 p-4">
+                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">
+                      Status
+                    </p>
+                    <p className="font-semibold text-slate-900">
+                      {booking.status}
+                    </p>
+                  </div>
+                  <div className="rounded-3xl bg-slate-50 p-4">
+                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">
+                      Payment method
+                    </p>
+                    <p className="font-semibold text-slate-900">
+                      {booking.paymentMethod || "Not available"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm">
+                <h3 className="text-xl font-black text-slate-900 mb-4">
+                  Support actions
+                </h3>
+                <div className="grid gap-3">
+                  <button
+                    onClick={handleCall}
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition-all"
+                  >
+                    <Phone size={16} /> Call worker
+                  </button>
+                  <button
+                    onClick={handleMessage}
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800 transition-all"
+                  >
+                    <MessageSquare size={16} /> Send message
+                  </button>
+                  {[
+                    "pending",
+                    "accepted",
+                    "confirmed",
+                    "active",
+                    "in-progress",
+                    "paid",
+                  ].includes(String(booking.status || "").toLowerCase()) && (
+                    <button
+                      onClick={handleMarkDone}
+                      disabled={actionLoading}
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700 transition-all disabled:opacity-60"
+                    >
+                      <CheckCircle2 size={16} />
+                      {actionLoading ? "Updating..." : "Mark Work Done"}
+                    </button>
                   )}
                 </div>
+                {actionError && (
+                  <div className="mt-4 rounded-2xl bg-rose-50 border border-rose-200 p-4 text-sm text-rose-700">
+                    {actionError}
+                  </div>
+                )}
               </div>
             </div>
           </div>

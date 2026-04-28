@@ -291,6 +291,20 @@ export const bookingService = {
     }
   },
 
+  // Submit booking review
+  async submitBookingReview(bookingId, rating, comment) {
+    try {
+      const response = await API.patch(`/bookings/${bookingId}/review`, {
+        rating,
+        comment,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error submitting booking review:", error);
+      throw error;
+    }
+  },
+
   // Cancel booking
   async cancelBooking(bookingId) {
     try {
