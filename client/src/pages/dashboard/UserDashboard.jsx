@@ -39,7 +39,28 @@ import { useNavigate, Link } from "react-router-dom";
 import API from "../../api/api";
 import { useAuth } from "../../hooks/useAuth";
 import { useSocket } from "../../hooks/useSocket";
+import { useBooking } from "../../hooks/useBooking";
 import { userService } from "../../services/api.service";
+import { getAvatarUrl } from "../../utils/avatar.util";
+
+const avatarOptions = [
+  { id: "avatar-sunrise", label: "Sunrise", seed: "sunrise-pro" },
+  { id: "avatar-wave", label: "Wave", seed: "wave-pro" },
+  { id: "avatar-meadow", label: "Meadow", seed: "meadow-pro" },
+  { id: "avatar-night", label: "Night", seed: "night-pro" },
+  { id: "avatar-ember", label: "Ember", seed: "ember-pro" },
+  { id: "avatar-orchid", label: "Orchid", seed: "orchid-pro" },
+  { id: "avatar-cosmos", label: "Cosmos", seed: "cosmos-pro" },
+  { id: "avatar-river", label: "River", seed: "river-pro" },
+  { id: "avatar-sierra", label: "Sierra", seed: "sierra-pro" },
+  { id: "avatar-zenith", label: "Zenith", seed: "zenith-pro" },
+  { id: "avatar-glow", label: "Glow", seed: "glow-pro" },
+  { id: "avatar-aurora", label: "Aurora", seed: "aurora-pro" },
+  { id: "avatar-forest", label: "Forest", seed: "forest-pro" },
+  { id: "avatar-spark", label: "Spark", seed: "spark-pro" },
+  { id: "avatar-dusk", label: "Dusk", seed: "dusk-pro" },
+  { id: "avatar-nova", label: "Nova", seed: "nova-pro" },
+];
 
 const formatCurrency = (value) => {
   const amount = Number(value || 0);
@@ -49,9 +70,30 @@ const formatCurrency = (value) => {
 const getBookingAmount = (booking) =>
   Number(booking?.amount ?? booking?.price ?? 0);
 
+const getBookingWorkerAvatar = (booking, selectedWorker) => {
+  const bookingWorkerId =
+    booking.workerId?._id || booking.workerId || booking._id;
+  const selectedWorkerId = selectedWorker?._id || selectedWorker;
+
+  return getAvatarUrl({
+    profilePhoto:
+      selectedWorker && bookingWorkerId === selectedWorkerId
+        ? selectedWorker.profilePhoto || selectedWorker.img
+        : booking.workerId?.profilePhoto || booking.workerId?.img,
+    name: booking.workerId?.name || "Worker",
+    id: bookingWorkerId,
+    fallbackSeed:
+      booking.workerId?._id ||
+      booking._id ||
+      booking.workerId?.name ||
+      "worker-profile",
+  });
+};
+
 export default function UserDashboard() {
   const navigate = useNavigate();
-  const { user: authUser } = useAuth();
+  const { user: authUser, updateUser } = useAuth();
+  const { selectedWorker } = useBooking();
   const { registerUser, on, off } = useSocket();
 
   const [user, setUser] = useState(null);
@@ -65,6 +107,9 @@ export default function UserDashboard() {
   });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState("");
+  const [pendingAvatar, setPendingAvatar] = useState("");
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
 
   useEffect(() => {
     // Load from localStorage immediately
@@ -72,12 +117,69 @@ export default function UserDashboard() {
     if (stored) {
       const userData = JSON.parse(stored);
       setUser(userData);
+      setSelectedAvatar(userData.profilePhoto || "");
+      setPendingAvatar(userData.profilePhoto || "");
       // Show user immediately, then load stats in background
       setLoading(false);
     }
     // Load full data
     loadUserData();
   }, [authUser]);
+
+  useEffect(() => {
+    if (user) {
+      setSelectedAvatar(user.profilePhoto || "");
+      setPendingAvatar(user.profilePhoto || "");
+    }
+  }, [user]);
+
+  const handleAvatarSelection = (option) => {
+    const avatarUrl = getAvatarUrl({
+      fallbackSeed: option.seed,
+      avatarGender: option.gender,
+      name: user?.name || option.label,
+      id: user?._id || option.id,
+    });
+    setPendingAvatar(avatarUrl);
+  };
+
+  const openAvatarPicker = () => {
+    setPendingAvatar(user?.profilePhoto || selectedAvatar || "");
+    setShowAvatarPicker(true);
+  };
+
+  const closeAvatarPicker = () => {
+    setPendingAvatar(user?.profilePhoto || selectedAvatar || "");
+    setShowAvatarPicker(false);
+  };
+
+  const saveAvatarSelection = async () => {
+    const avatarUrl = pendingAvatar || "";
+    setSelectedAvatar(avatarUrl);
+    setShowAvatarPicker(false);
+    setUser((prev) => (prev ? { ...prev, profilePhoto: avatarUrl } : prev));
+    if (updateUser) updateUser({ profilePhoto: avatarUrl });
+
+    try {
+      await userService.updateProfile({ profilePhoto: avatarUrl });
+    } catch (error) {
+      console.error("Failed to persist avatar selection:", error);
+    }
+  };
+
+  const handleResetAvatar = async () => {
+    setSelectedAvatar("");
+    setPendingAvatar("");
+    setShowAvatarPicker(false);
+    setUser((prev) => (prev ? { ...prev, profilePhoto: "" } : prev));
+    if (updateUser) updateUser({ profilePhoto: "" });
+
+    try {
+      await userService.updateProfile({ profilePhoto: "" });
+    } catch (error) {
+      console.error("Failed to persist avatar reset:", error);
+    }
+  };
 
   const saveNotification = (notification) => {
     const existing = JSON.parse(
@@ -155,7 +257,7 @@ export default function UserDashboard() {
     }
   }, [registerUser, on, off]);
 
-  const loadUserData = async () => {
+  async function loadUserData() {
     try {
       const stored = localStorage.getItem("skillserverUser");
       if (stored) {
@@ -230,7 +332,7 @@ export default function UserDashboard() {
     } catch (err) {
       console.error("Error loading data:", err);
     }
-  };
+  }
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -277,25 +379,33 @@ export default function UserDashboard() {
           <div className="flex items-center justify-between gap-4">
             {/* Left Section */}
             <div className="flex items-center gap-3">
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center cursor-pointer"
-                onClick={() => navigate("/user-profile")}
-              >
+              <div className="relative">
                 <img
-                  src={
-                    user.profilePhoto ||
-                    `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`
-                  }
+                  src={getAvatarUrl({
+                    profilePhoto: user.profilePhoto,
+                    name: user.name,
+                    id: user._id,
+                  })}
                   alt={user.name}
-                  className="w-full h-full object-cover rounded-full"
+                  className="w-14 h-14 rounded-full border border-slate-200 object-cover"
                 />
-              </motion.div>
+                <button
+                  type="button"
+                  onClick={openAvatarPicker}
+                  className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-indigo-600 shadow-sm hover:bg-slate-50 transition-all"
+                >
+                  <Sparkles size={14} />
+                </button>
+              </div>
               <div>
                 <p className="text-slate-900 font-bold text-sm md:text-base">
                   {user.name}
                 </p>
                 <p className="text-slate-500 text-xs">Customer Portal</p>
+                <p className="mt-2 text-slate-500 text-[11px]">
+                  Your current profile avatar is shown here. Tap the sparkle to
+                  change it.
+                </p>
               </div>
             </div>
 
@@ -342,6 +452,109 @@ export default function UserDashboard() {
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showAvatarPicker && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.96, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.96, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-3xl max-h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200"
+            >
+              <div className="flex items-start justify-between gap-4 p-6 border-b border-slate-200">
+                <div>
+                  <p className="text-slate-900 text-lg font-bold">
+                    Select your dashboard avatar
+                  </p>
+                  <p className="text-slate-500 text-sm mt-1">
+                    This avatar will be used in booking details, worker pages,
+                    and profile views.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={closeAvatarPicker}
+                  className="text-slate-500 hover:text-slate-900 transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+              <div className="p-6 max-h-[68vh] overflow-y-auto">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {avatarOptions.map((option) => {
+                    const avatarUrl = getAvatarUrl({
+                      fallbackSeed: option.seed,
+                      avatarGender: option.gender,
+                      name: user?.name || option.label,
+                      id: user?._id || option.id,
+                    });
+                    const isSelected = pendingAvatar === avatarUrl;
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => handleAvatarSelection(option)}
+                        className={`group relative rounded-3xl overflow-hidden border transition-all ${
+                          isSelected
+                            ? "border-indigo-600 shadow-lg"
+                            : "border-slate-200 hover:border-slate-400"
+                        }`}
+                      >
+                        <img
+                          src={avatarUrl}
+                          alt={option.label}
+                          className="w-full h-24 object-cover"
+                        />
+                        <span className="absolute inset-x-0 bottom-0 bg-slate-900/70 text-white text-[10px] uppercase tracking-[0.24em] text-center py-1">
+                          {option.label}
+                        </span>
+                        {isSelected && (
+                          <span className="absolute top-2 right-2 bg-indigo-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
+                            ✓
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+                  <div className="text-slate-600 text-sm">
+                    {pendingAvatar ? (
+                      <span>Selected avatar ready to save.</span>
+                    ) : (
+                      <span>Choose one of the avatar presets above.</span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onClick={handleResetAvatar}
+                      className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-200 transition-all"
+                    >
+                      Reset
+                    </button>
+                    <button
+                      type="button"
+                      onClick={saveAvatarSelection}
+                      disabled={!pendingAvatar}
+                      className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-all disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Save avatar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 space-y-6">
@@ -526,12 +739,12 @@ export default function UserDashboard() {
                         <div className="flex items-start gap-4">
                           <div className="w-16 h-16 rounded-xl bg-indigo-50 flex items-center justify-center overflow-hidden border border-indigo-100 group-hover:border-indigo-300 transition-all">
                             <img
-                              src={
-                                booking.serviceId?.image ||
-                                "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=200"
-                              }
+                              src={getBookingWorkerAvatar(
+                                booking,
+                                selectedWorker,
+                              )}
                               className="w-full h-full object-cover"
-                              alt="Service"
+                              alt={booking.workerId?.name || "Worker"}
                             />
                           </div>
                           <div className="flex-1">

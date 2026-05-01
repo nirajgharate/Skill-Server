@@ -15,6 +15,7 @@ import { useAuth } from "../hooks/useAuth";
 import { bookingService } from "../services/api.service";
 import chatService from "../services/chat.service";
 import useSocket from "../hooks/useSocket";
+import { getAvatarUrl } from "../utils/avatar.util";
 
 const formatBooking = (booking) => {
   if (!booking) return null;
@@ -259,10 +260,13 @@ export default function MessagePage() {
               <div className="flex items-center gap-3">
                 <div className="relative h-14 w-14 rounded-3xl overflow-hidden border border-slate-200 bg-slate-100">
                   <img
-                    src={
-                      partner?.profilePhoto ||
-                      `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(chatTitle)}`
-                    }
+                    src={getAvatarUrl({
+                      profilePhoto: partner?.profilePhoto,
+                      avatarGender: partner?.avatarGender,
+                      gender: partner?.gender,
+                      name: chatTitle,
+                      fallbackSeed: chatTitle,
+                    })}
                     alt={chatTitle}
                     className="h-full w-full object-cover"
                   />

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Phone, MessageSquare } from "lucide-react";
 import BookingDetailsCard from "../../components/dashboard/BookingDetailsCard";
 import { bookingService } from "../../services/api.service";
+import { getAvatarUrl } from "../../utils/avatar.util";
 
 const parseBookingNotes = (notes) => {
   if (!notes) return null;
@@ -40,9 +41,12 @@ const formatBooking = (booking) => {
     service: booking.serviceId?.name || booking.serviceName || "Service",
     amount: booking.amount ?? booking.price ?? 0,
     workerName: booking.workerId?.name || "Professional",
-    workerImage:
-      booking.workerId?.photo ||
-      "https://api.dicebear.com/7.x/avataaars/svg?seed=Worker",
+    workerImage: getAvatarUrl({
+      profilePhoto: booking.workerId?.profilePhoto,
+      name: booking.workerId?.name,
+      id: booking.workerId?._id,
+      fallbackSeed: "Worker",
+    }),
     userName: booking.userId?.name || "Customer",
     noteTime,
     date: formattedDate,

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
@@ -21,20 +22,29 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useSocket } from "../../hooks/useSocket";
+import { userService } from "../../services/api.service";
 
 export default function UserProfilePage() {
   const navigate = useNavigate();
-  const { authUser, logout } = useAuth();
+  const { authUser, logout, dashboardStats } = useAuth();
   const { registerUser, on, off } = useSocket();
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem("skillserverUser");
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
+  const [stats, setStats] = useState({
+    totalBookings: 0,
+    completedBookings: 0,
+    totalSpent: 0,
+    averageRating: 0,
+  });
 
   useEffect(() => {
     window.scrollTo(0, 0);
     const storedUser = localStorage.getItem("skillserverUser");
     if (storedUser) {
       const userData = JSON.parse(storedUser);
-      setUser(userData);
       registerUser(userData._id, userData.role);
 
       const handleUserUpdate = (data) => {
@@ -58,6 +68,30 @@ export default function UserProfilePage() {
     }
   }, [on, off, registerUser]);
 
+  useEffect(() => {
+    if (dashboardStats) {
+      setStats(dashboardStats);
+      return;
+    }
+
+    const loadStats = async () => {
+      try {
+        const statsRes = await userService.getDashboardStats();
+        const statsPayload = statsRes?.data || statsRes;
+        setStats({
+          totalBookings: statsPayload.totalBookings || 0,
+          completedBookings: statsPayload.completedBookings || 0,
+          totalSpent: statsPayload.totalSpent || 0,
+          averageRating: statsPayload.averageRating || 0,
+        });
+      } catch (error) {
+        console.warn("Unable to load profile stats:", error);
+      }
+    };
+
+    loadStats();
+  }, [dashboardStats]);
+
   if (!user && !authUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
@@ -66,7 +100,7 @@ export default function UserProfilePage() {
     );
   }
 
-  const userData = user || authUser;
+  const userData = { ...(user || {}), ...(authUser || {}) };
   const initials = userData?.name?.charAt(0).toUpperCase() || "U";
 
   const handleLogout = () => {
@@ -149,6 +183,14 @@ export default function UserProfilePage() {
                       {userData?.preferredCategory || "Home Maintenance"}
                     </span>
                   </div>
+                  <div className="flex flex-wrap gap-2 items-center mb-6 text-slate-600">
+                    <MapPin size={16} className="text-indigo-600" />
+                    <span>
+                      {userData?.location ||
+                        userData?.address ||
+                        "Location not provided"}
+                    </span>
+                  </div>
                   <div className="flex items-center gap-2">
                     <span className="px-4 py-2 bg-blue-100 text-blue-700 rounded-full font-bold text-sm">
                       Premium Member
@@ -160,18 +202,18 @@ export default function UserProfilePage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-4 rounded-xl border border-slate-200">
                     <p className="text-slate-600 text-sm font-semibold mb-1">
-                      Bookings
+                      Total Bookings
                     </p>
                     <p className="text-2xl font-bold text-slate-900">
-                      {userData?.bookings || 12}
+                      {stats.totalBookings}
                     </p>
                   </div>
                   <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-4 rounded-xl border border-slate-200">
                     <p className="text-slate-600 text-sm font-semibold mb-1">
-                      Rating
+                      Completed
                     </p>
                     <p className="text-2xl font-bold text-slate-900">
-                      {userData?.rating || 4.8}
+                      {stats.completedBookings}
                     </p>
                   </div>
                   <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-4 rounded-xl border border-slate-200">
@@ -179,15 +221,15 @@ export default function UserProfilePage() {
                       Spent
                     </p>
                     <p className="text-2xl font-bold text-slate-900">
-                      ₹{userData?.spent || "4.5K"}
+                      ₹{stats.totalSpent}
                     </p>
                   </div>
                   <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-4 rounded-xl border border-slate-200">
                     <p className="text-slate-600 text-sm font-semibold mb-1">
-                      Joined
+                      Rating
                     </p>
                     <p className="text-2xl font-bold text-slate-900">
-                      {userData?.joinedYear || 2024}
+                      {stats.averageRating || userData?.rating || "--"}
                     </p>
                   </div>
                 </div>
@@ -262,7 +304,8 @@ export default function UserProfilePage() {
                   </p>
                   <p className="text-slate-900 font-medium">
                     <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-bold">
-                      Service User
+                      {userData?.role?.charAt(0).toUpperCase() +
+                        userData?.role?.slice(1) || "Service User"}
                     </span>
                   </p>
                 </div>

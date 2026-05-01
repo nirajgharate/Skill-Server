@@ -112,7 +112,7 @@ export default function TrackingPage() {
         rating:
           raw.workerId?.rating || raw.worker?.rating || raw.rating || "4.8",
         img:
-          raw.workerId?.photo ||
+          raw.workerId?.profilePhoto ||
           raw.worker?.img ||
           raw.expertImage ||
           "https://images.pexels.com/photos/3771084/pexels-photo-3771084.jpeg?auto=compress&cs=tinysrgb&w=400",

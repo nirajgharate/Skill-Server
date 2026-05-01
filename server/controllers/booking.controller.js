@@ -256,7 +256,7 @@ export const getUserBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ userId: req.user.id })
       .populate("serviceId", "title")
-      .populate("workerId", "name rating phone")
+      .populate("workerId", "_id name rating phone profilePhoto")
       .sort({ createdAt: -1 });
 
     const statusMap = {
@@ -288,7 +288,9 @@ export const getUserBookings = async (req, res) => {
         location: booking.address || "TBD",
         amount: booking.amount ?? booking.price,
         status: statusMap[booking.status] || booking.status,
-        expertImage: `https://i.pravatar.cc/150?u=${encodeURIComponent(booking.workerId?.name || "worker")}`,
+        expertImage:
+          booking.workerId?.profilePhoto ||
+          `https://i.pravatar.cc/150?u=${encodeURIComponent(booking.workerId?.name || "worker")}`,
         rating: booking.workerId?.rating || 5.0,
         review: booking.review
           ? {
@@ -298,6 +300,13 @@ export const getUserBookings = async (req, res) => {
             }
           : null,
         phone: booking.workerId?.phone || "",
+        workerId: {
+          _id: booking.workerId?._id,
+          name: booking.workerId?.name,
+          rating: booking.workerId?.rating,
+          phone: booking.workerId?.phone,
+          profilePhoto: booking.workerId?.profilePhoto,
+        },
       };
     });
 
@@ -315,7 +324,7 @@ export const getBookingsForUser = async (req, res) => {
     }
 
     const bookings = await Booking.find({ userId })
-      .populate("workerId", "name rating phone")
+      .populate("workerId", "_id name rating phone profilePhoto")
       .sort({ createdAt: -1 });
 
     const statusMap = {
@@ -347,7 +356,9 @@ export const getBookingsForUser = async (req, res) => {
         location: booking.address || "TBD",
         amount: booking.amount ?? booking.price,
         status: statusMap[booking.status] || booking.status,
-        expertImage: `https://i.pravatar.cc/150?u=${encodeURIComponent(booking.workerId?.name || "worker")}`,
+        expertImage:
+          booking.workerId?.profilePhoto ||
+          `https://i.pravatar.cc/150?u=${encodeURIComponent(booking.workerId?.name || "worker")}`,
         rating: booking.workerId?.rating || 5.0,
         review: booking.review
           ? {
@@ -357,6 +368,13 @@ export const getBookingsForUser = async (req, res) => {
             }
           : null,
         phone: booking.workerId?.phone || "",
+        workerId: {
+          _id: booking.workerId?._id,
+          name: booking.workerId?.name,
+          rating: booking.workerId?.rating,
+          phone: booking.workerId?.phone,
+          profilePhoto: booking.workerId?.profilePhoto,
+        },
       };
     });
 
@@ -539,7 +557,7 @@ export const getUserDashboardStats = async (req, res) => {
     // Get all user bookings
     const bookings = await Booking.find({ userId })
       .populate("serviceId")
-      .populate("workerId", "name rating");
+      .populate("workerId", "name rating profilePhoto");
 
     // Calculate stats
     const totalBookings = bookings.length;
@@ -592,8 +610,8 @@ export const getBookingDetails = async (req, res) => {
     const { bookingId } = req.params;
 
     const booking = await Booking.findById(bookingId)
-      .populate("userId", "_id name phone email")
-      .populate("workerId", "_id name phone upiId rating")
+      .populate("userId", "_id name phone email profilePhoto")
+      .populate("workerId", "_id name phone upiId rating profilePhoto")
       .populate("serviceId", "_id name description price");
 
     if (!booking) {
@@ -776,7 +794,7 @@ export const markWorkDone = async (req, res) => {
 export const getWorkerBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ workerId: req.user.id })
-      .populate("userId", "_id name phone email")
+      .populate("userId", "_id name phone email profilePhoto")
       .populate("serviceId", "name")
       .sort({ createdAt: -1 });
 

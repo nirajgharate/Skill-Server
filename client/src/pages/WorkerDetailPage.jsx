@@ -17,11 +17,14 @@ import {
   AlertCircle,
 } from "lucide-react";
 import API from "../api/api";
+import { getAvatarUrl } from "../utils/avatar.util";
+import { useBooking } from "../hooks/useBooking";
 
 export default function WorkerDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { setSelectedWorker, setSelectedService } = useBooking();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [worker, setWorker] = useState(null);
@@ -48,6 +51,7 @@ export default function WorkerDetailPage() {
 
         if (fetchedWorker) {
           setWorker(fetchedWorker);
+          setSelectedWorker(getBookingWorker(fetchedWorker));
         } else {
           setError("Worker not found");
         }
@@ -62,26 +66,26 @@ export default function WorkerDetailPage() {
     loadWorkerData();
   }, [id, location.state]);
 
-  const getBookingWorker = () => {
+  const getBookingWorker = (workerData = worker) => {
     return {
-      _id: worker?._id || worker?.id || id,
-      name: worker?.name || "Expert Professional",
-      role: worker?.profession || worker?.role || "Professional",
-      experience: worker?.experienceYears
-        ? `${worker.experienceYears}+ years`
-        : worker?.experience || "8+ years",
+      _id: workerData?._id || workerData?.id || id,
+      name: workerData?.name || "Expert Professional",
+      role: workerData?.profession || workerData?.role || "Professional",
+      experience: workerData?.experienceYears
+        ? `${workerData.experienceYears}+ years`
+        : workerData?.experience || "8+ years",
       img:
-        worker?.profilePhoto ||
-        worker?.photo ||
-        worker?.img ||
-        `https://i.pravatar.cc/150?u=${worker?._id || worker?.name || "expert"}`,
-      rating: worker?.rating ?? 4.8,
+        workerData?.profilePhoto ||
+        workerData?.img ||
+        `https://i.pravatar.cc/150?u=${workerData?._id || workerData?.name || "expert"}`,
+      rating: workerData?.rating ?? 4.8,
       reviews:
-        worker?.reviewCount ??
-        (Array.isArray(worker?.reviews)
-          ? worker.reviews.length
-          : (worker?.reviews ?? 0)),
-      profession: worker?.profession || worker?.role || "Professional Service",
+        workerData?.reviewCount ??
+        (Array.isArray(workerData?.reviews)
+          ? workerData.reviews.length
+          : (workerData?.reviews ?? 0)),
+      profession:
+        workerData?.profession || workerData?.role || "Professional Service",
     };
   };
 
@@ -98,6 +102,9 @@ export default function WorkerDetailPage() {
       category: worker?.profession || worker?.role || "service",
       workerId: bookingWorker._id,
     };
+
+    setSelectedWorker(bookingWorker);
+    setSelectedService(selectedService);
 
     navigate("/booking", {
       state: {
@@ -164,11 +171,12 @@ export default function WorkerDetailPage() {
 
   // Helper function to get profile image
   const getProfileImage = () => {
-    return (
-      worker.profilePhoto ||
-      worker.img ||
-      `https://i.pravatar.cc/150?u=${worker._id || worker.name}`
-    );
+    return getAvatarUrl({
+      profilePhoto: worker.profilePhoto || worker.img,
+      name: worker.name,
+      id: worker._id,
+      fallbackSeed: worker.name || worker._id || "expert",
+    });
   };
 
   // Helper function to get hourly rate

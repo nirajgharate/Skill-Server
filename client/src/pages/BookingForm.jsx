@@ -16,29 +16,53 @@ import {
   AlertCircle,
 } from "lucide-react";
 
+import { useBooking } from "../hooks/useBooking";
 import ElitePaymentStep from "./ElitePaymentStep";
 
 export default function UberBookingFlow() {
   const location = useLocation();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
+  const {
+    selectedWorker,
+    selectedService,
+    setSelectedWorker,
+    setSelectedService,
+    clearSelection,
+  } = useBooking();
 
-  const { worker, service } = location.state || {
-    worker: {
-      name: "Expert Professional",
-      role: "Pro",
-      rating: 4.8,
-      reviews: 142,
-      experience: "8+ years",
-      img: "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?q=80&w=400",
-    },
-    service: {
-      _id: "service_demo_001",
-      name: "Home Electrical Service",
-      price: 499,
-      description: "Complete home electrical inspection and repair",
-      category: "Electrical",
-    },
+  const resolvedWorker = selectedWorker || location.state?.worker;
+  const resolvedService = selectedService || location.state?.service;
+
+  useEffect(() => {
+    if (location.state?.worker && !selectedWorker) {
+      setSelectedWorker(location.state.worker);
+    }
+    if (location.state?.service && !selectedService) {
+      setSelectedService(location.state.service);
+    }
+  }, [
+    location.state,
+    selectedWorker,
+    selectedService,
+    setSelectedWorker,
+    setSelectedService,
+  ]);
+
+  const worker = resolvedWorker || {
+    name: "Expert Professional",
+    role: "Pro",
+    rating: 4.8,
+    reviews: 142,
+    experience: "8+ years",
+    img: "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?q=80&w=400",
+  };
+  const service = resolvedService || {
+    _id: "service_demo_001",
+    name: "Home Electrical Service",
+    price: 499,
+    description: "Complete home electrical inspection and repair",
+    category: "Electrical",
   };
 
   // Generate serviceId for booking if available, otherwise keep null so backend can use workerId.
@@ -573,6 +597,7 @@ export default function UberBookingFlow() {
                       },
                     },
                   });
+                  clearSelection();
                 }}
               />
             </motion.div>

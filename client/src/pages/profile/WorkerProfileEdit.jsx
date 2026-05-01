@@ -23,7 +23,7 @@ import { useSocket } from "../../hooks/useSocket";
 
 export default function WorkerProfileEdit() {
   const navigate = useNavigate();
-  const { user: authUser } = useAuth();
+  const { user: authUser, updateUser } = useAuth();
   const { registerUser, on, off } = useSocket();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -104,6 +104,13 @@ export default function WorkerProfileEdit() {
         panCard: data.panCard || null,
         degreeCertificate: data.degreeCertificate || null,
       });
+
+      if (updateUser) {
+        updateUser({
+          profilePhoto: data.profilePhoto || "",
+          name: data.name || authUser?.name || "",
+        });
+      }
     } catch (err) {
       setError(err.message || "Failed to load profile");
     } finally {
@@ -148,6 +155,14 @@ export default function WorkerProfileEdit() {
         authUser._id,
         formData,
       );
+
+      // Keep auth state synced so avatar updates appear across dashboards and bookings
+      if (updateUser) {
+        updateUser({
+          profilePhoto: result.profilePhoto || formData.profilePhoto || "",
+          name: result.name || formData.name || authUser?.name || "",
+        });
+      }
 
       // Show success message with detailed info
       setSuccess(

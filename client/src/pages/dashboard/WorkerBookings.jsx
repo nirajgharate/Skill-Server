@@ -10,9 +10,12 @@ import {
   RefreshCcw,
   Phone,
   MessageSquare,
+  Sparkles,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 import { bookingService } from "../../services/api.service";
+import { getAvatarUrl } from "../../utils/avatar.util";
 
 const formatDateTime = (value) => {
   const date = new Date(value);
@@ -41,6 +44,7 @@ const badgeClass = (status) => {
 
 export default function WorkerBookings() {
   const navigate = useNavigate();
+  const { user: authUser } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [activeTab, setActiveTab] = useState("All");
   const [loading, setLoading] = useState(true);
@@ -137,6 +141,19 @@ export default function WorkerBookings() {
     window.open(`tel:${phone}`, "_self");
   };
 
+  const getBookingCustomerAvatar = (booking) =>
+    getAvatarUrl({
+      profilePhoto: booking.userId?.profilePhoto || booking.userId?.img,
+      name: booking.userId?.name || booking.customer || "Customer",
+      id: booking.userId?._id || booking._id,
+      fallbackSeed:
+        booking.userId?._id ||
+        booking._id ||
+        booking.userId?.name ||
+        booking.customer ||
+        "customer-avatar",
+    });
+
   const handleMessage = (booking) => {
     const bookingId = booking._id || booking.id;
     if (!bookingId) {
@@ -179,13 +196,30 @@ export default function WorkerBookings() {
             >
               <ArrowLeft size={24} className="text-slate-600" />
             </button>
-            <div>
-              <h1 className="text-2xl font-black text-slate-900">
-                My Bookings
-              </h1>
-              <p className="text-xs font-semibold text-slate-500">
-                Review all current bookings assigned to you.
-              </p>
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <img
+                  src={getAvatarUrl({
+                    profilePhoto: authUser?.profilePhoto,
+                    name: authUser?.name,
+                    id: authUser?._id,
+                    fallbackSeed: "worker-bookings-avatar",
+                  })}
+                  alt={authUser?.name || "Worker"}
+                  className="w-14 h-14 rounded-3xl object-cover border border-slate-200"
+                />
+                <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center text-indigo-600 shadow-sm">
+                  <Sparkles size={14} />
+                </div>
+              </div>
+              <div>
+                <h1 className="text-2xl font-black text-slate-900">
+                  My Bookings
+                </h1>
+                <p className="text-xs font-semibold text-slate-500">
+                  Review all current bookings assigned to you.
+                </p>
+              </div>
             </div>
           </div>
 
@@ -308,8 +342,12 @@ export default function WorkerBookings() {
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
-                      <div className="rounded-2xl bg-slate-50 p-3 text-slate-800">
-                        <User size={18} />
+                      <div className="w-14 h-14 rounded-full overflow-hidden border border-slate-200 flex items-center justify-center bg-slate-50">
+                        <img
+                          src={getBookingCustomerAvatar(booking)}
+                          alt={booking.userId?.name || "Customer"}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                       <div>
                         <h2 className="font-black text-slate-900 text-xl">

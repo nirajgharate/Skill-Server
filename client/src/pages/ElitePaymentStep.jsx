@@ -275,18 +275,11 @@ export default function ElitePaymentStep({
       console.error("Error creating booking:", error);
       const errorMsg =
         error.response?.data?.message ||
-        "Booking saved, but payment could not be completed. Please visit My Bookings.";
+        "Unable to create the booking. Please check your details and try again.";
       setMessage(errorMsg);
-      setIsSuccess(true);
+      setIsSuccess(false);
       setIsProcessing(false);
-      setTimeout(() => {
-        navigate("/confirmation", {
-          state: {
-            bookingId: null,
-            bookingData: { ...bookingData, paymentMethod },
-          },
-        });
-      }, 1200);
+      return;
     }
   };
 

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import BookingDetailsCard from "../../components/dashboard/BookingDetailsCard";
 import { bookingService } from "../../services/api.service";
+import { getAvatarUrl } from "../../utils/avatar.util";
 
 const parseBookingNotes = (notes) => {
   if (!notes) return null;
@@ -56,9 +57,12 @@ const formatBooking = (booking) => {
     service: booking.serviceId?.name || booking.serviceName || "Service",
     amount: booking.amount ?? booking.serviceId?.price ?? 0,
     workerName: booking.workerId?.name || "Professional",
-    workerImage:
-      booking.workerId?.photo ||
-      "https://api.dicebear.com/7.x/avataaars/svg?seed=Worker",
+    workerImage: getAvatarUrl({
+      profilePhoto: booking.workerId?.profilePhoto,
+      name: booking.workerId?.name,
+      id: booking.workerId?._id,
+      fallbackSeed: "Worker",
+    }),
     userName: booking.userId?.name || "You",
     noteTime,
     date: formattedDate,
@@ -78,8 +82,8 @@ const formatBooking = (booking) => {
 };
 
 export default function UserBookingDetails() {
-  const { bookingId } = useParams();
   const navigate = useNavigate();
+  const { bookingId } = useParams();
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

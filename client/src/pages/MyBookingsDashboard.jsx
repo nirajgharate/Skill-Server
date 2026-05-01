@@ -19,13 +19,19 @@ import {
   Map,
   User,
   IndianRupee,
+  Sparkles,
 } from "lucide-react";
 import API from "../api/api";
 import { bookingService } from "../services/api.service";
+import { useBooking } from "../hooks/useBooking";
+import { useAuth } from "../hooks/useAuth";
+import { getAvatarUrl } from "../utils/avatar.util";
 
 export default function MyBookingsDashboard() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("Active");
+  const { selectedWorker } = useBooking();
+  const { user: authUser } = useAuth();
+  const [activeTab, setActiveTab] = useState("All");
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -101,6 +107,28 @@ export default function MyBookingsDashboard() {
     setSelectedBooking(null);
     setReviewRating(5);
     setReviewComment("");
+  };
+
+  const getBookingAvatarUrl = (booking) => {
+    const bookingWorkerId =
+      booking.workerId?._id || booking.workerId || booking._id;
+    const selectedWorkerId = selectedWorker?._id || selectedWorker;
+    const profilePhoto =
+      selectedWorker && bookingWorkerId === selectedWorkerId
+        ? selectedWorker.profilePhoto || selectedWorker.img
+        : booking.workerId?.profilePhoto || booking.workerId?.img;
+
+    return getAvatarUrl({
+      profilePhoto,
+      name: booking.workerId?.name || booking.expert || "Expert",
+      id: bookingWorkerId,
+      fallbackSeed:
+        booking.workerId?._id ||
+        booking._id ||
+        booking.workerId?.name ||
+        booking.expert ||
+        "expert-profile",
+    });
   };
 
   const handleSubmitReview = async () => {
@@ -239,45 +267,54 @@ export default function MyBookingsDashboard() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pt-24 pb-24 px-4 md:px-8">
-      <div className="max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-8 rounded-[2.5rem] border border-slate-200 bg-white shadow-xl shadow-slate-200/10 p-6"
-        >
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.35em] text-indigo-600 mb-2">
-                My Bookings
-              </p>
-              <h1 className="text-4xl font-black text-slate-900">
-                Booking dashboard
-              </h1>
-              <p className="mt-2 text-slate-600 max-w-2xl">
-                Track all your orders and service requests with a clean, modern
-                dashboard.
-              </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 pb-12">
+      <div className="relative z-40 backdrop-blur-md bg-white/80 border-b border-slate-200/50 mt-24">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <img
+                src={getAvatarUrl({
+                  profilePhoto: authUser?.profilePhoto,
+                  name: authUser?.name || "User",
+                  id: authUser?._id,
+                  fallbackSeed: "user-bookings-avatar",
+                })}
+                alt={authUser?.name || "User"}
+                className="w-14 h-14 rounded-3xl object-cover border border-slate-200"
+              />
+              <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center text-indigo-600 shadow-sm">
+                <Sparkles size={14} />
+              </div>
             </div>
-            <div className="flex flex-wrap gap-3 items-center">
-              <button
-                onClick={() => navigate("/services")}
-                className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-200/40 hover:bg-indigo-700 transition-all"
-              >
-                <Plus size={16} /> New Booking
-              </button>
-              <button
-                onClick={fetchBookings}
-                className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-all"
-              >
-                <RotateCcw size={16} /> Refresh
-              </button>
+            <div>
+              <h1 className="text-2xl font-black text-slate-900">
+                My Bookings
+              </h1>
+              <p className="text-xs font-semibold text-slate-500">
+                Track all your orders and service requests.
+              </p>
             </div>
           </div>
-        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="flex flex-wrap gap-3 items-center">
+            <button
+              onClick={fetchBookings}
+              className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-all"
+            >
+              <RotateCcw size={16} /> Refresh
+            </button>
+            <button
+              onClick={() => navigate("/services")}
+              className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-200/40 hover:bg-indigo-700 transition-all"
+            >
+              <Plus size={16} /> New Booking
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-6 py-12 space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           {[
             {
               label: "Total Bookings",
@@ -338,9 +375,10 @@ export default function MyBookingsDashboard() {
             transition={{ delay: 0.2 }}
             className="mb-10 flex gap-3 flex-wrap"
           >
-            {["Active", "Completed", "Cancelled"].map((tab) => {
+            {["All", "Active", "Completed", "Cancelled"].map((tab) => {
               const tabCount = bookings.filter((b) => {
                 const status = String(b.status || "").toLowerCase();
+                if (tab === "All") return true;
                 if (tab === "Active")
                   return [
                     "active",
@@ -473,11 +511,7 @@ export default function MyBookingsDashboard() {
                           <div className="flex items-start gap-4">
                             <div className="relative">
                               <img
-                                src={
-                                  booking.expertImage ||
-                                  booking.workerId?.photo ||
-                                  "https://images.pexels.com/photos/5935858/pexels-photo-5935858.jpeg?auto=compress&cs=tinysrgb&w=400"
-                                }
+                                src={getBookingAvatarUrl(booking)}
                                 alt={
                                   booking.workerId?.name ||
                                   booking.expert ||

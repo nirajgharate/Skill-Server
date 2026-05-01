@@ -4,11 +4,9 @@ import {
   X,
   Upload,
   Plus,
-  Trash2,
   Check,
   AlertCircle,
   Loader2,
-  Image as ImageIcon,
   Award,
   Save,
 } from "lucide-react";
@@ -75,7 +73,8 @@ export default function EditProfileWorker({ worker, onClose, onSave }) {
     bio: worker?.bio || "",
     skills: worker?.skills || [],
     coreExpertise: worker?.coreExpertise || [],
-    portfolio: worker?.portfolio || [],
+    aadharCard: worker?.aadharCard || "",
+    degreeCertificate: worker?.degreeCertificate || "",
     upiId: worker?.upiId || "",
   });
 
@@ -113,32 +112,37 @@ export default function EditProfileWorker({ worker, onClose, onSave }) {
     });
   };
 
-  const handlePortfolioUpload = (e) => {
-    const file = e.target.files[0];
+  const [documentPreviews, setDocumentPreviews] = useState({
+    aadharCard: worker?.aadharCard || null,
+    degreeCertificate: worker?.degreeCertificate || null,
+  });
+
+  const handleDocumentUpload = (e, fieldName) => {
+    const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData({
           ...formData,
-          portfolio: [
-            ...formData.portfolio,
-            {
-              id: Date.now(),
-              type: file.type.startsWith("image") ? "image" : "video",
-              url: reader.result,
-              name: file.name,
-            },
-          ],
+          [fieldName]: reader.result,
+        });
+        setDocumentPreviews({
+          ...documentPreviews,
+          [fieldName]: reader.result,
         });
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const removePortfolioItem = (id) => {
+  const removeDocument = (fieldName) => {
     setFormData({
       ...formData,
-      portfolio: formData.portfolio.filter((item) => item.id !== id),
+      [fieldName]: "",
+    });
+    setDocumentPreviews({
+      ...documentPreviews,
+      [fieldName]: null,
     });
   };
 
@@ -230,7 +234,7 @@ export default function EditProfileWorker({ worker, onClose, onSave }) {
           {[
             { id: "basic", label: "📋 Basic Info" },
             { id: "expertise", label: "🎯 Expertise" },
-            { id: "portfolio", label: "📸 Portfolio" },
+            { id: "documents", label: "🧾 Documents" },
           ].map((tab) => (
             <motion.button
               key={tab.id}
@@ -543,72 +547,152 @@ export default function EditProfileWorker({ worker, onClose, onSave }) {
                 </motion.div>
               )}
 
-              {activeTab === "portfolio" && (
+              {activeTab === "documents" && (
                 <motion.div
-                  key="portfolio"
+                  key="documents"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   className="space-y-6"
                 >
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-4">
-                      📸 Upload Portfolio
-                    </label>
-                    <div className="border-2 border-dashed border-indigo-300 rounded-lg p-8 text-center hover:border-indigo-500 transition-all cursor-pointer">
-                      <input
-                        type="file"
-                        accept="image/*,video/*"
-                        onChange={handlePortfolioUpload}
-                        className="hidden"
-                        id="portfolioUpload"
-                      />
-                      <label
-                        htmlFor="portfolioUpload"
-                        className="cursor-pointer flex flex-col items-center gap-3"
-                      >
-                        <ImageIcon size={32} className="text-indigo-400" />
-                        <p className="font-semibold text-slate-700">
-                          Click to upload
-                        </p>
-                      </label>
-                    </div>
-                  </div>
+                  <div className="grid grid-cols-1 gap-6">
+                    <div className="bg-slate-50 rounded-3xl p-6 border border-slate-200">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h4 className="font-semibold text-slate-900">
+                            Aadhar Card Upload
+                          </h4>
+                          <p className="text-sm text-slate-500">
+                            Required for identity verification.
+                          </p>
+                        </div>
+                        <div className="text-xs uppercase tracking-[0.2em] font-bold text-indigo-600">
+                          Required
+                        </div>
+                      </div>
 
-                  <div>
-                    <h4 className="font-semibold text-slate-700 mb-4">
-                      Portfolio Items ({formData.portfolio.length})
-                    </h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      {formData.portfolio.map((item) => (
+                      {documentPreviews.aadharCard ? (
                         <motion.div
-                          key={item.id}
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          className="relative group rounded-lg overflow-hidden bg-slate-100"
+                          initial={{ scale: 0.9, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          className="relative"
                         >
-                          {item.type === "image" ? (
-                            <img
-                              src={item.url}
-                              alt={item.name}
-                              className="w-full h-40 object-cover"
-                            />
-                          ) : (
-                            <video
-                              src={item.url}
-                              className="w-full h-40 object-cover"
-                            />
-                          )}
-                          <motion.button
-                            initial={{ opacity: 0 }}
-                            whileHover={{ opacity: 1 }}
-                            onClick={() => removePortfolioItem(item.id)}
-                            className="absolute inset-0 bg-black/50 flex items-center justify-center"
-                          >
-                            <Trash2 size={24} className="text-white" />
-                          </motion.button>
+                          <img
+                            src={documentPreviews.aadharCard}
+                            alt="Aadhar Preview"
+                            className="w-full h-48 rounded-3xl object-cover border-2 border-indigo-300"
+                          />
+                          <div className="absolute inset-x-0 bottom-4 flex items-center justify-between gap-2 px-4">
+                            <label className="inline-flex items-center gap-2 bg-white/90 text-slate-700 px-3 py-2 rounded-full border border-slate-200 cursor-pointer hover:bg-slate-50">
+                              <Upload size={16} /> Change
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) =>
+                                  handleDocumentUpload(e, "aadharCard")
+                                }
+                                className="hidden"
+                              />
+                            </label>
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              onClick={() => removeDocument("aadharCard")}
+                              className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600"
+                            >
+                              <X size={18} />
+                            </motion.button>
+                          </div>
                         </motion.div>
-                      ))}
+                      ) : (
+                        <label className="flex flex-col items-center justify-center w-full h-48 rounded-3xl border-2 border-dashed border-indigo-300 cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition-all">
+                          <Upload size={32} className="text-indigo-500 mb-3" />
+                          <p className="text-sm font-semibold text-indigo-700">
+                            Click to upload Aadhar card
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            JPG, PNG or PDF up to 5MB
+                          </p>
+                          <input
+                            type="file"
+                            accept="image/*,application/pdf"
+                            onChange={(e) =>
+                              handleDocumentUpload(e, "aadharCard")
+                            }
+                            className="hidden"
+                          />
+                        </label>
+                      )}
+                    </div>
+
+                    <div className="bg-slate-50 rounded-3xl p-6 border border-slate-200">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h4 className="font-semibold text-slate-900">
+                            Degree Certificate Upload
+                          </h4>
+                          <p className="text-sm text-slate-500">
+                            Optional. Leave blank if you do not have a
+                            certificate.
+                          </p>
+                        </div>
+                        <div className="text-xs uppercase tracking-[0.2em] font-bold text-slate-400">
+                          Optional
+                        </div>
+                      </div>
+
+                      {documentPreviews.degreeCertificate ? (
+                        <motion.div
+                          initial={{ scale: 0.9, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          className="relative"
+                        >
+                          <img
+                            src={documentPreviews.degreeCertificate}
+                            alt="Degree Preview"
+                            className="w-full h-48 rounded-3xl object-cover border-2 border-indigo-300"
+                          />
+                          <div className="absolute inset-x-0 bottom-4 flex items-center justify-between gap-2 px-4">
+                            <label className="inline-flex items-center gap-2 bg-white/90 text-slate-700 px-3 py-2 rounded-full border border-slate-200 cursor-pointer hover:bg-slate-50">
+                              <Upload size={16} /> Change
+                              <input
+                                type="file"
+                                accept="image/*,application/pdf"
+                                onChange={(e) =>
+                                  handleDocumentUpload(e, "degreeCertificate")
+                                }
+                                className="hidden"
+                              />
+                            </label>
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              onClick={() =>
+                                removeDocument("degreeCertificate")
+                              }
+                              className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600"
+                            >
+                              <X size={18} />
+                            </motion.button>
+                          </div>
+                        </motion.div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center w-full h-48 rounded-3xl border-2 border-dashed border-slate-300 cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition-all">
+                          <Upload size={32} className="text-slate-400 mb-3" />
+                          <p className="text-sm font-semibold text-slate-600">
+                            Click to upload Degree certificate
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            JPG, PNG or PDF up to 5MB
+                          </p>
+                          <input
+                            type="file"
+                            accept="image/*,application/pdf"
+                            onChange={(e) =>
+                              handleDocumentUpload(e, "degreeCertificate")
+                            }
+                            className="hidden"
+                          />
+                        </label>
+                      )}
                     </div>
                   </div>
                 </motion.div>

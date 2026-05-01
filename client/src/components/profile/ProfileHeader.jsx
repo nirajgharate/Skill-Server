@@ -10,72 +10,79 @@ import {
   User,
 } from "lucide-react";
 import { useSocket } from "../../hooks/useSocket";
+import { useAuth } from "../../hooks/useAuth";
+import { getAvatarUrl } from "../../utils/avatar.util";
 
 export default function ProfileHeader() {
-  const [user, setUser] = useState(null);
-  const [avatar, setAvatar] = useState(
-    "https://api.dicebear.com/7.x/avataaars/svg?seed=Niraj",
-  );
+  const { user: authUser } = useAuth();
+  const [user, setUser] = useState(authUser);
+  const [avatar, setAvatar] = useState("");
   const fileInputRef = useRef(null);
   const { registerUser, on, off } = useSocket();
 
+  const buildAvatarUrl = (userData) =>
+    getAvatarUrl({
+      profilePhoto: userData?.profilePhoto,
+      avatarGender: userData?.avatarGender,
+      gender: userData?.gender,
+      name: userData?.name,
+      id: userData?._id,
+      fallbackSeed: userData?.name || userData?._id || "profile-avatar",
+    });
+
   useEffect(() => {
-    const stored = localStorage.getItem("skillserverUser");
-    if (stored) {
-      const userData = JSON.parse(stored);
-      setUser(userData);
+    const currentUser =
+      authUser || JSON.parse(localStorage.getItem("skillserverUser") || "null");
+    if (!currentUser) return;
 
-      // Register with Socket.io
-      registerUser(userData._id, userData.role);
+    setUser(currentUser);
+    setAvatar(buildAvatarUrl(currentUser));
 
-      // Listen for real-time updates
-      const handleWorkerUpdate = (data) => {
-        console.log("📡 Worker update received:", data);
-        if (data.worker?._id === userData._id) {
-          // Update local state
-          setUser((prev) => ({
-            ...prev,
-            ...data.worker,
-          }));
+    registerUser(currentUser._id, currentUser.role);
 
-          // Update localStorage
-          localStorage.setItem(
-            "skillserverUser",
-            JSON.stringify({
-              ...userData,
-              ...data.worker,
-            }),
-          );
-        }
-      };
+    const handleWorkerUpdate = (data) => {
+      console.log("📡 Worker update received:", data);
+      if (data.worker?._id === currentUser._id) {
+        const updatedUser = {
+          ...currentUser,
+          ...data.worker,
+        };
 
-      const handleUserUpdate = (data) => {
-        console.log("📡 User update received:", data);
-        if (data.userId === userData._id) {
-          setUser((prev) => ({
-            ...prev,
-            ...data.updates,
-          }));
+        setUser(updatedUser);
+        setAvatar(buildAvatarUrl(updatedUser));
+        localStorage.setItem("skillserverUser", JSON.stringify(updatedUser));
+      }
+    };
 
-          localStorage.setItem(
-            "skillserverUser",
-            JSON.stringify({
-              ...userData,
-              ...data.updates,
-            }),
-          );
-        }
-      };
+    const handleUserUpdate = (data) => {
+      console.log("📡 User update received:", data);
+      if (data.userId === currentUser._id) {
+        const updatedUser = {
+          ...currentUser,
+          ...data.updates,
+        };
 
-      on("worker_updated", handleWorkerUpdate);
-      on("user_profile_updated", handleUserUpdate);
+        setUser(updatedUser);
+        setAvatar(buildAvatarUrl(updatedUser));
+        localStorage.setItem("skillserverUser", JSON.stringify(updatedUser));
+      }
+    };
 
-      return () => {
-        off("worker_updated", handleWorkerUpdate);
-        off("user_profile_updated", handleUserUpdate);
-      };
+    on("worker_updated", handleWorkerUpdate);
+    on("user_profile_updated", handleUserUpdate);
+
+    return () => {
+      off("worker_updated", handleWorkerUpdate);
+      off("user_profile_updated", handleUserUpdate);
+    };
+  }, [authUser, on, off, registerUser]);
+
+  useEffect(() => {
+    if (authUser) {
+      setUser(authUser);
+      setAvatar(buildAvatarUrl(authUser));
     }
-  }, [registerUser, on, off]);
+  }, [authUser]);
 
   if (!user) return null;
 

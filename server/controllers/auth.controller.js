@@ -40,7 +40,7 @@ const calculateProfileCompletion = (worker) => {
 // @route   POST /api/auth/signup-user
 export const signupUser = async (req, res) => {
   try {
-    const { name, email, password, phone } = req.body;
+    const { name, email, password, phone, location, bio } = req.body;
 
     const userExists = await User.findOne({ email });
     const workerExists = await Worker.findOne({ email });
@@ -55,7 +55,8 @@ export const signupUser = async (req, res) => {
       email,
       password: hashedPassword,
       phone,
-      location: req.body.location || "",
+      location: location || "",
+      bio: bio || "",
       profilePhoto: req.body.profilePhoto || "",
       role: "user",
     });
@@ -67,6 +68,7 @@ export const signupUser = async (req, res) => {
       role: user.role,
       phone: user.phone,
       location: user.location,
+      bio: user.bio,
       profilePhoto: user.profilePhoto,
       token: generateToken(user._id, user.role),
     });
@@ -177,6 +179,7 @@ export const login = async (req, res) => {
         role: account.role,
         phone: account.phone || "",
         location: account.location || "",
+        bio: account.bio || "",
         profilePhoto: account.profilePhoto || "",
         token: generateToken(account._id, account.role),
       };
@@ -222,7 +225,7 @@ export const updateProfile = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    const { name, email, phone, location, profilePhoto } = req.body;
+    const { name, email, phone, location, bio, profilePhoto } = req.body;
 
     if (email && email !== user.email) {
       const existing = await User.findOne({ email });
@@ -235,6 +238,7 @@ export const updateProfile = async (req, res) => {
     if (name) user.name = name;
     if (phone !== undefined) user.phone = phone;
     if (location !== undefined) user.location = location;
+    if (bio !== undefined) user.bio = bio;
 
     if (profilePhoto !== undefined) {
       if (typeof profilePhoto === "string" && profilePhoto.startsWith("data:")) {
@@ -254,6 +258,7 @@ export const updateProfile = async (req, res) => {
       role: user.role,
       phone: user.phone,
       location: user.location,
+      bio: user.bio,
       profilePhoto: user.profilePhoto,
     };
 

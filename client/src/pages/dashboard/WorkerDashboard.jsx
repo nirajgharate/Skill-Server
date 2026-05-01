@@ -29,17 +29,86 @@ import {
   Activity,
   BarChart3,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import API from "../../api/api";
 import { useAuth } from "../../hooks/useAuth";
 import { useSocket } from "../../hooks/useSocket";
 import { workerService, bookingService } from "../../services/api.service";
+import { getAvatarUrl } from "../../utils/avatar.util";
 import EditProfileWorker from "./EditProfileWorker";
+
+const workerAvatarOptions = [
+  {
+    id: "avatar-sunrise",
+    label: "Sunrise",
+    seed: "sunrise-pro",
+    gender: "female",
+  },
+  { id: "avatar-wave", label: "Wave", seed: "wave-pro", gender: "female" },
+  {
+    id: "avatar-meadow",
+    label: "Meadow",
+    seed: "meadow-pro",
+    gender: "female",
+  },
+  { id: "avatar-night", label: "Night", seed: "night-pro", gender: "female" },
+  { id: "avatar-ember", label: "Ember", seed: "ember-pro", gender: "female" },
+  {
+    id: "avatar-orchid",
+    label: "Orchid",
+    seed: "orchid-pro",
+    gender: "female",
+  },
+  {
+    id: "avatar-cosmos",
+    label: "Cosmos",
+    seed: "cosmos-pro",
+    gender: "female",
+  },
+  { id: "avatar-river", label: "River", seed: "river-pro", gender: "female" },
+  {
+    id: "avatar-aurora",
+    label: "Aurora",
+    seed: "aurora-pro",
+    gender: "female",
+  },
+  { id: "avatar-luna", label: "Luna", seed: "luna-pro", gender: "female" },
+  { id: "avatar-rosa", label: "Rosa", seed: "rosa-pro", gender: "female" },
+  { id: "avatar-ivy", label: "Ivy", seed: "ivy-pro", gender: "female" },
+  { id: "avatar-sage", label: "Sage", seed: "sage-pro", gender: "female" },
+  { id: "avatar-amber", label: "Amber", seed: "amber-pro", gender: "female" },
+  { id: "avatar-daisy", label: "Daisy", seed: "daisy-pro", gender: "female" },
+  { id: "avatar-pearl", label: "Pearl", seed: "pearl-pro", gender: "female" },
+  {
+    id: "avatar-blossom",
+    label: "Blossom",
+    seed: "blossom-pro",
+    gender: "female",
+  },
+  {
+    id: "avatar-breeze",
+    label: "Breeze",
+    seed: "breeze-pro",
+    gender: "female",
+  },
+  { id: "avatar-coral", label: "Coral", seed: "coral-pro", gender: "female" },
+  { id: "avatar-valor", label: "Valor", seed: "valor-pro", gender: "male" },
+  { id: "avatar-iron", label: "Iron", seed: "iron-pro", gender: "male" },
+  { id: "avatar-hero", label: "Hero", seed: "hero-pro", gender: "male" },
+  { id: "avatar-steel", label: "Steel", seed: "steel-pro", gender: "male" },
+  { id: "avatar-onyx", label: "Onyx", seed: "onyx-pro", gender: "male" },
+  { id: "avatar-atlas", label: "Atlas", seed: "atlas-pro", gender: "male" },
+  { id: "avatar-ridge", label: "Ridge", seed: "ridge-pro", gender: "male" },
+  { id: "avatar-arbor", label: "Arbor", seed: "arbor-pro", gender: "male" },
+  { id: "avatar-saber", label: "Saber", seed: "saber-pro", gender: "male" },
+  { id: "avatar-frost", label: "Frost", seed: "frost-pro", gender: "male" },
+];
 
 export default function WorkerDashboard() {
   const navigate = useNavigate();
-  const { user: authUser } = useAuth();
+  const { user: authUser, updateUser } = useAuth();
   const { registerUser, on, off } = useSocket();
 
   const [worker, setWorker] = useState(null);
@@ -53,6 +122,9 @@ export default function WorkerDashboard() {
   const [actionLoading, setActionLoading] = useState({});
   const [actionError, setActionError] = useState(null);
   const [activeTab, setActiveTab] = useState("Active");
+  const [selectedAvatar, setSelectedAvatar] = useState("");
+  const [pendingAvatar, setPendingAvatar] = useState("");
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
 
   const pendingRequests = workerBookings.filter(
     (job) => (job.status || "pending").toLowerCase() === "pending",
@@ -98,6 +170,61 @@ export default function WorkerDashboard() {
     }).length;
   };
 
+  useEffect(() => {
+    if (worker) {
+      setSelectedAvatar(worker.profilePhoto || "");
+      setPendingAvatar(worker.profilePhoto || "");
+    }
+  }, [worker]);
+
+  const handleAvatarSelection = (option) => {
+    const avatarUrl = getAvatarUrl({
+      fallbackSeed: option.seed,
+      avatarGender: option.gender,
+      name: worker?.name || option.label,
+      id: worker?._id || option.id,
+    });
+    setPendingAvatar(avatarUrl);
+  };
+
+  const openAvatarPicker = () => {
+    setPendingAvatar(worker?.profilePhoto || selectedAvatar || "");
+    setShowAvatarPicker(true);
+  };
+
+  const closeAvatarPicker = () => {
+    setPendingAvatar(worker?.profilePhoto || selectedAvatar || "");
+    setShowAvatarPicker(false);
+  };
+
+  const saveAvatarSelection = async () => {
+    const avatarUrl = pendingAvatar || "";
+    setSelectedAvatar(avatarUrl);
+    setShowAvatarPicker(false);
+    setWorker((prev) => (prev ? { ...prev, profilePhoto: avatarUrl } : prev));
+    if (updateUser) updateUser({ profilePhoto: avatarUrl });
+
+    try {
+      await workerService.updateProfile({ profilePhoto: avatarUrl });
+    } catch (error) {
+      console.error("Failed to persist worker avatar selection:", error);
+    }
+  };
+
+  const handleResetAvatar = async () => {
+    setSelectedAvatar("");
+    setPendingAvatar("");
+    setShowAvatarPicker(false);
+    setWorker((prev) => (prev ? { ...prev, profilePhoto: "" } : prev));
+    if (updateUser) updateUser({ profilePhoto: "" });
+
+    try {
+      await workerService.updateProfile({ profilePhoto: "" });
+    } catch (error) {
+      console.error("Failed to persist worker avatar reset:", error);
+    }
+  };
+
   const handleTrackBooking = (bookingId) => {
     navigate("/tracking", { state: { bookingId } });
   };
@@ -125,6 +252,20 @@ export default function WorkerDashboard() {
     }
     window.alert("No contact details are available for this booking.");
   };
+
+  const getCustomerAvatarUrl = (job) =>
+    getAvatarUrl({
+      profilePhoto:
+        job.customerPhoto || job.userId?.profilePhoto || job.userId?.img,
+      name: job.userId?.name || job.customer || "Customer",
+      id: job.userId?._id || job.id,
+      fallbackSeed:
+        job.userId?._id ||
+        job.id ||
+        job.userId?.name ||
+        job.customer ||
+        "customer-avatar",
+    });
 
   const handleCall = (booking) => {
     const phone = booking.userId?.phone || booking.phone;
@@ -293,7 +434,7 @@ export default function WorkerDashboard() {
     })
     .map((job) => ({
       id: job._id || job.id,
-      customer: job.userId?.name || job.customer,
+      customer: job.userId?.name || job.customer || "Customer",
       service:
         job.serviceId?.name || job.service || job.serviceName || "Service",
       location: job.address || job.location || "",
@@ -308,6 +449,8 @@ export default function WorkerDashboard() {
       amount: job.price ? `₹${job.price}` : job.amount,
       status: (job.status || "pending").toLowerCase(),
       raw: job,
+      userId: job.userId,
+      customerPhoto: job.userId?.profilePhoto || job.userId?.img,
     }));
 
   const handleRefresh = async () => {
@@ -395,25 +538,33 @@ export default function WorkerDashboard() {
           <div className="flex items-center justify-between gap-4">
             {/* Left Section */}
             <div className="flex items-center gap-3">
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center cursor-pointer"
-                onClick={() => navigate("/worker-profile")}
-              >
+              <div className="relative">
                 <img
-                  src={
-                    worker.profilePhoto ||
-                    `https://api.dicebear.com/7.x/avataaars/svg?seed=${worker.name}`
-                  }
+                  src={getAvatarUrl({
+                    profilePhoto: worker.profilePhoto || authUser?.profilePhoto,
+                    name: worker.name,
+                    id: worker._id,
+                  })}
                   alt={worker.name}
-                  className="w-full h-full object-cover rounded-full"
+                  className="w-14 h-14 rounded-full border border-slate-200 object-cover"
                 />
-              </motion.div>
+                <button
+                  type="button"
+                  onClick={openAvatarPicker}
+                  className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-indigo-600 shadow-sm hover:bg-slate-50 transition-all"
+                >
+                  <Sparkles size={14} />
+                </button>
+              </div>
               <div>
                 <p className="text-slate-900 font-bold text-sm md:text-base">
                   {worker.name}
                 </p>
                 <p className="text-slate-500 text-xs">Professional Portal</p>
+                <p className="mt-2 text-slate-500 text-[11px]">
+                  Your worker avatar is shown here. Tap the sparkle to choose a
+                  new one.
+                </p>
               </div>
             </div>
 
@@ -467,6 +618,109 @@ export default function WorkerDashboard() {
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showAvatarPicker && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.96, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.96, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-3xl max-h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200"
+            >
+              <div className="flex items-start justify-between gap-4 p-6 border-b border-slate-200">
+                <div>
+                  <p className="text-slate-900 text-lg font-bold">
+                    Select worker avatar
+                  </p>
+                  <p className="text-slate-500 text-sm mt-1">
+                    This avatar will be shown in worker bookings and profile
+                    details.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={closeAvatarPicker}
+                  className="text-slate-500 hover:text-slate-900 transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+              <div className="p-6 max-h-[68vh] overflow-y-auto">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {workerAvatarOptions.map((option) => {
+                    const avatarUrl = getAvatarUrl({
+                      fallbackSeed: option.seed,
+                      avatarGender: option.gender,
+                      name: worker?.name || option.label,
+                      id: worker?._id || option.id,
+                    });
+                    const isSelected = pendingAvatar === avatarUrl;
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => handleAvatarSelection(option)}
+                        className={`group relative rounded-3xl overflow-hidden border transition-all ${
+                          isSelected
+                            ? "border-indigo-600 shadow-lg"
+                            : "border-slate-200 hover:border-slate-400"
+                        }`}
+                      >
+                        <img
+                          src={avatarUrl}
+                          alt={option.label}
+                          className="w-full h-24 object-cover"
+                        />
+                        <span className="absolute inset-x-0 bottom-0 bg-slate-900/70 text-white text-[10px] uppercase tracking-[0.24em] text-center py-1">
+                          {option.label}
+                        </span>
+                        {isSelected && (
+                          <span className="absolute top-2 right-2 bg-indigo-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
+                            ✓
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+                  <div className="text-slate-600 text-sm">
+                    {pendingAvatar ? (
+                      <span>Selected avatar ready to save.</span>
+                    ) : (
+                      <span>Choose one of the avatar presets above.</span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onClick={handleResetAvatar}
+                      className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-200 transition-all"
+                    >
+                      Reset
+                    </button>
+                    <button
+                      type="button"
+                      onClick={saveAvatarSelection}
+                      disabled={!pendingAvatar}
+                      className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-all disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Save avatar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 space-y-6">
@@ -662,8 +916,12 @@ export default function WorkerDashboard() {
 
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-4 flex-1">
-                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                          <UserIcon size={24} className="text-white" />
+                        <div className="w-14 h-14 rounded-full overflow-hidden border border-slate-200 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                          <img
+                            src={getCustomerAvatarUrl(job)}
+                            alt={job.userId?.name || job.customer || "Customer"}
+                            className="w-full h-full object-cover"
+                          />
                         </div>
                         <div>
                           <div className="flex items-center gap-2 mb-1">

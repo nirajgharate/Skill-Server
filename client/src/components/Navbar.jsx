@@ -137,7 +137,15 @@ export default function Navbar() {
                     whileHover={{ scale: 1.08 }}
                     className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-blue-400 flex items-center justify-center border-2 border-white shadow-md hover:shadow-lg transition-all overflow-hidden text-white font-black text-xs uppercase cursor-pointer"
                   >
-                    {user.name?.charAt(0) || <User size={16} />}
+                    {user?.profilePhoto ? (
+                      <img
+                        src={user.profilePhoto}
+                        alt={user.name || "Profile"}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      user.name?.charAt(0) || <User size={16} />
+                    )}
                   </motion.div>
 
                   {/* Tooltip */}
