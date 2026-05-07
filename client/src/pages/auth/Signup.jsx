@@ -35,10 +35,52 @@ export default function Signup() {
     hourlyRate: 0,
     bio: "",
     gender: "",
+    useCurrentLocation: false,
+    locationCoordinates: null,
   });
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by this browser.");
+      return;
+    }
+
+    setFormData((prev) => ({ ...prev, useCurrentLocation: true }));
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setFormData((prev) => ({
+          ...prev,
+          locationCoordinates: [longitude, latitude],
+        }));
+
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
+          );
+          const data = await response.json();
+          if (data?.display_name) {
+            setFormData((prev) => ({
+              ...prev,
+              serviceArea: data.display_name,
+            }));
+          }
+        } catch (err) {
+          console.error("Reverse geocode error:", err);
+        }
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        setFormData((prev) => ({ ...prev, useCurrentLocation: false }));
+        alert("Unable to detect location. Please enter your area manually.");
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 },
+    );
   };
 
   const handleSignupComplete = async () => {
@@ -46,8 +88,20 @@ export default function Signup() {
     setError("");
     try {
       let data;
+      const locationPayload = formData.locationCoordinates
+        ? {
+            location: {
+              type: "Point",
+              coordinates: formData.locationCoordinates,
+            },
+          }
+        : {};
+
       if (role === "user") {
-        data = await authService.signupUser(formData);
+        data = await authService.signupUser({
+          ...formData,
+          ...locationPayload,
+        });
       } else {
         data = await authService.signupWorker({
           name: formData.name,
@@ -60,6 +114,7 @@ export default function Signup() {
           hourlyRate: parseInt(formData.hourlyRate),
           bio: formData.bio,
           gender: formData.gender || undefined,
+          ...locationPayload,
         });
       }
 
@@ -87,7 +142,7 @@ export default function Signup() {
   };
 
   const RoleSelector = () => (
-    <div className="relative p-1 bg-slate-100/50 backdrop-blur-sm rounded-2xl border border-slate-200/50 flex items-center w-full mb-8">
+    <div className="relative p-1 bg-slate-100/60 backdrop-blur-sm rounded-3xl border border-slate-200/70 flex items-center w-full mb-8 shadow-sm">
       {["user", "worker"].map((option) => {
         const isActive = role === option;
         return (
@@ -95,19 +150,17 @@ export default function Signup() {
             key={option}
             onClick={() => setRole(option)}
             type="button"
-            className="relative flex-1 py-3 z-10 transition-colors duration-300 outline-none"
+            className={`relative flex-1 px-4 py-4 z-10 text-left transition-all duration-300 rounded-3xl border ${isActive ? "border-indigo-300 bg-indigo-50 text-indigo-700 shadow-sm" : "border-transparent bg-transparent text-slate-500 hover:bg-slate-50"}`}
           >
             <span
-              className={`text-[11px] font-black uppercase tracking-[0.2em] transition-colors duration-500 ${isActive ? "text-indigo-600" : "text-slate-400"}`}
+              className={`text-[11px] font-black uppercase tracking-[0.2em] transition-colors duration-500 ${isActive ? "text-indigo-700" : "text-slate-400"}`}
             >
               {option}
             </span>
             {isActive && (
-              <motion.div
-                layoutId="signupActivePill"
-                className="absolute inset-0 bg-white rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-slate-100/50"
-                transition={{ type: "spring", stiffness: 500, damping: 35 }}
-              />
+              <span className="absolute right-4 top-4 rounded-full bg-indigo-600 px-2 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-white">
+                Selected
+              </span>
             )}
           </button>
         );
@@ -132,7 +185,7 @@ export default function Signup() {
                 <Wrench className="text-white" size={24} />
               </div>
               <span className="text-2xl font-black text-slate-900 tracking-tight">
-                SkillServer
+                Synapthire
               </span>
             </div>
             <h1 className="text-5xl font-black text-slate-900 leading-[1.1] tracking-tighter">
@@ -294,6 +347,28 @@ export default function Signup() {
                           placeholder="e.g. Mumbai"
                           className="w-full pl-11 py-4 bg-slate-50 border border-slate-200/60 rounded-2xl outline-none focus:border-indigo-500 transition-all font-medium text-slate-900"
                         />
+                      </div>
+                      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <button
+                          type="button"
+                          onClick={getCurrentLocation}
+                          className={`w-full md:w-auto px-4 py-3 rounded-2xl font-bold transition-all ${
+                            formData.useCurrentLocation
+                              ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                              : "bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100"
+                          }`}
+                        >
+                          {formData.useCurrentLocation
+                            ? "Current location enabled"
+                            : "Use current location"}
+                        </button>
+                        {formData.locationCoordinates && (
+                          <p className="text-[10px] text-slate-500 font-semibold">
+                            Detected:{" "}
+                            {formData.locationCoordinates[1].toFixed(4)},{" "}
+                            {formData.locationCoordinates[0].toFixed(4)}
+                          </p>
+                        )}
                       </div>
                     </div>
 

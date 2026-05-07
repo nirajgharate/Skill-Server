@@ -726,6 +726,7 @@ export default function ProfilePageProfessional() {
                         user.serviceArea ||
                         user.city ||
                         "Not set",
+                      hasMapButton: true,
                     },
                   ].map((item, idx) => (
                     <div
@@ -748,7 +749,7 @@ export default function ProfilePageProfessional() {
                           }
                         />
                       </div>
-                      <div>
+                      <div className="flex-1">
                         <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">
                           {item.label}
                         </p>
@@ -756,6 +757,21 @@ export default function ProfilePageProfessional() {
                           {item.value}
                         </p>
                       </div>
+                      {item.hasMapButton && item.value !== "Not set" && (
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => navigate("/map")}
+                          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
+                            isWorker
+                              ? "bg-purple-600 hover:bg-purple-700 text-white"
+                              : "bg-blue-600 hover:bg-blue-700 text-white"
+                          }`}
+                        >
+                          <MapPin size={14} />
+                          View Map
+                        </motion.button>
+                      )}
                     </div>
                   ))}
                 </div>

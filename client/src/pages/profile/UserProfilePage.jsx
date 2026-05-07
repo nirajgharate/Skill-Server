@@ -186,9 +186,9 @@ export default function UserProfilePage() {
                   <div className="flex flex-wrap gap-2 items-center mb-6 text-slate-600">
                     <MapPin size={16} className="text-indigo-600" />
                     <span>
-                      {userData?.location ||
-                        userData?.address ||
-                        "Location not provided"}
+                      {userData?.location?.coordinates
+                        ? `${userData.location.coordinates[1]}, ${userData.location.coordinates[0]}`
+                        : userData?.address || "Location not provided"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">

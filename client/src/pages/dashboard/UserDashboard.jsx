@@ -424,7 +424,11 @@ export default function UserDashboard() {
               </motion.button>
 
               <Link
-                to="/notifications"
+                to={
+                  user?.role === "worker"
+                    ? "/notifications/worker"
+                    : "/notifications/user"
+                }
                 className="relative p-2.5 bg-slate-100 hover:bg-slate-200 rounded-full transition-all group"
               >
                 <Bell size={18} className="text-slate-600" />
@@ -630,6 +634,14 @@ export default function UserDashboard() {
                 >
                   <Calendar size={18} />
                   My Bookings
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  onClick={() => navigate("/map")}
+                  className="px-6 py-3 bg-white/20 backdrop-blur-sm text-white rounded-xl font-semibold hover:bg-white/30 transition-all flex items-center gap-2 border border-white/30"
+                >
+                  <MapPin size={18} />
+                  View Map
                 </motion.button>
               </div>
             </div>
@@ -1001,6 +1013,25 @@ export default function UserDashboard() {
                   </div>
                   <span className="text-slate-900 font-semibold text-sm flex-1 text-left">
                     Profile
+                  </span>
+                  <ChevronRight
+                    size={16}
+                    className="text-slate-400 group-hover:text-slate-600 transition-all"
+                  />
+                </motion.button>
+                <motion.button
+                  whileHover={{ x: 5 }}
+                  onClick={() => navigate("/map")}
+                  className="w-full flex items-center gap-3 p-3 bg-gradient-to-br from-slate-50 to-slate-100 hover:from-slate-100 hover:to-slate-200 rounded-xl transition-all group border border-slate-200 hover:border-slate-300"
+                >
+                  <div className="p-2 rounded-lg bg-white group-hover:bg-slate-600 transition-all">
+                    <MapPin
+                      size={16}
+                      className="text-slate-600 group-hover:text-white transition-all"
+                    />
+                  </div>
+                  <span className="text-slate-900 font-semibold text-sm flex-1 text-left">
+                    View Map
                   </span>
                   <ChevronRight
                     size={16}

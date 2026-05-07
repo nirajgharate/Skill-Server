@@ -16,6 +16,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 
+import MapComponent from "../components/MapComponent";
 import { useBooking } from "../hooks/useBooking";
 import ElitePaymentStep from "./ElitePaymentStep";
 
@@ -101,12 +102,99 @@ export default function UberBookingFlow() {
     problemDesc: "",
     requirements: [], // Tools the pro needs to bring
     address: "",
+    useCurrentLocation: false,
+    currentLocation: null,
+    locationCoordinates: null,
   });
+  const [userDistanceKm, setUserDistanceKm] = useState(null);
+  const [workerLocationCoords, setWorkerLocationCoords] = useState(null);
+  const [showMapPreview, setShowMapPreview] = useState(true);
+
+  const workerCoords = (() => {
+    const workerData = worker || location.state?.worker;
+    const coords =
+      workerData?.location?.coordinates || workerData?.location || null;
+    if (!Array.isArray(coords) || coords.length < 2) return null;
+    const [lng, lat] = coords;
+    return [lat, lng];
+  })();
+
+  const userCoords = formData.currentLocation
+    ? [formData.currentLocation.latitude, formData.currentLocation.longitude]
+    : null;
+
+  const mapPreviewCenter = userCoords || workerCoords || [28.6139, 77.209];
+  const mapPreviewMarkers = [];
+  const mapPreviewPath = [];
+
+  if (userCoords) {
+    mapPreviewMarkers.push({
+      id: "booking-user",
+      type: "user",
+      position: userCoords,
+      title: "Your Location",
+      description: "Service request origin",
+    });
+  }
+
+  if (workerCoords) {
+    mapPreviewMarkers.push({
+      id: "booking-worker",
+      type: "worker",
+      position: workerCoords,
+      title: worker.name || "Worker Location",
+      description: worker.profession || worker.role || "Assigned worker",
+    });
+  }
+
+  if (userCoords && workerCoords) {
+    mapPreviewPath.push([userCoords, workerCoords]);
+  }
+
+  // Distance calculation
+  const toRadians = (degrees) => degrees * (Math.PI / 180);
+  const getDistanceKm = (coordA, coordB) => {
+    const [lat1, lon1] = coordA;
+    const [lat2, lon2] = coordB;
+    const dLat = toRadians(lat2 - lat1);
+    const dLon = toRadians(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRadians(lat1)) *
+        Math.cos(toRadians(lat2)) *
+        Math.sin(dLon / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return 6371 * c;
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [step]);
 
+  // Calculate distance when current location is detected
+  useEffect(() => {
+    const workerData = resolvedWorker || location.state?.worker;
+    if (formData.useCurrentLocation && formData.currentLocation && workerData) {
+      const userCoords = [
+        formData.currentLocation.latitude,
+        formData.currentLocation.longitude,
+      ];
+
+      const workerCoords =
+        workerData?.location?.coordinates || workerData?.location || null;
+      if (workerCoords) {
+        const [lng, lat] = workerCoords;
+        setWorkerLocationCoords([lat, lng]);
+        const distance = getDistanceKm(userCoords, [lat, lng]);
+        setUserDistanceKm(distance);
+      }
+    }
+  }, [
+    formData.useCurrentLocation,
+    formData.currentLocation,
+    resolvedWorker,
+    location.state,
+  ]);
   const nextStep = () => setStep((s) => s + 1);
   const prevStep = () => setStep((s) => s - 1);
 
@@ -136,6 +224,49 @@ export default function UberBookingFlow() {
         ? prev.requirements.filter((i) => i !== item)
         : [...prev.requirements, item],
     }));
+  };
+
+  // Location detection function
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by this browser.");
+      return;
+    }
+
+    setFormData((prev) => ({ ...prev, useCurrentLocation: true }));
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setFormData((prev) => ({
+          ...prev,
+          currentLocation: { latitude, longitude },
+          locationCoordinates: [longitude, latitude],
+        }));
+
+        // Try to get address from coordinates (reverse geocoding)
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
+          );
+          const data = await response.json();
+          if (data && data.display_name) {
+            setFormData((prev) => ({
+              ...prev,
+              address: data.display_name,
+            }));
+          }
+        } catch (error) {
+          console.error("Error getting address from coordinates:", error);
+        }
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+        alert("Unable to get your location. Please enter address manually.");
+        setFormData((prev) => ({ ...prev, useCurrentLocation: false }));
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 },
+    );
   };
 
   const slideVariants = {
@@ -369,13 +500,52 @@ export default function UberBookingFlow() {
                   <label className="text-xs font-black uppercase tracking-widest text-[#0F172A]/50 flex gap-2">
                     <MapPin size={14} /> Address
                   </label>
+
+                  {/* Current Location Button */}
+                  <div className="flex flex-col gap-3 mb-4">
+                    <motion.button
+                      onClick={getCurrentLocation}
+                      disabled={formData.useCurrentLocation}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                        formData.useCurrentLocation
+                          ? "bg-green-100 text-green-700 border border-green-200"
+                          : "bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100"
+                      }`}
+                    >
+                      <MapPin size={16} />
+                      {formData.useCurrentLocation
+                        ? "Location Detected ✓"
+                        : "Use Current Location"}
+                    </motion.button>
+
+                    {formData.currentLocation && (
+                      <div className="space-y-2 text-xs text-slate-500">
+                        <div>
+                          Lat: {formData.currentLocation.latitude.toFixed(6)},
+                          Lng: {formData.currentLocation.longitude.toFixed(6)}
+                        </div>
+                        {userDistanceKm !== null && (
+                          <div className="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3 text-slate-700">
+                            <span className="font-semibold">
+                              Distance to worker:
+                            </span>{" "}
+                            {userDistanceKm.toFixed(1)} km
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
                   <textarea
                     rows="2"
+                    value={formData.address}
                     onChange={(e) =>
                       setFormData({ ...formData, address: e.target.value })
                     }
                     className="w-full p-5 bg-white border border-black/5 rounded-2xl outline-none shadow-sm text-sm font-medium"
-                    placeholder="Full Address..."
+                    placeholder="Full Address or let us detect your location..."
                   ></textarea>
                 </div>
               </div>
@@ -458,6 +628,101 @@ export default function UberBookingFlow() {
 
                   <div className="border-t border-black/5" />
 
+                  {userDistanceKm !== null && (
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-[#4F46E5]/10 flex items-center justify-center flex-shrink-0">
+                        <MapPin className="text-[#4F46E5]" size={20} />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-[#0F172A]/50 uppercase tracking-widest">
+                          Distance to worker
+                        </p>
+                        <p className="text-sm font-black text-[#0F172A] mt-2">
+                          {userDistanceKm.toFixed(1)} km away
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="border-t border-black/5" />
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-[10px] font-black text-[#0F172A]/50 uppercase tracking-widest">
+                          Booking Map
+                        </p>
+                        <h3 className="text-lg font-black text-[#0F172A] mt-2">
+                          {userCoords && workerCoords
+                            ? "Route between you and the worker"
+                            : "Worker location summary"}
+                        </h3>
+                      </div>
+                      {workerCoords && (
+                        <button
+                          type="button"
+                          onClick={() => setShowMapPreview((prev) => !prev)}
+                          className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700 transition hover:bg-slate-50"
+                        >
+                          {showMapPreview ? "Hide map" : "Show map"}
+                        </button>
+                      )}
+                    </div>
+
+                    {showMapPreview && workerCoords ? (
+                      <div className="rounded-[2rem] overflow-hidden border border-black/5 shadow-sm">
+                        <MapComponent
+                          center={mapPreviewCenter}
+                          zoom={11}
+                          markers={mapPreviewMarkers}
+                          paths={mapPreviewPath}
+                          height="320px"
+                          showUserLocation={false}
+                          interactive={false}
+                        />
+                      </div>
+                    ) : null}
+
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                      <div className="rounded-3xl border border-black/5 bg-white p-5 shadow-sm">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[#0F172A]/50">
+                          Estimated distance
+                        </p>
+                        <p className="mt-3 text-2xl font-black text-[#0F172A]">
+                          {userDistanceKm !== null
+                            ? `${userDistanceKm.toFixed(1)} km`
+                            : userCoords
+                              ? "Calculating..."
+                              : "Use current location to estimate"}
+                        </p>
+                        <p className="mt-2 text-sm text-slate-600">
+                          {userDistanceKm !== null
+                            ? "Distance from your current location to the worker"
+                            : "Please allow location access or enter your address to show accurate distance."}
+                        </p>
+                      </div>
+
+                      <div className="rounded-3xl border border-black/5 bg-white p-5 shadow-sm">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[#0F172A]/50">
+                          Worker arrival area
+                        </p>
+                        <p className="mt-3 text-sm text-[#0F172A] leading-relaxed">
+                          {worker.location?.address ||
+                            worker.address ||
+                            "Worker location not available"}
+                        </p>
+                        {workerCoords && (
+                          <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-700">
+                            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                            Worker coordinates found
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-black/5" />
+
                   {/* Location */}
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-2xl bg-[#4F46E5]/10 flex items-center justify-center flex-shrink-0">
@@ -465,10 +730,10 @@ export default function UberBookingFlow() {
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-[#0F172A]/50 uppercase tracking-widest">
-                        Location
+                        Service Address
                       </p>
                       <p className="text-xs font-bold leading-relaxed text-[#0F172A] mt-2">
-                        {formData.address}
+                        {formData.address || "No address provided"}
                       </p>
                     </div>
                   </div>
@@ -579,6 +844,7 @@ export default function UberBookingFlow() {
                   amount: servicePrice,
                   date: formData.date,
                   address: formData.address,
+                  locationCoordinates: formData.locationCoordinates,
                   notes: {
                     time: formData.time || formData.customTime,
                     problemDesc: formData.problemDesc,

@@ -28,6 +28,23 @@ export default function WorkerDetailPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [worker, setWorker] = useState(null);
+  const [userDistanceKm, setUserDistanceKm] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
+
+  const toRadians = (degrees) => degrees * (Math.PI / 180);
+  const getDistanceKm = (coordA, coordB) => {
+    const [lat1, lon1] = coordA;
+    const [lat2, lon2] = coordB;
+    const dLat = toRadians(lat2 - lat1);
+    const dLon = toRadians(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRadians(lat1)) *
+        Math.cos(toRadians(lat2)) *
+        Math.sin(dLon / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return 6371 * c;
+  };
 
   // Scroll to top on mount
   useEffect(() => {
@@ -66,6 +83,27 @@ export default function WorkerDetailPage() {
     loadWorkerData();
   }, [id, location.state]);
 
+  useEffect(() => {
+    if (!worker?.location?.coordinates || !navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const userCoords = [
+          position.coords.latitude,
+          position.coords.longitude,
+        ];
+        setUserLocation(userCoords);
+        const [lng, lat] = worker.location.coordinates;
+        const distance = getDistanceKm(userCoords, [lat, lng]);
+        setUserDistanceKm(distance);
+      },
+      (error) => {
+        console.warn("Location access denied or unavailable:", error);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 },
+    );
+  }, [worker]);
+
   const getBookingWorker = (workerData = worker) => {
     return {
       _id: workerData?._id || workerData?.id || id,
@@ -86,6 +124,7 @@ export default function WorkerDetailPage() {
           : (workerData?.reviews ?? 0)),
       profession:
         workerData?.profession || workerData?.role || "Professional Service",
+      location: workerData?.location, // Include location for booking
     };
   };
 
@@ -313,6 +352,30 @@ export default function WorkerDetailPage() {
                 <div className="flex items-center gap-1.5 text-sm font-bold text-[#0F172A]/40">
                   <MapPin size={16} />
                   {worker.serviceArea || worker.location || "Mumbai"}
+                  {userDistanceKm !== null && (
+                    <span className="ml-3 text-slate-500">
+                      • Approx. {userDistanceKm.toFixed(1)} km away
+                    </span>
+                  )}
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() =>
+                      navigate("/map", {
+                        state: {
+                          focusWorker: worker,
+                          bookingContext: location.state?.service || {
+                            serviceId: null,
+                            serviceTitle: worker.profession,
+                          },
+                        },
+                      })
+                    }
+                    className="ml-2 px-3 py-1 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded-lg text-xs font-semibold transition-all flex items-center gap-1"
+                  >
+                    <MapPin size={12} />
+                    View Map
+                  </motion.button>
                 </div>
               </div>
             </div>

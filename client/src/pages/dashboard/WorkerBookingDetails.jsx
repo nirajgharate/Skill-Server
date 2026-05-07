@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Phone, MessageSquare } from "lucide-react";
+import { ArrowLeft, Phone, MessageSquare, Map } from "lucide-react";
 import BookingDetailsCard from "../../components/dashboard/BookingDetailsCard";
 import { bookingService } from "../../services/api.service";
 import { getAvatarUrl } from "../../utils/avatar.util";
+import MapComponent from "../../components/MapComponent";
 
 const parseBookingNotes = (notes) => {
   if (!notes) return null;
@@ -305,6 +306,110 @@ export default function WorkerBookingDetails() {
                   </div>
                 </div>
               </div>
+
+              {/* Map Section */}
+              {(booking.userId?.location?.coordinates ||
+                booking.workerId?.location?.coordinates) && (
+                <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <h3 className="text-xl font-black text-slate-900 mb-4 flex items-center gap-2">
+                    <Map size={20} className="text-indigo-600" />
+                    Location Map
+                  </h3>
+                  <div className="h-64 rounded-2xl overflow-hidden border border-slate-200">
+                    <MapComponent
+                      center={
+                        booking.workerId?.location?.coordinates
+                          ? [
+                              booking.workerId.location.coordinates[0],
+                              booking.workerId.location.coordinates[1],
+                            ]
+                          : booking.userId?.location?.coordinates
+                            ? [
+                                booking.userId.location.coordinates[0],
+                                booking.userId.location.coordinates[1],
+                              ]
+                            : [77.209, 28.6139] // Default to Delhi
+                      }
+                      zoom={13}
+                      markers={[
+                        ...(booking.userId?.location?.coordinates
+                          ? [
+                              {
+                                position: [
+                                  booking.userId.location.coordinates[0],
+                                  booking.userId.location.coordinates[1],
+                                ],
+                                title: "Customer Location",
+                                description: booking.userName,
+                                icon: "user",
+                              },
+                            ]
+                          : []),
+                        ...(booking.workerId?.location?.coordinates
+                          ? [
+                              {
+                                position: [
+                                  booking.workerId.location.coordinates[0],
+                                  booking.workerId.location.coordinates[1],
+                                ],
+                                title: "Your Location",
+                                description: booking.workerName,
+                                icon: "worker",
+                              },
+                            ]
+                          : []),
+                      ]}
+                      paths={
+                        booking.userId?.location?.coordinates &&
+                        booking.workerId?.location?.coordinates
+                          ? [
+                              {
+                                positions: [
+                                  [
+                                    booking.userId.location.coordinates[0],
+                                    booking.userId.location.coordinates[1],
+                                  ],
+                                  [
+                                    booking.workerId.location.coordinates[0],
+                                    booking.workerId.location.coordinates[1],
+                                  ],
+                                ],
+                                color: "blue",
+                                weight: 3,
+                              },
+                            ]
+                          : []
+                      }
+                    />
+                  </div>
+                  {booking.userId?.location?.coordinates &&
+                    booking.workerId?.location?.coordinates && (
+                      <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                        <p className="text-sm font-semibold text-slate-700">
+                          Distance:{" "}
+                          {(() => {
+                            const toRadians = (deg) => deg * (Math.PI / 180);
+                            const [lon1, lat1] =
+                              booking.userId.location.coordinates;
+                            const [lon2, lat2] =
+                              booking.workerId.location.coordinates;
+                            const dLat = toRadians(lat2 - lat1);
+                            const dLon = toRadians(lon2 - lon1);
+                            const a =
+                              Math.sin(dLat / 2) ** 2 +
+                              Math.cos(toRadians(lat1)) *
+                                Math.cos(toRadians(lat2)) *
+                                Math.sin(dLon / 2) ** 2;
+                            const c =
+                              2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                            const distance = 6371 * c;
+                            return `${distance.toFixed(1)} km`;
+                          })()}
+                        </p>
+                      </div>
+                    )}
+                </div>
+              )}
             </div>
 
             <div className="space-y-6">
@@ -357,6 +462,110 @@ export default function WorkerBookingDetails() {
                   >
                     <MessageSquare size={16} /> Send message
                   </button>
+                  {[
+                    "pending",
+                    "accepted",
+                    "confirmed",
+                    "active",
+                    "in-progress",
+                    "paid",
+                  ].includes(String(booking.status || "").toLowerCase()) && (
+                    <button
+                      onClick={() =>
+                        navigate("/tracking", {
+                          state: { bookingId, booking },
+                        })
+                      }
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-all"
+                    >
+                      <Map size={16} /> Track booking
+                    </button>
+                  )}
+
+                  {/* Location Information */}
+                  {(booking.userId?.location?.coordinates ||
+                    booking.workerId?.location?.coordinates) && (
+                    <div className="rounded-2xl bg-white border border-slate-200 p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <MapPin size={16} className="text-indigo-600" />
+                        <span className="text-sm font-semibold text-slate-900">
+                          Location Info
+                        </span>
+                      </div>
+                      <div className="space-y-2 text-xs text-slate-600">
+                        {booking.userId?.location?.coordinates && (
+                          <div>
+                            <span className="font-medium">Customer:</span>{" "}
+                            {booking.userId.location.coordinates[1].toFixed(4)},{" "}
+                            {booking.userId.location.coordinates[0].toFixed(4)}
+                          </div>
+                        )}
+                        {booking.workerId?.location?.coordinates && (
+                          <div>
+                            <span className="font-medium">Your location:</span>{" "}
+                            {booking.workerId.location.coordinates[1].toFixed(
+                              4,
+                            )}
+                            ,{" "}
+                            {booking.workerId.location.coordinates[0].toFixed(
+                              4,
+                            )}
+                          </div>
+                        )}
+                        {booking.userId?.location?.coordinates &&
+                          booking.workerId?.location?.coordinates && (
+                            <div className="pt-2 border-t border-slate-200">
+                              <span className="font-semibold text-slate-900">
+                                Distance:{" "}
+                                {(() => {
+                                  const toRadians = (deg) =>
+                                    deg * (Math.PI / 180);
+                                  const [lon1, lat1] =
+                                    booking.userId.location.coordinates;
+                                  const [lon2, lat2] =
+                                    booking.workerId.location.coordinates;
+                                  const dLat = toRadians(lat2 - lat1);
+                                  const dLon = toRadians(lon2 - lon1);
+                                  const a =
+                                    Math.sin(dLat / 2) ** 2 +
+                                    Math.cos(toRadians(lat1)) *
+                                      Math.cos(toRadians(lat2)) *
+                                      Math.sin(dLon / 2) ** 2;
+                                  const c =
+                                    2 *
+                                    Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                                  const distance = 6371 * c;
+                                  return `${distance.toFixed(1)} km`;
+                                })()}
+                              </span>
+                            </div>
+                          )}
+                      </div>
+                    </div>
+                  )}
+
+                  {[
+                    "accepted",
+                    "confirmed",
+                    "active",
+                    "in-progress",
+                    "paid",
+                  ].includes(String(booking.status || "").toLowerCase()) &&
+                    booking.userId?.location?.coordinates && (
+                      <button
+                        onClick={() =>
+                          navigate("/map", {
+                            state: {
+                              focusUser: booking.userId,
+                              bookingContext: booking,
+                            },
+                          })
+                        }
+                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-green-600 px-4 py-3 text-sm font-semibold text-white hover:bg-green-700 transition-all"
+                      >
+                        <MapPin size={16} /> View on Map
+                      </button>
+                    )}
                 </div>
               </div>
             </div>

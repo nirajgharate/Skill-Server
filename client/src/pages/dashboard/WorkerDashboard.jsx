@@ -583,7 +583,7 @@ export default function WorkerDashboard() {
               </motion.button>
 
               <Link
-                to="/notifications"
+                to="/notifications/worker"
                 className="relative p-2.5 bg-slate-100 hover:bg-slate-200 rounded-full transition-all group"
               >
                 <Bell size={18} className="text-slate-600" />
@@ -1045,7 +1045,7 @@ export default function WorkerDashboard() {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               {[
                 {
                   title: "Schedule",
@@ -1070,6 +1070,12 @@ export default function WorkerDashboard() {
                   icon: UserIcon,
                   link: "/worker-profile",
                   color: "from-purple-500 to-pink-500",
+                },
+                {
+                  title: "View Map",
+                  icon: MapPin,
+                  link: "/map",
+                  color: "from-green-500 to-emerald-500",
                 },
               ].map((action, idx) => (
                 <motion.button
@@ -1290,22 +1296,49 @@ export default function WorkerDashboard() {
 
       {/* Edit Profile Modal */}
       <AnimatePresence>
-        {showEditProfile && worker && (
-          <EditProfileWorker
-            worker={worker}
-            onClose={() => setShowEditProfile(false)}
-            onSave={(updatedWorker) => {
-              setWorker(updatedWorker);
-              localStorage.setItem(
-                "skillserverUser",
-                JSON.stringify(updatedWorker),
-              );
-              setShowEditProfile(false);
-              setProfileCompletion(
-                updatedWorker.profileCompletionPercentage || 75,
-              );
-            }}
-          />
+        {showEditProfile && (
+          <>
+            {worker ? (
+              <EditProfileWorker
+                worker={worker}
+                onClose={() => {
+                  console.log("✅ Closing edit profile modal");
+                  setShowEditProfile(false);
+                }}
+                onSave={(updatedWorker) => {
+                  console.log("✅ Saving updated worker:", updatedWorker);
+                  setWorker(updatedWorker);
+                  localStorage.setItem(
+                    "skillserverUser",
+                    JSON.stringify(updatedWorker),
+                  );
+                  setShowEditProfile(false);
+                  setProfileCompletion(
+                    updatedWorker.profileCompletionPercentage || 75,
+                  );
+                }}
+              />
+            ) : (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+              >
+                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md text-center">
+                  <p className="text-slate-600 font-bold mb-4">
+                    Loading profile data...
+                  </p>
+                  <button
+                    onClick={() => setShowEditProfile(false)}
+                    className="px-6 py-3 bg-slate-200 text-slate-700 rounded-lg font-semibold hover:bg-slate-300"
+                  >
+                    Close
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </>
         )}
       </AnimatePresence>
     </div>

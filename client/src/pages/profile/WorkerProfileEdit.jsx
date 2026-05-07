@@ -44,6 +44,8 @@ export default function WorkerProfileEdit() {
     aadharCard: "",
     panCard: "",
     degreeCertificate: "",
+    useCurrentLocation: false,
+    locationCoordinates: null,
   });
 
   const [previewImages, setPreviewImages] = useState({
@@ -84,6 +86,12 @@ export default function WorkerProfileEdit() {
     try {
       setLoading(true);
       const data = await workerService.getWorkerProfile(authUser._id);
+      const locationCoordinates =
+        Array.isArray(data.location?.coordinates) &&
+        data.location.coordinates.length === 2
+          ? data.location.coordinates
+          : null;
+
       setFormData({
         name: data.name || "",
         phone: data.phone || "",
@@ -97,6 +105,8 @@ export default function WorkerProfileEdit() {
         aadharCard: data.aadharCard || "",
         panCard: data.panCard || "",
         degreeCertificate: data.degreeCertificate || "",
+        useCurrentLocation: !!locationCoordinates,
+        locationCoordinates,
       });
       setPreviewImages({
         profilePhoto: data.profilePhoto || null,
@@ -121,6 +131,32 @@ export default function WorkerProfileEdit() {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setError("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    setFormData((prev) => ({ ...prev, useCurrentLocation: true }));
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setFormData((prev) => ({
+          ...prev,
+          useCurrentLocation: true,
+          locationCoordinates: [longitude, latitude],
+        }));
+      },
+      (err) => {
+        console.error("Location error:", err);
+        setError("Unable to detect current location. Please try again.");
+        setFormData((prev) => ({ ...prev, useCurrentLocation: false }));
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 },
+    );
   };
 
   const handleFileUpload = (e, fieldName) => {
@@ -151,9 +187,19 @@ export default function WorkerProfileEdit() {
         return;
       }
 
+      const payload = { ...formData };
+      if (formData.locationCoordinates) {
+        payload.location = {
+          type: "Point",
+          coordinates: formData.locationCoordinates,
+        };
+      }
+      delete payload.locationCoordinates;
+      delete payload.useCurrentLocation;
+
       const result = await workerService.updateWorkerProfile(
         authUser._id,
-        formData,
+        payload,
       );
 
       // Keep auth state synced so avatar updates appear across dashboards and bookings
@@ -307,6 +353,39 @@ export default function WorkerProfileEdit() {
                     className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 font-medium"
                   />
                 </div>
+              </div>
+              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 shadow-sm">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <p className="text-sm font-bold text-slate-800 mb-2">
+                      Current Location
+                    </p>
+                    <p className="text-sm text-slate-600">
+                      Use your device location to keep your worker profile
+                      accurate.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={getCurrentLocation}
+                    className={`px-4 py-3 rounded-2xl font-bold transition-all ${
+                      formData.useCurrentLocation
+                        ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                        : "bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100"
+                    }`}
+                  >
+                    {formData.useCurrentLocation
+                      ? "Current location enabled"
+                      : "Use current location"}
+                  </button>
+                </div>
+                {formData.locationCoordinates && (
+                  <div className="mt-3 text-sm text-slate-700">
+                    <span className="font-semibold">Detected:</span>{" "}
+                    {formData.locationCoordinates[1].toFixed(4)},{" "}
+                    {formData.locationCoordinates[0].toFixed(4)}
+                  </div>
+                )}
               </div>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>

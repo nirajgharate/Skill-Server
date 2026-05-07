@@ -45,7 +45,7 @@ export const userService = {
   async getUserBookings() {
     try {
       const response = await API.get("/bookings/user/me");
-      return response.data;
+      return response.data?.data || [];
     } catch (error) {
       console.error("Error fetching user bookings:", error);
       throw error;

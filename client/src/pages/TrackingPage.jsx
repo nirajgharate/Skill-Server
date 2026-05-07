@@ -12,6 +12,7 @@ import {
   AlertCircle,
   CheckCircle2,
 } from "lucide-react";
+import MapComponent from "../components/MapComponent";
 import { bookingService, userService } from "../services/api.service";
 
 const normalizeStatus = (status) => String(status || "").toLowerCase();
@@ -82,6 +83,7 @@ export default function TrackingPage() {
     !booking && Boolean(bookingState.bookingId),
   );
   const [error, setError] = useState(null);
+  const [serverMessage, setServerMessage] = useState(null);
 
   const activeStatuses = [
     "pending",
@@ -117,6 +119,12 @@ export default function TrackingPage() {
           raw.expertImage ||
           "https://images.pexels.com/photos/3771084/pexels-photo-3771084.jpeg?auto=compress&cs=tinysrgb&w=400",
       },
+      userName: raw.userId?.name || raw.userName || "Customer",
+      workerName:
+        raw.workerId?.name ||
+        raw.worker?.name ||
+        raw.expert ||
+        "Service Professional",
       address: raw.address || raw.location || "Location not available",
       date: raw.date || raw.createdAt || raw.bookingDate || "TBD",
       status: raw.status || raw.bookingStatus || "pending",
@@ -127,23 +135,31 @@ export default function TrackingPage() {
         raw.contact ||
         "",
       id: raw._id || raw.id || raw.bookingCode || "SKL-000000",
+      raw,
     };
   };
 
   const loadBookingDetails = async (bookingId) => {
     setLoading(true);
     setError(null);
+    setServerMessage(null);
 
     try {
       const response = await bookingService.getBookingDetails(bookingId);
-      if (response?.data) {
-        setBooking(response.data);
+      if (response) {
+        setBooking(response);
       } else {
         setError("Unable to load booking details.");
+        setServerMessage("No booking data returned from the server.");
       }
     } catch (err) {
       console.error("Tracking load error:", err);
       setError("Unable to fetch booking details.");
+      setServerMessage(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Please try again later.",
+      );
     } finally {
       setLoading(false);
     }
@@ -175,12 +191,21 @@ export default function TrackingPage() {
   };
 
   useEffect(() => {
+    if (bookingState.booking) {
+      setBooking(bookingState.booking);
+      setLoading(false);
+      return;
+    }
+
     if (bookingState.bookingId) {
       loadBookingDetails(bookingState.bookingId);
-    } else if (!booking) {
+      return;
+    }
+
+    if (!booking) {
       loadFallbackBooking();
     }
-  }, [bookingState.bookingId]);
+  }, [bookingState.booking, bookingState.bookingId]);
 
   const currentBooking = getBookingData(booking);
   const stepIndex = getStepIndex(currentBooking.status);
@@ -200,19 +225,28 @@ export default function TrackingPage() {
     );
   }
 
-  if (error) {
+  const showErrorPage = Boolean(error && !booking);
+
+  if (showErrorPage) {
     return (
       <div className="min-h-screen bg-[#FDFDFD] pt-36 pb-24 px-4 flex items-center justify-center">
         <div className="max-w-lg w-full bg-white rounded-3xl p-8 shadow-xl border border-slate-200 text-center">
           <p className="text-slate-900 text-lg font-bold mb-4">
             Unable to load tracking
           </p>
-          <p className="text-slate-600 mb-6">{error}</p>
+          <p className="text-slate-600 mb-2">{error}</p>
+          {serverMessage && (
+            <p className="text-slate-500 text-sm mb-6">{serverMessage}</p>
+          )}
           <button
             onClick={() => {
-              if (bookingState.bookingId)
+              if (bookingState.booking) {
+                setError(null);
+              } else if (bookingState.bookingId) {
                 loadBookingDetails(bookingState.bookingId);
-              else loadFallbackBooking();
+              } else {
+                loadFallbackBooking();
+              }
             }}
             className="px-6 py-3 bg-indigo-600 text-white rounded-2xl font-semibold hover:bg-indigo-700 transition-all"
           >
@@ -235,6 +269,18 @@ export default function TrackingPage() {
       <div className="absolute top-40 left-[-10%] w-[400px] h-[400px] bg-blue-400/5 rounded-full blur-[100px] pointer-events-none" />
 
       <div className="max-w-xl mx-auto space-y-8 relative z-10">
+        {error && booking && (
+          <div className="rounded-[2rem] border border-rose-100 bg-rose-50/70 p-5 text-rose-700 shadow-sm">
+            <p className="text-sm font-semibold">Live refresh failed.</p>
+            <p className="text-sm text-rose-600 mt-2">
+              Showing the last known booking details. Refresh or retry to update
+              live status.
+            </p>
+            {serverMessage && (
+              <p className="text-xs text-rose-500 mt-2">{serverMessage}</p>
+            )}
+          </div>
+        )}
         {/* 🧭 HEADER */}
         <div className="flex items-center justify-between px-2">
           <button
@@ -369,7 +415,105 @@ export default function TrackingPage() {
           <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl" />
         </div>
 
-        {/* 📞 HELP AREA */}
+        {/* �️ LIVE TRACKING MAP */}
+        {currentBooking.workerId?.location?.coordinates ||
+        currentBooking.userId?.location?.coordinates ? (
+          <div className="p-8 bg-white rounded-[3rem] border border-slate-100 shadow-sm">
+            <div className="flex items-center justify-between gap-4 mb-6">
+              <div>
+                <h3 className="text-xl font-black text-slate-900">
+                  Live Worker Location
+                </h3>
+                <p className="text-sm text-slate-500">
+                  See the worker and booking locations on the map.
+                </p>
+              </div>
+            </div>
+            <MapComponent
+              center={
+                currentBooking.workerId?.location?.coordinates
+                  ? [
+                      currentBooking.workerId.location.coordinates[1],
+                      currentBooking.workerId.location.coordinates[0],
+                    ]
+                  : currentBooking.userId?.location?.coordinates
+                    ? [
+                        currentBooking.userId.location.coordinates[1],
+                        currentBooking.userId.location.coordinates[0],
+                      ]
+                    : [28.6139, 77.209]
+              }
+              zoom={13}
+              height="360px"
+              markers={[
+                ...(currentBooking.userId?.location?.coordinates
+                  ? [
+                      {
+                        id: "user-location",
+                        position: [
+                          currentBooking.userId.location.coordinates[1],
+                          currentBooking.userId.location.coordinates[0],
+                        ],
+                        title: "User Location",
+                        description:
+                          currentBooking.userName ||
+                          currentBooking.userId?.name ||
+                          "Customer",
+                        type: "user",
+                      },
+                    ]
+                  : []),
+                ...(currentBooking.workerId?.location?.coordinates
+                  ? [
+                      {
+                        id: "worker-location",
+                        position: [
+                          currentBooking.workerId.location.coordinates[1],
+                          currentBooking.workerId.location.coordinates[0],
+                        ],
+                        title: "Worker Location",
+                        description:
+                          currentBooking.workerName ||
+                          currentBooking.worker?.name ||
+                          "Worker",
+                        type: "worker",
+                      },
+                    ]
+                  : []),
+              ]}
+              paths={
+                currentBooking.userId?.location?.coordinates &&
+                currentBooking.workerId?.location?.coordinates
+                  ? [
+                      [
+                        [
+                          currentBooking.userId.location.coordinates[1],
+                          currentBooking.userId.location.coordinates[0],
+                        ],
+                        [
+                          currentBooking.workerId.location.coordinates[1],
+                          currentBooking.workerId.location.coordinates[0],
+                        ],
+                      ],
+                    ]
+                  : []
+              }
+            />
+          </div>
+        ) : (
+          <div className="p-8 bg-white rounded-[3rem] border border-slate-100 shadow-sm text-slate-600">
+            <h3 className="text-xl font-black text-slate-900 mb-3">
+              Live location unavailable
+            </h3>
+            <p className="text-sm leading-relaxed">
+              The worker or customer GPS coordinates are not attached to this
+              booking yet. If you recently added location data, please refresh
+              or reopen the booking details.
+            </p>
+          </div>
+        )}
+
+        {/* �📞 HELP AREA */}
         <div className="text-center p-10 border-2 border-dashed border-slate-100 rounded-[3rem] bg-slate-50/30">
           <AlertCircle size={24} className="mx-auto text-slate-200 mb-4" />
           <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">

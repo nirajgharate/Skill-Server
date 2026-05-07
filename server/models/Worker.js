@@ -162,6 +162,17 @@ const workerSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        default: [],
+      },
+    },
   },
   {
     timestamps: true,

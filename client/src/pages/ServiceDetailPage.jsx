@@ -646,6 +646,13 @@ export default function ServiceDetailPage() {
               <button className="w-full py-3 bg-slate-100 text-slate-900 font-semibold rounded-lg hover:bg-slate-200 transition-all">
                 Save for Later
               </button>
+              <button
+                onClick={() => navigate("/map")}
+                className="w-full py-3 bg-green-100 text-green-700 font-semibold rounded-lg hover:bg-green-200 transition-all flex items-center justify-center gap-2"
+              >
+                <MapPin size={16} />
+                View on Map
+              </button>
             </div>
 
             {/* Trust Indicators */}

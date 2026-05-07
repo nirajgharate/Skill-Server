@@ -55,7 +55,7 @@ export const signupUser = async (req, res) => {
       email,
       password: hashedPassword,
       phone,
-      location: location || "",
+      location: location || { type: "Point", coordinates: [] },
       bio: bio || "",
       profilePhoto: req.body.profilePhoto || "",
       role: "user",
@@ -81,7 +81,7 @@ export const signupUser = async (req, res) => {
 // @route   POST /api/auth/signup-worker
 export const signupWorker = async (req, res) => {
   try {
-    const { name, email, password, phone, profession, experienceYears, serviceArea, bio, profilePhoto, certificatePhoto, hourlyRate, skills, gender } = req.body;
+    const { name, email, password, phone, profession, experienceYears, serviceArea, bio, profilePhoto, certificatePhoto, hourlyRate, skills, gender, location } = req.body;
 
     const workerExists = await Worker.findOne({ email });
     const userExists = await User.findOne({ email });
@@ -107,6 +107,7 @@ export const signupWorker = async (req, res) => {
       hourlyRate: hourlyRate || 0,
       skills: skills || [],
       role: "worker",
+      location: location || null,
     };
 
     if (normalizedGender) {

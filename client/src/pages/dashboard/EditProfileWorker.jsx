@@ -61,26 +61,83 @@ export default function EditProfileWorker({ worker, onClose, onSave }) {
   const [activeTab, setActiveTab] = useState("basic");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
+
+  // Safely extract worker data with fallbacks
+  const workerData = worker || {};
+
+  // Validate locationCoordinates format
+  const validateCoordinates = (coords) => {
+    return (
+      Array.isArray(coords) &&
+      coords.length === 2 &&
+      typeof coords[0] === "number" &&
+      typeof coords[1] === "number"
+    );
+  };
+
   const [formData, setFormData] = useState({
-    name: worker?.name || "",
-    email: worker?.email || "",
-    phone: worker?.phone || "",
-    gender: worker?.gender || "not-specified",
-    profession: worker?.profession || "",
-    serviceArea: worker?.serviceArea || "",
-    experienceYears: worker?.experienceYears || 0,
-    hourlyRate: worker?.hourlyRate || 0,
-    bio: worker?.bio || "",
-    skills: worker?.skills || [],
-    coreExpertise: worker?.coreExpertise || [],
-    aadharCard: worker?.aadharCard || "",
-    degreeCertificate: worker?.degreeCertificate || "",
-    upiId: worker?.upiId || "",
+    name: workerData.name || "",
+    email: workerData.email || "",
+    phone: workerData.phone || "",
+    gender: workerData.gender || "not-specified",
+    profession: workerData.profession || "",
+    serviceArea: workerData.serviceArea || "",
+    experienceYears: workerData.experienceYears || 0,
+    hourlyRate: workerData.hourlyRate || 0,
+    bio: workerData.bio || "",
+    skills: Array.isArray(workerData.skills) ? workerData.skills : [],
+    coreExpertise: Array.isArray(workerData.coreExpertise)
+      ? workerData.coreExpertise
+      : [],
+    aadharCard: workerData.aadharCard || "",
+    degreeCertificate: workerData.degreeCertificate || "",
+    upiId: workerData.upiId || "",
+    useCurrentLocation: validateCoordinates(workerData.location?.coordinates),
+    locationCoordinates: validateCoordinates(workerData.location?.coordinates)
+      ? workerData.location.coordinates
+      : null,
   });
+
+  // Log component mounting for debugging
+  React.useEffect(() => {
+    console.log("✅ EditProfileWorker mounted with worker:", workerData);
+  }, []);
 
   const handleFieldChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
     setMessage(null);
+  };
+
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setMessage({
+        type: "error",
+        text: "Geolocation is not supported by your browser.",
+      });
+      return;
+    }
+
+    setFormData((prev) => ({ ...prev, useCurrentLocation: true }));
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setFormData((prev) => ({
+          ...prev,
+          useCurrentLocation: true,
+          locationCoordinates: [longitude, latitude],
+        }));
+      },
+      (err) => {
+        console.error("Location error:", err);
+        setMessage({
+          type: "error",
+          text: "Unable to detect current location. Please try again.",
+        });
+        setFormData((prev) => ({ ...prev, useCurrentLocation: false }));
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 },
+    );
   };
 
   const addSkill = (skill) => {
@@ -171,7 +228,17 @@ export default function EditProfileWorker({ worker, onClose, onSave }) {
 
     setLoading(true);
     try {
-      const response = await API.put(`/workers/${worker._id}`, formData);
+      const payload = { ...formData };
+      if (formData.locationCoordinates) {
+        payload.location = {
+          type: "Point",
+          coordinates: formData.locationCoordinates,
+        };
+      }
+      delete payload.locationCoordinates;
+      delete payload.useCurrentLocation;
+
+      const response = await API.put(`/workers/${worker._id}`, payload);
       const savedWorker =
         response.data?.data || response.data?.worker || response.data;
       if (savedWorker) {
@@ -202,533 +269,602 @@ export default function EditProfileWorker({ worker, onClose, onSave }) {
   const expertiseSuggestions =
     EXPERTISE_SUGGESTIONS[formData.profession?.toLowerCase()] || [];
 
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-    >
+  // Debug render
+  try {
+    return (
       <motion.div
-        initial={{ scale: 0.95, y: 20 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.95, y: 20 }}
-        className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
       >
-        <div className="sticky top-0 bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-6 flex items-center justify-between border-b border-indigo-200">
-          <h2 className="text-2xl font-black text-white flex items-center gap-3">
-            <Award size={28} />
-            Edit Professional Profile
-          </h2>
-          <motion.button
-            whileHover={{ rotate: 90 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onClose}
-            className="p-2.5 hover:bg-white/20 rounded-lg transition-all"
-          >
-            <X size={24} className="text-white" />
-          </motion.button>
-        </div>
-
-        <div className="flex gap-0 border-b border-slate-200 bg-slate-50 sticky top-20 z-10">
-          {[
-            { id: "basic", label: "📋 Basic Info" },
-            { id: "expertise", label: "🎯 Expertise" },
-            { id: "documents", label: "🧾 Documents" },
-          ].map((tab) => (
+        <motion.div
+          initial={{ scale: 0.95, y: 20 }}
+          animate={{ scale: 1, y: 0 }}
+          exit={{ scale: 0.95, y: 20 }}
+          className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full my-8 flex flex-col max-h-[85vh]"
+        >
+          <div className="sticky top-0 bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-6 flex items-center justify-between border-b border-indigo-200">
+            <h2 className="text-2xl font-black text-white flex items-center gap-3">
+              <Award size={28} />
+              Edit Professional Profile
+            </h2>
             <motion.button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 px-6 py-4 font-bold text-sm uppercase tracking-widest transition-all border-b-2 ${
-                activeTab === tab.id
-                  ? "border-indigo-600 text-indigo-600 bg-white"
-                  : "border-transparent text-slate-600 hover:text-indigo-600"
-              }`}
+              whileHover={{ rotate: 90 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={onClose}
+              className="p-2.5 hover:bg-white/20 rounded-lg transition-all"
             >
-              {tab.label}
+              <X size={24} className="text-white" />
             </motion.button>
-          ))}
-        </div>
+          </div>
 
-        <div className="overflow-y-auto flex-1">
-          <div className="p-8 space-y-8">
-            {message && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`p-4 rounded-lg flex items-center gap-3 ${
-                  message.type === "success"
-                    ? "bg-emerald-50 border border-emerald-200"
-                    : "bg-red-50 border border-red-200"
+          <div className="flex gap-0 border-b border-slate-200 bg-slate-50 sticky top-20 z-10">
+            {[
+              { id: "basic", label: "📋 Basic Info" },
+              { id: "expertise", label: "🎯 Expertise" },
+              { id: "documents", label: "🧾 Documents" },
+            ].map((tab) => (
+              <motion.button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 px-6 py-4 font-bold text-sm uppercase tracking-widest transition-all border-b-2 ${
+                  activeTab === tab.id
+                    ? "border-indigo-600 text-indigo-600 bg-white"
+                    : "border-transparent text-slate-600 hover:text-indigo-600"
                 }`}
               >
-                {message.type === "success" ? (
-                  <Check size={20} className="text-emerald-600 flex-shrink-0" />
-                ) : (
-                  <AlertCircle
-                    size={20}
-                    className="text-red-600 flex-shrink-0"
-                  />
-                )}
-                <p
-                  className={`text-sm font-semibold ${message.type === "success" ? "text-emerald-700" : "text-red-700"}`}
-                >
-                  {message.text}
-                </p>
-              </motion.div>
-            )}
+                {tab.label}
+              </motion.button>
+            ))}
+          </div>
 
-            <AnimatePresence mode="wait">
-              {activeTab === "basic" && (
+          <div className="overflow-y-auto flex-1">
+            <div className="p-8 space-y-8">
+              {message && (
                 <motion.div
-                  key="basic"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="space-y-6"
+                  className={`p-4 rounded-lg flex items-center gap-3 ${
+                    message.type === "success"
+                      ? "bg-emerald-50 border border-emerald-200"
+                      : "bg-red-50 border border-red-200"
+                  }`}
                 >
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2">
-                        👤 Full Name
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.name}
-                        onChange={(e) =>
-                          handleFieldChange("name", e.target.value)
-                        }
-                        className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none"
-                        placeholder="Your full name"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2">
-                        👥 Gender
-                      </label>
-                      <select
-                        value={formData.gender}
-                        onChange={(e) =>
-                          handleFieldChange("gender", e.target.value)
-                        }
-                        className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none"
-                      >
-                        <option value="not-specified">Not Specified</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2">
-                        ✉️ Email
-                      </label>
-                      <input
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) =>
-                          handleFieldChange("email", e.target.value)
-                        }
-                        className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2">
-                        📱 Phone
-                      </label>
-                      <input
-                        type="tel"
-                        value={formData.phone}
-                        onChange={(e) =>
-                          handleFieldChange("phone", e.target.value)
-                        }
-                        className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2">
-                        🛠️ Profession
-                      </label>
-                      <select
-                        value={formData.profession}
-                        onChange={(e) =>
-                          handleFieldChange("profession", e.target.value)
-                        }
-                        className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none"
-                      >
-                        <option value="">Select</option>
-                        <option value="electrician">Electrician</option>
-                        <option value="plumber">Plumber</option>
-                        <option value="carpenter">Carpenter</option>
-                        <option value="painter">Painter</option>
-                        <option value="cleaner">Cleaner</option>
-                        <option value="appliance-repair">
-                          Appliance Repair
-                        </option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2">
-                        📍 Service Area
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.serviceArea}
-                        onChange={(e) =>
-                          handleFieldChange("serviceArea", e.target.value)
-                        }
-                        className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2">
-                        ⏰ Experience (years)
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={formData.experienceYears}
-                        onChange={(e) =>
-                          handleFieldChange(
-                            "experienceYears",
-                            parseInt(e.target.value) || 0,
-                          )
-                        }
-                        className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2">
-                        💰 Hourly Rate (₹)
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={formData.hourlyRate}
-                        onChange={(e) =>
-                          handleFieldChange(
-                            "hourlyRate",
-                            parseInt(e.target.value) || 0,
-                          )
-                        }
-                        className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">
-                      📝 Bio
-                    </label>
-                    <textarea
-                      value={formData.bio}
-                      onChange={(e) => handleFieldChange("bio", e.target.value)}
-                      className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none"
-                      rows="4"
+                  {message.type === "success" ? (
+                    <Check
+                      size={20}
+                      className="text-emerald-600 flex-shrink-0"
                     />
-                  </div>
-
-                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-lg p-4">
-                    <label className="block text-sm font-black text-amber-900 mb-3 flex items-center gap-2">
-                      💳 UPI ID{" "}
-                      <span className="px-2 py-1 bg-red-600 text-white text-[10px] font-black rounded">
-                        REQUIRED
-                      </span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.upiId}
-                      onChange={(e) =>
-                        handleFieldChange("upiId", e.target.value)
-                      }
-                      placeholder="name@upi"
-                      className="w-full px-4 py-3 rounded-lg border-2 border-amber-300 focus:border-amber-500 outline-none bg-white font-semibold"
+                  ) : (
+                    <AlertCircle
+                      size={20}
+                      className="text-red-600 flex-shrink-0"
                     />
-                    <p className="text-[12px] font-semibold text-amber-800 mt-2">
-                      ✓ Earnings sent directly to this UPI ID
-                    </p>
-                  </div>
+                  )}
+                  <p
+                    className={`text-sm font-semibold ${message.type === "success" ? "text-emerald-700" : "text-red-700"}`}
+                  >
+                    {message.text}
+                  </p>
                 </motion.div>
               )}
 
-              {activeTab === "expertise" && (
-                <motion.div
-                  key="expertise"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="space-y-6"
-                >
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-4">
-                      🎯 Core Expertise
-                    </label>
-                    <div className="space-y-3">
-                      {expertiseSuggestions.map((exp) => (
-                        <motion.button
-                          key={exp}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() =>
-                            formData.coreExpertise.includes(exp)
-                              ? removeExpertise(exp)
-                              : addExpertise(exp)
+              <AnimatePresence mode="wait">
+                {activeTab === "basic" && (
+                  <motion.div
+                    key="basic"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-6"
+                  >
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">
+                          👤 Full Name
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.name}
+                          onChange={(e) =>
+                            handleFieldChange("name", e.target.value)
                           }
-                          className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all ${
-                            formData.coreExpertise.includes(exp)
-                              ? "border-indigo-500 bg-indigo-50 text-indigo-700 font-semibold"
-                              : "border-slate-200 hover:border-indigo-200"
+                          className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none"
+                          placeholder="Your full name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">
+                          👥 Gender
+                        </label>
+                        <select
+                          value={formData.gender}
+                          onChange={(e) =>
+                            handleFieldChange("gender", e.target.value)
+                          }
+                          className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none"
+                        >
+                          <option value="not-specified">Not Specified</option>
+                          <option value="male">Male</option>
+                          <option value="female">Female</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">
+                          ✉️ Email
+                        </label>
+                        <input
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) =>
+                            handleFieldChange("email", e.target.value)
+                          }
+                          className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">
+                          📱 Phone
+                        </label>
+                        <input
+                          type="tel"
+                          value={formData.phone}
+                          onChange={(e) =>
+                            handleFieldChange("phone", e.target.value)
+                          }
+                          className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">
+                          🛠️ Profession
+                        </label>
+                        <select
+                          value={formData.profession}
+                          onChange={(e) =>
+                            handleFieldChange("profession", e.target.value)
+                          }
+                          className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none"
+                        >
+                          <option value="">Select</option>
+                          <option value="electrician">Electrician</option>
+                          <option value="plumber">Plumber</option>
+                          <option value="carpenter">Carpenter</option>
+                          <option value="painter">Painter</option>
+                          <option value="cleaner">Cleaner</option>
+                          <option value="appliance-repair">
+                            Appliance Repair
+                          </option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">
+                          📍 Service Area
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.serviceArea}
+                          onChange={(e) =>
+                            handleFieldChange("serviceArea", e.target.value)
+                          }
+                          className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 rounded-3xl p-4 border border-slate-200 shadow-sm">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <div>
+                          <p className="text-sm font-bold text-slate-800 mb-1">
+                            Current Location
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            Detect your current location and save it to your
+                            profile.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={getCurrentLocation}
+                          className={`px-4 py-3 rounded-2xl font-semibold transition-all ${
+                            formData.useCurrentLocation
+                              ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                              : "bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100"
                           }`}
                         >
-                          {formData.coreExpertise.includes(exp) ? "✓ " : ""}
-                          {exp}
-                        </motion.button>
-                      ))}
+                          {formData.useCurrentLocation
+                            ? "Location detected"
+                            : "Use current location"}
+                        </button>
+                      </div>
+                      {formData.locationCoordinates &&
+                        formData.locationCoordinates.length === 2 &&
+                        typeof formData.locationCoordinates[0] === "number" &&
+                        typeof formData.locationCoordinates[1] === "number" && (
+                          <div className="mt-3 rounded-2xl bg-white border border-slate-200 p-3 text-sm text-slate-700">
+                            <span className="font-semibold">Coordinates:</span>{" "}
+                            {formData.locationCoordinates[1].toFixed(4)},{" "}
+                            {formData.locationCoordinates[0].toFixed(4)}
+                          </div>
+                        )}
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-4">
-                      🏆 Additional Skills
-                    </label>
-                    <div className="flex gap-2 mb-4">
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">
+                          ⏰ Experience (years)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={formData.experienceYears}
+                          onChange={(e) =>
+                            handleFieldChange(
+                              "experienceYears",
+                              parseInt(e.target.value) || 0,
+                            )
+                          }
+                          className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">
+                          💰 Hourly Rate (₹)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={formData.hourlyRate}
+                          onChange={(e) =>
+                            handleFieldChange(
+                              "hourlyRate",
+                              parseInt(e.target.value) || 0,
+                            )
+                          }
+                          className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-2">
+                        📝 Bio
+                      </label>
+                      <textarea
+                        value={formData.bio}
+                        onChange={(e) =>
+                          handleFieldChange("bio", e.target.value)
+                        }
+                        className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none"
+                        rows="4"
+                      />
+                    </div>
+
+                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-lg p-4">
+                      <label className="block text-sm font-black text-amber-900 mb-3 flex items-center gap-2">
+                        💳 UPI ID{" "}
+                        <span className="px-2 py-1 bg-red-600 text-white text-[10px] font-black rounded">
+                          REQUIRED
+                        </span>
+                      </label>
                       <input
                         type="text"
-                        id="skillInput"
-                        placeholder="Add a skill..."
-                        className="flex-1 px-4 py-2 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none"
-                        onKeyPress={(e) => {
-                          if (e.key === "Enter") {
-                            addSkill(e.target.value);
-                            e.target.value = "";
-                          }
-                        }}
+                        value={formData.upiId}
+                        onChange={(e) =>
+                          handleFieldChange("upiId", e.target.value)
+                        }
+                        placeholder="name@upi"
+                        className="w-full px-4 py-3 rounded-lg border-2 border-amber-300 focus:border-amber-500 outline-none bg-white font-semibold"
                       />
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => {
-                          const input = document.getElementById("skillInput");
-                          addSkill(input.value);
-                          input.value = "";
-                        }}
-                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all flex items-center gap-2"
-                      >
-                        <Plus size={18} /> Add
-                      </motion.button>
+                      <p className="text-[12px] font-semibold text-amber-800 mt-2">
+                        ✓ Earnings sent directly to this UPI ID
+                      </p>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {formData.skills.map((skill) => (
-                        <motion.div
-                          key={skill}
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-full text-sm font-semibold flex items-center gap-2"
-                        >
-                          {skill}
-                          <button
-                            onClick={() => removeSkill(skill)}
-                            className="hover:text-indigo-900"
+                  </motion.div>
+                )}
+
+                {activeTab === "expertise" && (
+                  <motion.div
+                    key="expertise"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-6"
+                  >
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-4">
+                        🎯 Core Expertise
+                      </label>
+                      <div className="space-y-3">
+                        {expertiseSuggestions.map((exp) => (
+                          <motion.button
+                            key={exp}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() =>
+                              formData.coreExpertise.includes(exp)
+                                ? removeExpertise(exp)
+                                : addExpertise(exp)
+                            }
+                            className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all ${
+                              formData.coreExpertise.includes(exp)
+                                ? "border-indigo-500 bg-indigo-50 text-indigo-700 font-semibold"
+                                : "border-slate-200 hover:border-indigo-200"
+                            }`}
                           >
-                            <X size={16} />
-                          </button>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {activeTab === "documents" && (
-                <motion.div
-                  key="documents"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="space-y-6"
-                >
-                  <div className="grid grid-cols-1 gap-6">
-                    <div className="bg-slate-50 rounded-3xl p-6 border border-slate-200">
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <h4 className="font-semibold text-slate-900">
-                            Aadhar Card Upload
-                          </h4>
-                          <p className="text-sm text-slate-500">
-                            Required for identity verification.
-                          </p>
-                        </div>
-                        <div className="text-xs uppercase tracking-[0.2em] font-bold text-indigo-600">
-                          Required
-                        </div>
+                            {formData.coreExpertise.includes(exp) ? "✓ " : ""}
+                            {exp}
+                          </motion.button>
+                        ))}
                       </div>
+                    </div>
 
-                      {documentPreviews.aadharCard ? (
-                        <motion.div
-                          initial={{ scale: 0.9, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          className="relative"
-                        >
-                          <img
-                            src={documentPreviews.aadharCard}
-                            alt="Aadhar Preview"
-                            className="w-full h-48 rounded-3xl object-cover border-2 border-indigo-300"
-                          />
-                          <div className="absolute inset-x-0 bottom-4 flex items-center justify-between gap-2 px-4">
-                            <label className="inline-flex items-center gap-2 bg-white/90 text-slate-700 px-3 py-2 rounded-full border border-slate-200 cursor-pointer hover:bg-slate-50">
-                              <Upload size={16} /> Change
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) =>
-                                  handleDocumentUpload(e, "aadharCard")
-                                }
-                                className="hidden"
-                              />
-                            </label>
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              onClick={() => removeDocument("aadharCard")}
-                              className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600"
-                            >
-                              <X size={18} />
-                            </motion.button>
-                          </div>
-                        </motion.div>
-                      ) : (
-                        <label className="flex flex-col items-center justify-center w-full h-48 rounded-3xl border-2 border-dashed border-indigo-300 cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition-all">
-                          <Upload size={32} className="text-indigo-500 mb-3" />
-                          <p className="text-sm font-semibold text-indigo-700">
-                            Click to upload Aadhar card
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            JPG, PNG or PDF up to 5MB
-                          </p>
-                          <input
-                            type="file"
-                            accept="image/*,application/pdf"
-                            onChange={(e) =>
-                              handleDocumentUpload(e, "aadharCard")
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-4">
+                        🏆 Additional Skills
+                      </label>
+                      <div className="flex gap-2 mb-4">
+                        <input
+                          type="text"
+                          id="skillInput"
+                          placeholder="Add a skill..."
+                          className="flex-1 px-4 py-2 rounded-lg border-2 border-slate-200 focus:border-indigo-500 outline-none"
+                          onKeyPress={(e) => {
+                            if (e.key === "Enter") {
+                              addSkill(e.target.value);
+                              e.target.value = "";
                             }
-                            className="hidden"
-                          />
-                        </label>
-                      )}
-                    </div>
-
-                    <div className="bg-slate-50 rounded-3xl p-6 border border-slate-200">
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <h4 className="font-semibold text-slate-900">
-                            Degree Certificate Upload
-                          </h4>
-                          <p className="text-sm text-slate-500">
-                            Optional. Leave blank if you do not have a
-                            certificate.
-                          </p>
-                        </div>
-                        <div className="text-xs uppercase tracking-[0.2em] font-bold text-slate-400">
-                          Optional
-                        </div>
-                      </div>
-
-                      {documentPreviews.degreeCertificate ? (
-                        <motion.div
-                          initial={{ scale: 0.9, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          className="relative"
+                          }}
+                        />
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => {
+                            const input = document.getElementById("skillInput");
+                            addSkill(input.value);
+                            input.value = "";
+                          }}
+                          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all flex items-center gap-2"
                         >
-                          <img
-                            src={documentPreviews.degreeCertificate}
-                            alt="Degree Preview"
-                            className="w-full h-48 rounded-3xl object-cover border-2 border-indigo-300"
-                          />
-                          <div className="absolute inset-x-0 bottom-4 flex items-center justify-between gap-2 px-4">
-                            <label className="inline-flex items-center gap-2 bg-white/90 text-slate-700 px-3 py-2 rounded-full border border-slate-200 cursor-pointer hover:bg-slate-50">
-                              <Upload size={16} /> Change
-                              <input
-                                type="file"
-                                accept="image/*,application/pdf"
-                                onChange={(e) =>
-                                  handleDocumentUpload(e, "degreeCertificate")
-                                }
-                                className="hidden"
-                              />
-                            </label>
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              onClick={() =>
-                                removeDocument("degreeCertificate")
+                          <Plus size={18} /> Add
+                        </motion.button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {formData.skills.map((skill) => (
+                          <motion.div
+                            key={skill}
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-full text-sm font-semibold flex items-center gap-2"
+                          >
+                            {skill}
+                            <button
+                              onClick={() => removeSkill(skill)}
+                              className="hover:text-indigo-900"
+                            >
+                              <X size={16} />
+                            </button>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {activeTab === "documents" && (
+                  <motion.div
+                    key="documents"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-6"
+                  >
+                    <div className="grid grid-cols-1 gap-6">
+                      <div className="bg-slate-50 rounded-3xl p-6 border border-slate-200">
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <h4 className="font-semibold text-slate-900">
+                              Aadhar Card Upload
+                            </h4>
+                            <p className="text-sm text-slate-500">
+                              Required for identity verification.
+                            </p>
+                          </div>
+                          <div className="text-xs uppercase tracking-[0.2em] font-bold text-indigo-600">
+                            Required
+                          </div>
+                        </div>
+
+                        {documentPreviews.aadharCard ? (
+                          <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="relative"
+                          >
+                            <img
+                              src={documentPreviews.aadharCard}
+                              alt="Aadhar Preview"
+                              className="w-full h-48 rounded-3xl object-cover border-2 border-indigo-300"
+                            />
+                            <div className="absolute inset-x-0 bottom-4 flex items-center justify-between gap-2 px-4">
+                              <label className="inline-flex items-center gap-2 bg-white/90 text-slate-700 px-3 py-2 rounded-full border border-slate-200 cursor-pointer hover:bg-slate-50">
+                                <Upload size={16} /> Change
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) =>
+                                    handleDocumentUpload(e, "aadharCard")
+                                  }
+                                  className="hidden"
+                                />
+                              </label>
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                onClick={() => removeDocument("aadharCard")}
+                                className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600"
+                              >
+                                <X size={18} />
+                              </motion.button>
+                            </div>
+                          </motion.div>
+                        ) : (
+                          <label className="flex flex-col items-center justify-center w-full h-48 rounded-3xl border-2 border-dashed border-indigo-300 cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition-all">
+                            <Upload
+                              size={32}
+                              className="text-indigo-500 mb-3"
+                            />
+                            <p className="text-sm font-semibold text-indigo-700">
+                              Click to upload Aadhar card
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              JPG, PNG or PDF up to 5MB
+                            </p>
+                            <input
+                              type="file"
+                              accept="image/*,application/pdf"
+                              onChange={(e) =>
+                                handleDocumentUpload(e, "aadharCard")
                               }
-                              className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600"
-                            >
-                              <X size={18} />
-                            </motion.button>
-                          </div>
-                        </motion.div>
-                      ) : (
-                        <label className="flex flex-col items-center justify-center w-full h-48 rounded-3xl border-2 border-dashed border-slate-300 cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition-all">
-                          <Upload size={32} className="text-slate-400 mb-3" />
-                          <p className="text-sm font-semibold text-slate-600">
-                            Click to upload Degree certificate
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            JPG, PNG or PDF up to 5MB
-                          </p>
-                          <input
-                            type="file"
-                            accept="image/*,application/pdf"
-                            onChange={(e) =>
-                              handleDocumentUpload(e, "degreeCertificate")
-                            }
-                            className="hidden"
-                          />
-                        </label>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
+                              className="hidden"
+                            />
+                          </label>
+                        )}
+                      </div>
 
-        <div className="sticky bottom-0 bg-slate-50 border-t border-slate-200 px-8 py-4 flex items-center justify-end gap-4">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+                      <div className="bg-slate-50 rounded-3xl p-6 border border-slate-200">
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <h4 className="font-semibold text-slate-900">
+                              Degree Certificate Upload
+                            </h4>
+                            <p className="text-sm text-slate-500">
+                              Optional. Leave blank if you do not have a
+                              certificate.
+                            </p>
+                          </div>
+                          <div className="text-xs uppercase tracking-[0.2em] font-bold text-slate-400">
+                            Optional
+                          </div>
+                        </div>
+
+                        {documentPreviews.degreeCertificate ? (
+                          <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="relative"
+                          >
+                            <img
+                              src={documentPreviews.degreeCertificate}
+                              alt="Degree Preview"
+                              className="w-full h-48 rounded-3xl object-cover border-2 border-indigo-300"
+                            />
+                            <div className="absolute inset-x-0 bottom-4 flex items-center justify-between gap-2 px-4">
+                              <label className="inline-flex items-center gap-2 bg-white/90 text-slate-700 px-3 py-2 rounded-full border border-slate-200 cursor-pointer hover:bg-slate-50">
+                                <Upload size={16} /> Change
+                                <input
+                                  type="file"
+                                  accept="image/*,application/pdf"
+                                  onChange={(e) =>
+                                    handleDocumentUpload(e, "degreeCertificate")
+                                  }
+                                  className="hidden"
+                                />
+                              </label>
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                onClick={() =>
+                                  removeDocument("degreeCertificate")
+                                }
+                                className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600"
+                              >
+                                <X size={18} />
+                              </motion.button>
+                            </div>
+                          </motion.div>
+                        ) : (
+                          <label className="flex flex-col items-center justify-center w-full h-48 rounded-3xl border-2 border-dashed border-slate-300 cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition-all">
+                            <Upload size={32} className="text-slate-400 mb-3" />
+                            <p className="text-sm font-semibold text-slate-600">
+                              Click to upload Degree certificate
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              JPG, PNG or PDF up to 5MB
+                            </p>
+                            <input
+                              type="file"
+                              accept="image/*,application/pdf"
+                              onChange={(e) =>
+                                handleDocumentUpload(e, "degreeCertificate")
+                              }
+                              className="hidden"
+                            />
+                          </label>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          <div className="sticky bottom-0 bg-slate-50 border-t border-slate-200 px-8 py-4 flex items-center justify-end gap-4">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={onClose}
+              className="px-6 py-3 rounded-lg font-semibold text-slate-700 hover:bg-slate-200 transition-all"
+            >
+              Cancel
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleSave}
+              disabled={loading}
+              className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all flex items-center gap-2 disabled:opacity-50"
+            >
+              {loading ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" /> Saving...
+                </>
+              ) : (
+                <>
+                  <Save size={18} /> Save Changes
+                </>
+              )}
+            </motion.button>
+          </div>
+        </motion.div>
+      </motion.div>
+    );
+  } catch (error) {
+    console.error("❌ EditProfileWorker render error:", error);
+    return (
+      <motion.div
+        className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md text-center">
+          <p className="text-red-600 font-bold mb-4">
+            Error loading edit profile form
+          </p>
+          <p className="text-slate-600 text-sm mb-4">{error?.message}</p>
+          <button
             onClick={onClose}
-            className="px-6 py-3 rounded-lg font-semibold text-slate-700 hover:bg-slate-200 transition-all"
+            className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700"
           >
-            Cancel
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleSave}
-            disabled={loading}
-            className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all flex items-center gap-2 disabled:opacity-50"
-          >
-            {loading ? (
-              <>
-                <Loader2 size={18} className="animate-spin" /> Saving...
-              </>
-            ) : (
-              <>
-                <Save size={18} /> Save Changes
-              </>
-            )}
-          </motion.button>
+            Close
+          </button>
         </div>
       </motion.div>
-    </motion.div>
-  );
+    );
+  }
 }

@@ -176,6 +176,106 @@ export default function Navbar() {
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden border-t border-white/20 bg-white/95 backdrop-blur-xl"
+            >
+              <div className="px-8 py-6 space-y-4">
+                {/* Navigation Links */}
+                {navLinks.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.path}
+                    onClick={() => setIsOpen(false)}
+                    className="block text-base font-semibold text-slate-700 hover:text-indigo-600 transition-colors py-2"
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+
+                {/* Dashboard Link */}
+                {user && (
+                  <Link
+                    to={dashboardPath}
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-3 text-base font-semibold text-slate-700 hover:text-indigo-600 transition-colors py-2"
+                  >
+                    <LayoutDashboard size={18} />
+                    Dashboard
+                  </Link>
+                )}
+
+                <div className="border-t border-slate-200 pt-4 mt-4">
+                  {!user ? (
+                    <div className="space-y-3">
+                      <Link
+                        to="/login"
+                        onClick={() => setIsOpen(false)}
+                        className="block w-full text-center py-3 text-base font-semibold text-slate-700 hover:text-indigo-600 transition-colors"
+                      >
+                        Login
+                      </Link>
+                      <button
+                        onClick={() => {
+                          navigate("/signup");
+                          setIsOpen(false);
+                        }}
+                        className="w-full py-3 text-base font-semibold text-white bg-slate-900 hover:bg-indigo-600 rounded-xl transition-colors"
+                      >
+                        Join Us
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {/* My Bookings - Only for Users */}
+                      {user?.role !== "worker" && (
+                        <button
+                          onClick={() => {
+                            navigate("/dashboard");
+                            setIsOpen(false);
+                          }}
+                          className="flex items-center gap-3 w-full py-3 text-base font-semibold text-slate-700 hover:text-indigo-600 transition-colors"
+                        >
+                          <ClipboardList size={18} />
+                          My Bookings
+                        </button>
+                      )}
+
+                      {/* Profile */}
+                      <Link
+                        to={
+                          user?.role === "worker"
+                            ? "/worker-profile"
+                            : "/profile"
+                        }
+                        onClick={() => setIsOpen(false)}
+                        className="flex items-center gap-3 py-3 text-base font-semibold text-slate-700 hover:text-indigo-600 transition-colors"
+                      >
+                        <User size={18} />
+                        Profile
+                      </Link>
+
+                      {/* Logout */}
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-3 w-full py-3 text-base font-semibold text-slate-700 hover:text-rose-600 transition-colors"
+                      >
+                        <LogOut size={18} />
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
     </div>
   );

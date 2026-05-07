@@ -240,6 +240,25 @@ export default function WorkerListingPage() {
                 Clear All
               </button>
             )}
+
+            {/* View Map Button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() =>
+                navigate("/map", {
+                  state: {
+                    workerList: filteredWorkers,
+                    serviceFilter,
+                    activeArea,
+                  },
+                })
+              }
+              className="px-4 py-2 bg-green-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-green-700 transition-all flex items-center gap-2"
+            >
+              <MapPin size={14} />
+              View on Map
+            </motion.button>
           </motion.div>
         </div>
 

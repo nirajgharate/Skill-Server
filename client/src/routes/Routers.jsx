@@ -38,6 +38,7 @@ import UserBookingDetails from "../pages/dashboard/UserBookingDetails";
 import WorkerWorkPhotos from "../pages/dashboard/WorkerWorkPhotos";
 import MessagePage from "../pages/MessagePage";
 import NotificationPage from "../pages/NotificationPage";
+import MapPage from "../pages/MapPage";
 
 export default function Routers() {
   return (
@@ -191,10 +192,34 @@ export default function Routers() {
         }
       />
       <Route
+        path="/notifications/user"
+        element={
+          <ProtectedRoute allowedRole="user">
+            <NotificationPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notifications/worker"
+        element={
+          <ProtectedRoute allowedRole="worker">
+            <NotificationPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/notifications"
         element={
           <ProtectedRoute>
             <NotificationPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/map"
+        element={
+          <ProtectedRoute>
+            <MapPage />
           </ProtectedRoute>
         }
       />

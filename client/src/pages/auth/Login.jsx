@@ -52,7 +52,7 @@ export default function Login() {
   };
 
   const RoleSelector = () => (
-    <div className="relative p-1 bg-slate-100/50 backdrop-blur-sm rounded-2xl border border-slate-200/50 flex items-center w-full mb-8">
+    <div className="relative p-1 bg-slate-100/60 backdrop-blur-sm rounded-3xl border border-slate-200/70 flex items-center w-full mb-8 shadow-sm">
       {["user", "worker"].map((option) => {
         const isActive = role === option;
         return (
@@ -60,19 +60,17 @@ export default function Login() {
             key={option}
             onClick={() => setRole(option)}
             type="button"
-            className="relative flex-1 py-3 z-10 transition-colors duration-300 outline-none"
+            className={`relative flex-1 px-4 py-4 z-10 text-left transition-all duration-300 rounded-3xl border ${isActive ? "border-indigo-300 bg-indigo-50 text-indigo-700 shadow-sm" : "border-transparent bg-transparent text-slate-500 hover:bg-slate-50"}`}
           >
             <span
-              className={`text-[11px] font-black uppercase tracking-[0.2em] transition-colors duration-500 ${isActive ? "text-indigo-600" : "text-slate-400"}`}
+              className={`text-[11px] font-black uppercase tracking-[0.2em] transition-colors duration-500 ${isActive ? "text-indigo-700" : "text-slate-400"}`}
             >
               {option}
             </span>
             {isActive && (
-              <motion.div
-                layoutId="loginActivePill"
-                className="absolute inset-0 bg-white rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-slate-100/50"
-                transition={{ type: "spring", stiffness: 500, damping: 35 }}
-              />
+              <span className="absolute right-4 top-4 rounded-full bg-indigo-600 px-2 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-white">
+                Selected
+              </span>
             )}
           </button>
         );
@@ -131,9 +129,7 @@ export default function Login() {
               </div>
             </div>
           </div>
-          <div className="w-full h-32 bg-slate-100 rounded-3xl border border-slate-200/50 flex items-center justify-center text-xs font-bold text-slate-400 uppercase tracking-widest">
-            [ Abstract UI Illustration ]
-          </div>
+         
         </motion.div>
 
         <motion.div
