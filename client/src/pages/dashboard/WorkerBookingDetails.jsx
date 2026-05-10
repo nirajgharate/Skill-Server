@@ -158,7 +158,7 @@ export default function WorkerBookingDetails() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 pb-12">
       <div className="relative z-40 backdrop-blur-md bg-white/95 border-b border-slate-200/80 mt-24">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate("/worker-dashboard")}
@@ -175,16 +175,16 @@ export default function WorkerBookingDetails() {
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
             <button
               onClick={handleCall}
-              className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition-all"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition-all"
             >
               <Phone size={16} /> Call
             </button>
             <button
               onClick={() => navigate(`/messages/${bookingId}`)}
-              className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 transition-all"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 transition-all"
             >
               <MessageSquare size={16} /> Message
             </button>
@@ -208,13 +208,13 @@ export default function WorkerBookingDetails() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="rounded-[36px] overflow-hidden shadow-2xl border border-slate-200 bg-white"
         >
-          <div className="bg-gradient-to-r from-indigo-600 to-blue-600 px-8 py-10 text-white">
+          <div className="bg-gradient-to-r from-indigo-600 to-blue-600 px-6 py-8 sm:px-8 sm:py-10 text-white">
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
               <div className="max-w-3xl">
                 <p className="text-xs uppercase tracking-[0.24em] text-slate-200/80">
@@ -262,7 +262,7 @@ export default function WorkerBookingDetails() {
             </div>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-[1.4fr_0.9fr] p-8 bg-slate-50">
+          <div className="grid gap-6 lg:grid-cols-[1.4fr_0.9fr] p-6 sm:p-8 bg-slate-50">
             <div className="space-y-6">
               <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h3 className="text-xl font-black text-slate-900 mb-4">

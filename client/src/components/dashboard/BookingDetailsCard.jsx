@@ -106,7 +106,7 @@ export default function BookingDetailsCard({ booking, onCall, onMessage }) {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`bg-gradient-to-br ${statusColor.bg} rounded-3xl p-8 text-white shadow-2xl overflow-hidden relative`}
+      className={`bg-gradient-to-br ${statusColor.bg} rounded-3xl p-6 sm:p-8 text-white shadow-2xl overflow-hidden relative`}
     >
       {/* Decorative background elements */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32" />
@@ -114,13 +114,13 @@ export default function BookingDetailsCard({ booking, onCall, onMessage }) {
 
       <div className="relative z-10">
         {/* Header Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 pb-8 border-b border-white/20">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 pb-8 border-b border-white/20">
           {/* Worker Info */}
           <div className="md:col-span-1">
             <p className="text-white/70 text-xs font-bold uppercase tracking-widest mb-4">
               Professional Expert
             </p>
-            <div className="flex items-start gap-4">
+            <div className="flex items-start gap-3">
               <div className="relative">
                 <img
                   src={
@@ -207,7 +207,7 @@ export default function BookingDetailsCard({ booking, onCall, onMessage }) {
         </div>
 
         {/* Details Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           {/* Date & Time */}
           <div className="space-y-3">
             <div className="flex items-center gap-4 p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
@@ -218,7 +218,9 @@ export default function BookingDetailsCard({ booking, onCall, onMessage }) {
                 <p className="text-white/70 text-xs font-bold uppercase tracking-tighter mb-1">
                   Booking Date
                 </p>
-                <p className="font-black text-sm">{booking?.date}</p>
+                <p className="font-black text-sm break-words">
+                  {booking?.location}
+                </p>
               </div>
             </div>
 
