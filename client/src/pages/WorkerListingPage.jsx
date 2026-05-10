@@ -37,6 +37,7 @@ export default function WorkerListingPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [socket, setSocket] = useState(null);
+  const [showStickyControls, setShowStickyControls] = useState(true);
 
   const serviceCategories = [
     { id: "All", label: "All Services", icon: "⚙️" },
@@ -79,6 +80,19 @@ export default function WorkerListingPage() {
   // 3. FETCH DATA AT MOUNT
   useEffect(() => {
     fetchWorkers();
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowStickyControls(window.scrollY < 1);
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("scroll", handleScroll, { passive: true });
+      return () => window.removeEventListener("scroll", handleScroll);
+    }
+
+    return undefined;
   }, []);
 
   const fetchWorkers = async () => {
@@ -127,7 +141,7 @@ export default function WorkerListingPage() {
         (a, b) => (b.experienceYears || 0) - (a.experienceYears || 0),
       );
     } else if (sortBy === "jobs") {
-      filtered.sort((a, b) => (b.totalJobs || 0) - (a.totalJobs || 0));
+      filtered.sort((a, b) => getWorkerJobsCount(b) - getWorkerJobsCount(a));
     }
 
     setFilteredWorkers(filtered);
@@ -146,6 +160,26 @@ export default function WorkerListingPage() {
     setAreaInput("");
   };
 
+  const getWorkerJobsCount = (worker) => {
+    return (
+      worker.totalJobs ??
+      worker.totalBookings ??
+      worker.jobsCount ??
+      worker.bookingsCount ??
+      0
+    );
+  };
+
+  const getWorkerCompletedJobsCount = (worker) => {
+    return (
+      worker.completedJobs ??
+      worker.completedBookings ??
+      worker.completedJobCount ??
+      worker.jobsCompleted ??
+      0
+    );
+  };
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] pt-32 pb-24 px-4 md:px-8">
       <div className="max-w-7xl mx-auto">
@@ -162,105 +196,109 @@ export default function WorkerListingPage() {
           </h1>
         </header>
 
-        {/* SERVICE CATEGORY PILLS */}
-        <div className="mb-8 sticky top-28 z-40 bg-[#F8FAFC] py-4 -mx-4 md:-mx-8 px-4 md:px-8">
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            {serviceCategories.map((cat) => (
-              <motion.button
-                key={cat.id}
-                whileHover={{ scale: 1.05 }}
-                onClick={() => setServiceFilter(cat.id)}
-                className={`px-4 py-3 rounded-2xl font-bold text-sm whitespace-nowrap transition-all flex items-center gap-2 ${
-                  serviceFilter === cat.id
-                    ? "bg-[#4F46E5] text-white shadow-lg shadow-indigo-200/30"
-                    : "bg-white text-[#0F172A] border border-black/5 hover:border-[#4F46E5]/30"
-                }`}
-              >
-                <span className="text-lg">{cat.icon}</span>
-                {cat.label}
-              </motion.button>
-            ))}
-          </div>
-        </div>
-
-        {/* FILTER & SORT BAR */}
-        <div className="sticky top-44 z-40 mb-12 bg-[#F8FAFC] py-4 -mx-4 md:-mx-8 px-4 md:px-8">
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="p-4 bg-white/70 backdrop-blur-2xl border border-white rounded-[2rem] shadow-xl shadow-indigo-100/20 flex flex-col md:flex-row items-center gap-4"
+        {/* SEARCH + FILTER */}
+        {showStickyControls && (
+          <div
+            className="sticky z-50 mb-12 bg-[#F8FAFC] py-4 -mx-4 md:-mx-8 px-4 md:px-8 space-y-4"
+            style={{ top: "7rem" }}
           >
-            {/* Area Filter */}
-            <div className="relative w-full md:flex-grow">
-              <MapPin
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4F46E5]"
-                size={16}
-              />
-              <input
-                type="text"
-                placeholder="Search area (e.g. Bandra)"
-                value={areaInput}
-                onChange={(e) => setAreaInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && setActiveArea(areaInput)}
-                className="w-full pl-12 pr-4 py-4 bg-white border border-black/5 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-[#4F46E5]/5 transition-all"
-              />
-              <button
-                onClick={() => setActiveArea(areaInput || "All Areas")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 px-4 py-2 bg-[#0F172A] text-white text-[10px] font-black uppercase rounded-xl hover:bg-[#4F46E5] transition-colors"
-              >
-                Apply
-              </button>
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              {serviceCategories.map((cat) => (
+                <motion.button
+                  key={cat.id}
+                  whileHover={{ scale: 1.05 }}
+                  onClick={() => setServiceFilter(cat.id)}
+                  className={`px-4 py-3 rounded-2xl font-bold text-sm whitespace-nowrap transition-all flex items-center gap-2 ${
+                    serviceFilter === cat.id
+                      ? "bg-[#4F46E5] text-white shadow-lg shadow-indigo-200/30"
+                      : "bg-white text-[#0F172A] border border-black/5 hover:border-[#4F46E5]/30"
+                  }`}
+                >
+                  <span className="text-lg">{cat.icon}</span>
+                  {cat.label}
+                </motion.button>
+              ))}
             </div>
 
-            {/* Sort Dropdown */}
-            <div className="relative w-full md:w-auto min-w-[180px]">
-              <Settings2
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4F46E5]"
-                size={16}
-              />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-full pl-12 pr-10 py-4 bg-white border border-black/5 rounded-2xl text-xs font-bold text-[#0F172A] uppercase tracking-widest outline-none appearance-none cursor-pointer"
-              >
-                <option value="rating">Top Rated</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-                <option value="experience">Most Experienced</option>
-                <option value="jobs">Most Active</option>
-              </select>
-            </div>
-
-            {/* Clear Button */}
-            {(serviceFilter !== "All" || activeArea !== "All Areas") && (
-              <button
-                onClick={clearFilters}
-                className="px-4 py-2 text-[10px] font-black text-red-500 uppercase tracking-widest hover:bg-red-50 rounded-xl transition-all"
-              >
-                Clear All
-              </button>
-            )}
-
-            {/* View Map Button */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() =>
-                navigate("/map", {
-                  state: {
-                    workerList: filteredWorkers,
-                    serviceFilter,
-                    activeArea,
-                  },
-                })
-              }
-              className="px-4 py-2 bg-green-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-green-700 transition-all flex items-center gap-2"
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              className="p-4 bg-white/70 backdrop-blur-2xl border border-white rounded-[2rem] shadow-xl shadow-indigo-100/20 flex flex-col md:flex-row items-center gap-4"
             >
-              <MapPin size={14} />
-              View on Map
-            </motion.button>
-          </motion.div>
-        </div>
+              {/* Area Filter */}
+              <div className="relative w-full md:flex-grow">
+                <MapPin
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4F46E5]"
+                  size={16}
+                />
+                <input
+                  type="text"
+                  placeholder="Search area (e.g. Bandra)"
+                  value={areaInput}
+                  onChange={(e) => setAreaInput(e.target.value)}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && setActiveArea(areaInput)
+                  }
+                  className="w-full pl-12 pr-4 py-4 bg-white border border-black/5 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-[#4F46E5]/5 transition-all"
+                />
+                <button
+                  onClick={() => setActiveArea(areaInput || "All Areas")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 px-4 py-2 bg-[#0F172A] text-white text-[10px] font-black uppercase rounded-xl hover:bg-[#4F46E5] transition-colors"
+                >
+                  Apply
+                </button>
+              </div>
+
+              {/* Sort Dropdown */}
+              <div className="relative w-full md:w-auto min-w-[180px]">
+                <Settings2
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4F46E5]"
+                  size={16}
+                />
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full pl-12 pr-10 py-4 bg-white border border-black/5 rounded-2xl text-xs font-bold text-[#0F172A] uppercase tracking-widest outline-none appearance-none cursor-pointer"
+                >
+                  <option value="rating">Top Rated</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="price-high">Price: High to Low</option>
+                  <option value="experience">Most Experienced</option>
+                  <option value="jobs">Most Active</option>
+                </select>
+              </div>
+
+              {/* Clear Button */}
+              {(serviceFilter !== "All" || activeArea !== "All Areas") && (
+                <button
+                  onClick={clearFilters}
+                  className="px-4 py-2 text-[10px] font-black text-red-500 uppercase tracking-widest hover:bg-red-50 rounded-xl transition-all"
+                >
+                  Clear All
+                </button>
+              )}
+
+              {/* View Map Button */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() =>
+                  navigate("/map", {
+                    state: {
+                      workerList: filteredWorkers,
+                      serviceFilter,
+                      activeArea,
+                    },
+                  })
+                }
+                className="px-4 py-2 bg-green-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-green-700 transition-all flex items-center gap-2"
+              >
+                <MapPin size={14} />
+                View on Map
+              </motion.button>
+            </motion.div>
+          </div>
+        )}
 
         {/* LOADING STATE */}
         {loading && (
@@ -407,7 +445,7 @@ export default function WorkerListingPage() {
                           Jobs
                         </p>
                         <p className="text-sm font-black text-slate-900">
-                          {worker.totalJobs || 0}
+                          {getWorkerJobsCount(worker)}
                         </p>
                       </div>
                       <div className="text-center">
@@ -415,7 +453,7 @@ export default function WorkerListingPage() {
                           Completed
                         </p>
                         <p className="text-sm font-black text-emerald-600">
-                          {worker.completedJobs || 0}
+                          {getWorkerCompletedJobsCount(worker)}
                         </p>
                       </div>
                     </div>

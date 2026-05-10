@@ -1,4 +1,5 @@
 import Worker from "../models/Worker.js";
+import Booking from "../models/booking.model.js";
 import { getCachedValue, setCachedValue, deleteCacheByPattern } from "../config/redis.js";
 import { uploadBase64ToCloudinary } from "../services/cloudinary.service.js";
 
@@ -63,13 +64,66 @@ export const getAllWorkers = async (req, res) => {
     }
 
     const workers = await Worker.find(filter).select("-password").sort({ createdAt: -1 });
-    const response = workers;
+    const workersWithCounts = await attachWorkerCounts(workers);
+    const response = workersWithCounts;
     await setCachedValue(cacheKey, response);
     res.json(response);
   } catch (error) {
     console.error("Worker fetch error:", error);
     res.status(500).json({ message: error.message });
   }
+};
+
+const attachWorkerCounts = async (workers) => {
+  if (!Array.isArray(workers) || workers.length === 0) {
+    return workers;
+  }
+
+  const workerIds = workers.map((worker) =>
+    worker._id ? worker._id : worker?._id,
+  );
+
+  const countResults = await Booking.aggregate([
+    { $match: { workerId: { $in: workerIds } } },
+    {
+      $group: {
+        _id: "$workerId",
+        totalJobs: { $sum: 1 },
+        completedJobs: {
+          $sum: {
+            $cond: [
+              {
+                $in: [
+                  { $toLower: "$status" },
+                  ["completed", "paid", "confirmed"],
+                ],
+              },
+              1,
+              0,
+            ],
+          },
+        },
+      },
+    },
+  ]);
+
+  const countMap = countResults.reduce((acc, item) => {
+    acc[item._id.toString()] = item;
+    return acc;
+  }, {});
+
+  return workers.map((worker) => {
+    const doc = worker.toObject ? worker.toObject() : worker;
+    const counts = countMap[doc._id.toString()] || {
+      totalJobs: 0,
+      completedJobs: 0,
+    };
+    return {
+      ...doc,
+      totalJobs: Math.max(doc.totalJobs || 0, counts.totalJobs || 0),
+      completedJobs: Math.max(doc.completedJobs || 0, counts.completedJobs || 0),
+    };
+  });
 };
 
 // @desc    Get single worker

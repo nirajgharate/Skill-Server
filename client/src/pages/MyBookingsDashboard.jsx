@@ -168,9 +168,18 @@ export default function MyBookingsDashboard() {
     "paid",
   ];
 
-  const formatDate = (value) => {
+  const normalizeDateValue = (value) => {
+    if (!value) return null;
+    if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      return new Date(`${value}T00:00:00`);
+    }
     const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "TBD";
+    return Number.isNaN(date.getTime()) ? null : date;
+  };
+
+  const formatDate = (value) => {
+    const date = normalizeDateValue(value);
+    if (!date) return "TBD";
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -179,13 +188,30 @@ export default function MyBookingsDashboard() {
   };
 
   const formatTime = (value) => {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "TBD";
+    if (
+      value &&
+      typeof value === "string" &&
+      /^(\d{1,2})(:\d{2})?\s*(AM|PM)$/i.test(value.trim())
+    ) {
+      return value.trim();
+    }
+    const date = normalizeDateValue(value);
+    if (!date) return "TBD";
     return date.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
     });
+  };
+
+  const getBookingDate = (booking) => {
+    if (booking?.date) return booking.date;
+    return booking?.createdAt || "";
+  };
+
+  const getBookingTime = (booking) => {
+    if (booking?.time) return booking.time;
+    return booking?.date || booking?.createdAt || "";
   };
 
   const getStatusColor = (status) => {
@@ -589,9 +615,7 @@ export default function MyBookingsDashboard() {
                                   Date
                                 </p>
                                 <span className="font-black">
-                                  {formatDate(
-                                    booking.date || booking.createdAt,
-                                  )}
+                                  {formatDate(getBookingDate(booking))}
                                 </span>
                               </div>
                             </div>
@@ -604,9 +628,7 @@ export default function MyBookingsDashboard() {
                                   Time
                                 </p>
                                 <span className="font-black">
-                                  {formatTime(
-                                    booking.date || booking.createdAt,
-                                  )}
+                                  {formatTime(getBookingTime(booking))}
                                 </span>
                               </div>
                             </div>
