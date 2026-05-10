@@ -41,7 +41,7 @@ export default function Navbar() {
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Services", path: "/services" },
-    { name: "About", path: "/#about" },
+    { name: "About", path: "/About" },
   ];
 
   // 2. SMART DASHBOARD ROUTING

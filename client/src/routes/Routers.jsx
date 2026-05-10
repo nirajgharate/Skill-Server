@@ -1,6 +1,7 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import LandingPage from "../pages/LandingPage";
+import About from "../components/About";
 import ServicesPage from "../pages/ServicesPage";
 import ServiceDetailPage from "../pages/ServiceDetailPage";
 import WorkerListingPage from "../pages/WorkerListingPage";
