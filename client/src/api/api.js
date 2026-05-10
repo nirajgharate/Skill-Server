@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5004/api';
+const rawApiUrl = import.meta.env.VITE_API_URL || 'https://synapthire.onrender.com/api';
 const normalizedApiUrl = rawApiUrl.replace(/\/+$/, '');
 const baseUrl = normalizedApiUrl.endsWith('/api')
   ? normalizedApiUrl

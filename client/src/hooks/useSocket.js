@@ -1,9 +1,9 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import io from 'socket.io-client';
 
-const rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5004/api';
+const rawApiUrl = import.meta.env.VITE_API_URL || 'https://synapthire.onrender.com/api';
 const socketHost = rawApiUrl.replace(/\/api\/?$/, '').replace(/\/+$/, '');
-const SOCKET_URL = socketHost || 'http://localhost:5004';
+const SOCKET_URL = socketHost || 'https://synapthire.onrender.com';
 
 let sharedSocket = null;
 
