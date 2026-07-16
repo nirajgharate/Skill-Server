@@ -293,8 +293,8 @@ export default function MyBookingsDashboard() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 pb-12">
-      <div className="relative z-40 backdrop-blur-md bg-white/80 border-b border-slate-200/50 mt-24">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-[#070B16] dark:via-slate-950 dark:to-slate-900 pb-12 transition-colors duration-500">
+      <div className="relative z-40 backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-b border-slate-200/50 dark:border-slate-800/80 mt-24 transition-colors">
         <div className="max-w-6xl mx-auto px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="relative">
@@ -306,17 +306,17 @@ export default function MyBookingsDashboard() {
                   fallbackSeed: "user-bookings-avatar",
                 })}
                 alt={authUser?.name || "User"}
-                className="w-14 h-14 rounded-3xl object-cover border border-slate-200"
+                className="w-14 h-14 rounded-3xl object-cover border border-slate-200 dark:border-slate-800"
               />
-              <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center text-indigo-600 shadow-sm">
+              <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-indigo-650 dark:text-indigo-405 shadow-sm">
                 <Sparkles size={14} />
               </div>
             </div>
             <div>
-              <h1 className="text-2xl font-black text-slate-900">
+              <h1 className="text-2xl font-black text-slate-900 dark:text-white">
                 My Bookings
               </h1>
-              <p className="text-xs font-semibold text-slate-500">
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                 Track all your orders and service requests.
               </p>
             </div>
@@ -325,13 +325,13 @@ export default function MyBookingsDashboard() {
           <div className="flex flex-wrap gap-3 items-center">
             <button
               onClick={fetchBookings}
-              className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-all"
+              className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-900 transition-all cursor-pointer"
             >
               <RotateCcw size={16} /> Refresh
             </button>
             <button
               onClick={() => navigate("/services")}
-              className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-200/40 hover:bg-indigo-700 transition-all"
+              className="inline-flex items-center gap-2 rounded-2xl bg-indigo-650 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-200/40 dark:shadow-none hover:bg-indigo-700 transition-all cursor-pointer"
             >
               <Plus size={16} /> New Booking
             </button>
@@ -372,14 +372,14 @@ export default function MyBookingsDashboard() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.08 }}
-                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
+                className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm transition-colors"
               >
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-500 mb-2">
+                    <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400 mb-2">
                       {stat.label}
                     </p>
-                    <p className="text-4xl font-black text-slate-900">
+                    <p className="text-4xl font-black text-slate-900 dark:text-white">
                       {stat.value}
                     </p>
                   </div>
@@ -426,16 +426,16 @@ export default function MyBookingsDashboard() {
                   onClick={() => setActiveTab(tab)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`px-6 py-3 rounded-lg font-bold text-sm uppercase tracking-widest transition-all ${
+                  className={`px-6 py-3 rounded-lg font-bold text-sm uppercase tracking-widest transition-all cursor-pointer ${
                     activeTab === tab
-                      ? "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-200/50"
-                      : "bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:bg-slate-50"
+                      ? "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-200/50 dark:shadow-none"
+                      : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800/80 hover:border-indigo-300 hover:bg-slate-50 dark:hover:bg-slate-955"
                   }`}
                 >
                   {tab}
                   <span
                     className={`ml-2 px-3 py-0.5 rounded-md text-xs font-black ${
-                      activeTab === tab ? "bg-white/20" : "bg-slate-100"
+                      activeTab === tab ? "bg-white/20" : "bg-slate-100 dark:bg-slate-800"
                     }`}
                   >
                     {tabCount}
@@ -493,21 +493,21 @@ export default function MyBookingsDashboard() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="text-center py-24 bg-white rounded-2xl border border-slate-200 shadow-lg"
+            className="text-center py-24 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-lg transition-colors"
           >
-            <div className="inline-block p-4 bg-slate-100 rounded-xl mb-6">
-              <Calendar size={48} className="text-slate-400" />
+            <div className="inline-block p-4 bg-slate-100 dark:bg-slate-950 rounded-xl mb-6">
+              <Calendar size={48} className="text-slate-400 dark:text-slate-500" />
             </div>
-            <p className="text-2xl font-black text-slate-900 mb-3">
+            <p className="text-2xl font-black text-slate-900 dark:text-white mb-3">
               No {activeTab.toLowerCase()} bookings
             </p>
-            <p className="text-slate-600 font-medium mb-8 max-w-sm mx-auto">
+            <p className="text-slate-655 dark:text-slate-400 font-medium mb-8 max-w-sm mx-auto">
               Start booking professional services to see them appear here
             </p>
             <motion.button
               whileHover={{ scale: 1.05 }}
               onClick={() => navigate("/services")}
-              className="px-8 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg font-bold shadow-lg shadow-indigo-200/50 hover:shadow-xl transition-all"
+              className="px-8 py-3 bg-gradient-to-r from-indigo-650 to-indigo-700 text-white rounded-lg font-bold shadow-lg shadow-indigo-200/50 dark:shadow-none hover:shadow-xl transition-all cursor-pointer"
             >
               Explore Services
             </motion.button>
@@ -525,7 +525,7 @@ export default function MyBookingsDashboard() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ delay: idx * 0.08 }}
-                    className={`group bg-white border border-slate-200 rounded-[2rem] shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden`}
+                    className={`group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 rounded-[2rem] shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden`}
                   >
                     {/* Status indicator bar */}
                     <div className={`h-1 ${colors.icon}`} />
@@ -546,13 +546,13 @@ export default function MyBookingsDashboard() {
                                 className="w-16 h-16 rounded-xl object-cover shadow-lg group-hover:shadow-2xl transition-shadow"
                               />
                               <div
-                                className={`absolute -bottom-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center ${colors.badge} ${colors.icon} shadow-lg bg-white`}
+                                className={`absolute -bottom-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center ${colors.badge} ${colors.icon} shadow-lg bg-white dark:bg-slate-900`}
                               >
                                 {getStatusIcon(booking.status)}
                               </div>
                             </div>
                             <div className="flex-1">
-                              <p className="font-black text-slate-900 mb-1 line-clamp-1">
+                              <p className="font-black text-slate-900 dark:text-white mb-1 line-clamp-1">
                                 {booking.workerId?.name ||
                                   booking.expert ||
                                   "Service Expert"}
@@ -570,7 +570,7 @@ export default function MyBookingsDashboard() {
                                             0,
                                         )
                                           ? "text-amber-400"
-                                          : "text-slate-300"
+                                          : "text-slate-300 dark:text-slate-700"
                                       }
                                     >
                                       ★
@@ -583,7 +583,7 @@ export default function MyBookingsDashboard() {
                                     "0.0"}
                                 </span>
                               </div>
-                              <p className="text-xs text-slate-500 font-semibold">
+                              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
                                 Professional Expert
                               </p>
                             </div>
@@ -592,55 +592,55 @@ export default function MyBookingsDashboard() {
 
                         {/* SERVICE DETAILS */}
                         <div className="md:col-span-3 space-y-3">
-                          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                          <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                             Service Details
                           </p>
                           <div>
-                            <p className="text-lg font-black text-slate-900 mb-3">
+                            <p className="text-lg font-black text-slate-900 dark:text-white mb-3">
                               {booking.serviceId?.name ||
                                 booking.service ||
                                 "Service"}
                             </p>
                           </div>
                           <div className="space-y-3">
-                            <div className="flex items-center gap-3 text-slate-700 text-sm">
-                              <div className="p-3 rounded-2xl bg-indigo-100">
+                            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300 text-sm">
+                              <div className="p-3 rounded-2xl bg-indigo-100 dark:bg-indigo-950/40">
                                 <Calendar
                                   size={16}
-                                  className="text-indigo-600"
+                                  className="text-indigo-650 dark:text-indigo-400"
                                 />
                               </div>
                               <div>
-                                <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
+                                <p className="text-xs text-slate-500 dark:text-slate-500 font-bold uppercase tracking-widest">
                                   Date
                                 </p>
-                                <span className="font-black">
+                                <span className="font-black text-slate-800 dark:text-slate-200">
                                   {formatDate(getBookingDate(booking))}
                                 </span>
                               </div>
                             </div>
-                            <div className="flex items-center gap-3 text-slate-700 text-sm">
-                              <div className="p-3 rounded-2xl bg-blue-100">
-                                <Clock size={16} className="text-blue-600" />
+                            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300 text-sm">
+                              <div className="p-3 rounded-2xl bg-blue-100 dark:bg-blue-950/40">
+                                <Clock size={16} className="text-blue-600 dark:text-blue-400" />
                               </div>
                               <div>
-                                <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
+                                <p className="text-xs text-slate-500 dark:text-slate-500 font-bold uppercase tracking-widest">
                                   Time
                                 </p>
-                                <span className="font-black">
+                                <span className="font-black text-slate-800 dark:text-slate-200">
                                   {formatTime(getBookingTime(booking))}
                                 </span>
                               </div>
                             </div>
-                            <div className="flex items-center gap-3 text-slate-700 text-sm">
-                              <div className="p-3 rounded-2xl bg-sky-100">
-                                <MapPin size={16} className="text-sky-600" />
+                            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300 text-sm">
+                              <div className="p-3 rounded-2xl bg-sky-100 dark:bg-sky-950/40">
+                                <MapPin size={16} className="text-sky-600 dark:text-sky-400" />
                               </div>
                               <div className="flex-1">
-                                <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
+                                <p className="text-xs text-slate-500 dark:text-slate-500 font-bold uppercase tracking-widest">
                                   Location
                                 </p>
-                                <span className="font-black line-clamp-1 text-sm">
+                                <span className="font-black line-clamp-1 text-sm text-slate-800 dark:text-slate-200">
                                   {booking.address ||
                                     booking.location ||
                                     "Location not provided"}
@@ -651,14 +651,14 @@ export default function MyBookingsDashboard() {
                         </div>
 
                         {/* AMOUNT & STATUS */}
-                        <div className="md:col-span-2 rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
+                        <div className="md:col-span-2 rounded-3xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-5 transition-colors">
+                          <p className="text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-widest mb-3">
                             Payment
                           </p>
-                          <p className="text-3xl font-black text-slate-900 mb-4 flex items-baseline gap-1">
+                          <p className="text-3xl font-black text-slate-900 dark:text-white mb-4 flex items-baseline gap-1">
                             <IndianRupee
                               size={22}
-                              className="text-indigo-700"
+                              className="text-indigo-700 dark:text-indigo-405"
                             />
                             {(
                               (booking.amount ?? booking.price ?? 0) ||
@@ -671,7 +671,7 @@ export default function MyBookingsDashboard() {
                             >
                               {String(booking.status || "").replace(/_/g, " ")}
                             </div>
-                            <p className="text-xs text-slate-600 font-semibold">
+                            <p className="text-xs text-slate-655 dark:text-slate-400 font-semibold">
                               Status updated automatically
                             </p>
                           </div>
@@ -685,7 +685,7 @@ export default function MyBookingsDashboard() {
                             onClick={() =>
                               navigate(`/user/bookings/${booking._id}`)
                             }
-                            className="w-full px-4 py-3 bg-slate-900 text-white font-black rounded-xl text-xs uppercase tracking-widest shadow-lg shadow-slate-200/30 hover:bg-slate-800 transition-all flex items-center justify-center gap-2 border border-slate-800/30"
+                            className="w-full px-4 py-3 bg-slate-900 dark:bg-slate-800 text-white font-black rounded-xl text-xs uppercase tracking-widest shadow-lg shadow-slate-200/30 dark:shadow-none hover:bg-slate-800 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2 border border-slate-800/30 dark:border-slate-700/55 cursor-pointer"
                           >
                             <ChevronRight size={14} />
                             <span>View Details</span>
@@ -702,7 +702,7 @@ export default function MyBookingsDashboard() {
                                     state: { bookingId: booking._id },
                                   })
                                 }
-                                className="w-full px-4 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-black rounded-xl text-xs uppercase tracking-widest shadow-lg shadow-indigo-200/60 hover:shadow-xl transition-all flex items-center justify-center gap-2 border border-indigo-300/30"
+                                className="w-full px-4 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-black rounded-xl text-xs uppercase tracking-widest shadow-lg shadow-indigo-200/60 dark:shadow-none hover:shadow-xl transition-all flex items-center justify-center gap-2 border border-indigo-300/30 dark:border-indigo-850/50 cursor-pointer"
                               >
                                 <Map size={16} />
                                 <span>Track Booking</span>
@@ -714,9 +714,9 @@ export default function MyBookingsDashboard() {
                                   onClick={() =>
                                     window.open(`tel:${booking.phone}`, "_self")
                                   }
-                                  className="px-3 py-3 bg-white text-slate-700 font-black rounded-lg text-xs uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center justify-center gap-1.5 border border-slate-300 shadow-sm"
+                                  className="px-2 py-2.5 sm:px-3 sm:py-3 bg-white dark:bg-slate-950 text-slate-705 dark:text-slate-300 font-black rounded-lg text-[10px] sm:text-xs uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-900 transition-all flex items-center justify-center gap-1 border border-slate-300 dark:border-slate-800 shadow-sm cursor-pointer"
                                 >
-                                  <Phone size={14} />
+                                  <Phone size={12} className="shrink-0" />
                                   <span>Call</span>
                                 </motion.button>
                                 <motion.button
@@ -727,9 +727,9 @@ export default function MyBookingsDashboard() {
                                       `/messages/${booking._id || booking.id}`,
                                     )
                                   }
-                                  className="px-3 py-3 bg-white text-slate-700 font-black rounded-lg text-xs uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center justify-center gap-1.5 border border-slate-300 shadow-sm"
+                                  className="px-2 py-2.5 sm:px-3 sm:py-3 bg-white dark:bg-slate-950 text-slate-705 dark:text-slate-300 font-black rounded-lg text-[10px] sm:text-xs uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-900 transition-all flex items-center justify-center gap-1 border border-slate-300 dark:border-slate-800 shadow-sm cursor-pointer"
                                 >
-                                  <MessageSquare size={14} />
+                                  <MessageSquare size={12} className="shrink-0" />
                                   <span>Message</span>
                                 </motion.button>
                                 <motion.button
@@ -738,9 +738,9 @@ export default function MyBookingsDashboard() {
                                   onClick={() =>
                                     handleMarkWorkDone(booking._id)
                                   }
-                                  className="px-3 py-3 bg-emerald-50 text-emerald-700 font-black rounded-lg text-xs uppercase tracking-widest hover:bg-emerald-100 transition-all flex items-center justify-center gap-1.5 border border-emerald-300 shadow-sm"
+                                  className="px-2 py-2.5 sm:px-3 sm:py-3 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-707 dark:text-emerald-400 font-black rounded-lg text-[10px] sm:text-xs uppercase tracking-widest hover:bg-emerald-100 dark:hover:bg-emerald-900/20 transition-all flex items-center justify-center gap-1 border border-emerald-300 dark:border-emerald-850/40 shadow-sm cursor-pointer"
                                 >
-                                  <CheckCircle2 size={14} />
+                                  <CheckCircle2 size={12} className="shrink-0" />
                                   <span>Work Done</span>
                                 </motion.button>
                               </div>
@@ -754,10 +754,10 @@ export default function MyBookingsDashboard() {
                                 onClick={() =>
                                   !booking.review && openReviewModal(booking)
                                 }
-                                className={`w-full px-4 py-3 font-black rounded-xl text-xs uppercase tracking-widest shadow-lg transition-all flex items-center justify-center gap-2 border ${
+                                className={`w-full px-4 py-3 font-black rounded-xl text-xs uppercase tracking-widest shadow-lg transition-all flex items-center justify-center gap-2 border cursor-pointer ${
                                   booking.review
-                                    ? "bg-slate-200 text-slate-600 border-slate-300 cursor-not-allowed"
-                                    : "bg-gradient-to-r from-emerald-600 to-emerald-700 text-white border-emerald-300/30 hover:shadow-emerald-200/60 hover:shadow-xl"
+                                    ? "bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-300 dark:border-slate-700 cursor-not-allowed"
+                                    : "bg-gradient-to-r from-emerald-650 to-emerald-700 text-white border-emerald-300/30 hover:shadow-emerald-200/60 hover:shadow-xl dark:shadow-none"
                                 }`}
                                 disabled={Boolean(booking.review)}
                               >
@@ -770,13 +770,13 @@ export default function MyBookingsDashboard() {
                                 whileHover={{ scale: 1.05, y: -2 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => navigate("/services")}
-                                className="w-full px-4 py-3 bg-white text-indigo-700 font-black rounded-xl text-xs uppercase tracking-widest hover:bg-indigo-50 transition-all flex items-center justify-center gap-2 border border-indigo-300 shadow-sm"
+                                className="w-full px-4 py-3 bg-white dark:bg-slate-950 text-indigo-755 dark:text-indigo-400 font-black rounded-xl text-xs uppercase tracking-widest hover:bg-indigo-50 dark:hover:bg-indigo-950/20 transition-all flex items-center justify-center gap-2 border border-indigo-300 dark:border-indigo-900/50 shadow-sm cursor-pointer"
                               >
                                 <RotateCcw size={14} />
                                 <span>Book Again</span>
                               </motion.button>
                               {booking.review && (
-                                <p className="text-xs text-slate-500 mt-2 text-center">
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 text-center">
                                   Review submitted: "
                                   {booking.review.comment?.slice(0, 50)}"
                                 </p>
@@ -787,7 +787,7 @@ export default function MyBookingsDashboard() {
                               whileHover={{ scale: 1.05, y: -2 }}
                               whileTap={{ scale: 0.95 }}
                               onClick={() => navigate("/services")}
-                              className="w-full px-4 py-3 bg-indigo-50 text-indigo-700 font-black rounded-xl text-xs uppercase tracking-widest hover:bg-indigo-100 transition-all flex items-center justify-center gap-2 border border-indigo-300 shadow-sm"
+                              className="w-full px-4 py-3 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-755 dark:text-indigo-400 font-black rounded-xl text-xs uppercase tracking-widest hover:bg-indigo-100 dark:hover:bg-indigo-900/20 transition-all flex items-center justify-center gap-2 border border-indigo-300 dark:border-indigo-900/50 shadow-sm cursor-pointer"
                             >
                               <Plus size={14} />
                               <span>New Booking</span>

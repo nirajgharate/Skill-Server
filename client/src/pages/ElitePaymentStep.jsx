@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -299,20 +299,20 @@ export default function ElitePaymentStep({
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
-                className="bg-gradient-to-br from-[#4F46E5]/5 to-[#4F46E5]/10 border border-[#4F46E5]/20 rounded-3xl p-6 space-y-4"
+                className="bg-gradient-to-br from-[#4F46E5]/5 to-[#4F46E5]/10 dark:from-[#4F46E5]/15 dark:to-[#4F46E5]/5 border border-[#4F46E5]/20 dark:border-indigo-800/40 rounded-3xl p-6 space-y-4"
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="text-xs font-black text-[#4F46E5] uppercase tracking-widest mb-2">
+                    <h3 className="text-xs font-black text-[#4F46E5] dark:text-indigo-400 uppercase tracking-widest mb-2">
                       Booking Summary
                     </h3>
-                    <p className="text-lg font-black text-[#0F172A]">
+                    <p className="text-lg font-black text-slate-900 dark:text-white">
                       {bookingData.serviceName || "Professional Service"}
                     </p>
                   </div>
                   <button
                     onClick={() => setShowBookingDetails(false)}
-                    className="text-[#0F172A]/40 hover:text-[#0F172A] transition-colors"
+                    className="text-slate-900 dark:text-white opacity-40 hover:opacity-100 transition-colors"
                   >
                     ✕
                   </button>
@@ -320,15 +320,15 @@ export default function ElitePaymentStep({
 
                 <div className="space-y-3 text-xs font-bold">
                   <div className="flex items-center gap-3">
-                    <Clock size={16} className="text-[#4F46E5] flex-shrink-0" />
-                    <span className="text-[#0F172A]">{bookingData.date}</span>
+                    <Clock size={16} className="text-[#4F46E5] dark:text-indigo-400 flex-shrink-0" />
+                    <span className="text-slate-700 dark:text-slate-300">{bookingData.date}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <MapPin
                       size={16}
-                      className="text-[#4F46E5] flex-shrink-0"
+                      className="text-[#4F46E5] dark:text-indigo-400 flex-shrink-0"
                     />
-                    <span className="text-[#0F172A] line-clamp-2">
+                    <span className="text-slate-700 dark:text-slate-300 line-clamp-2">
                       {bookingData.address}
                     </span>
                   </div>
@@ -341,33 +341,33 @@ export default function ElitePaymentStep({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-6 border border-indigo-200 space-y-4"
+              className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900/60 dark:to-slate-900/30 rounded-3xl p-6 border border-indigo-200 dark:border-slate-800 space-y-4"
             >
               <div className="flex items-center gap-3">
-                <ShieldCheck size={20} className="text-[#4F46E5]" />
-                <h3 className="text-sm font-black text-[#0F172A] uppercase tracking-wider">
+                <ShieldCheck size={20} className="text-[#4F46E5] dark:text-indigo-400" />
+                <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
                   Booking Details
                 </h3>
               </div>
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-indigo-100">
-                  <span className="text-xs font-bold text-gray-600">
+                <div className="flex items-center justify-between p-3 bg-white dark:bg-slate-950 rounded-lg border border-indigo-100 dark:border-slate-850/60">
+                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
                     Service Amount
                   </span>
-                  <span className="text-sm font-black text-[#4F46E5]">
+                  <span className="text-sm font-black text-indigo-650 dark:text-indigo-400">
                     ₹{totalAmount}
                   </span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-indigo-100">
-                  <span className="text-xs font-bold text-gray-600">
+                <div className="flex items-center justify-between p-3 bg-white dark:bg-slate-950 rounded-lg border border-indigo-100 dark:border-slate-850/60">
+                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
                     Booking Status
                   </span>
-                  <span className="text-xs font-black text-amber-600 bg-amber-50 px-2 py-1 rounded">
+                  <span className="text-xs font-black text-amber-600 dark:text-amber-450 bg-amber-50 dark:bg-amber-950/20 px-2 py-1 rounded">
                     CONFIRMED ON SAVE
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-[10px] font-bold text-indigo-600 pt-2">
+              <div className="flex items-center gap-2 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 pt-2">
                 <ShieldCheck size={14} />
                 Booking will be recorded immediately without payment.
               </div>
@@ -377,11 +377,11 @@ export default function ElitePaymentStep({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-white rounded-3xl p-6 border border-indigo-100 space-y-4"
+              className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-indigo-100 dark:border-slate-800/80 space-y-4 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <CreditCard size={20} className="text-[#4F46E5]" />
-                <h3 className="text-sm font-black text-[#0F172A] uppercase tracking-wider">
+                <CreditCard size={20} className="text-[#4F46E5] dark:text-indigo-400" />
+                <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
                   Choose Payment Method
                 </h3>
               </div>
@@ -391,23 +391,23 @@ export default function ElitePaymentStep({
                     key={option.id}
                     type="button"
                     onClick={() => setPaymentMethod(option.id)}
-                    className={`w-full p-4 rounded-3xl border text-left transition-all ${
+                    className={`w-full p-4 rounded-3xl border text-left transition-all cursor-pointer ${
                       paymentMethod === option.id
-                        ? "border-[#4F46E5] bg-[#EEF2FF]"
-                        : "border-[#E2E8F0] bg-white hover:border-[#4F46E5]/40"
+                        ? "border-[#4F46E5] bg-[#EEF2FF] dark:bg-indigo-950/20"
+                        : "border-[#E2E8F0] dark:border-slate-800/80 bg-white dark:bg-slate-950 hover:border-[#4F46E5]/40 text-slate-800 dark:text-slate-200"
                     }`}
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-sm font-black text-[#0F172A]">
+                        <p className="text-sm font-black text-slate-900 dark:text-white">
                           {option.title}
                         </p>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                           {option.subtitle}
                         </p>
                       </div>
                       {paymentMethod === option.id && (
-                        <span className="text-xs font-bold uppercase text-[#4F46E5]">
+                        <span className="text-xs font-bold uppercase text-[#4F46E5] dark:text-indigo-400">
                           Selected
                         </span>
                       )}
@@ -424,8 +424,8 @@ export default function ElitePaymentStep({
                 animate={{ opacity: 1, y: 0 }}
                 className={`p-4 rounded-2xl text-sm font-bold flex items-start gap-3 ${
                   message.includes("error") || message.includes("failed")
-                    ? "bg-rose-50 border border-rose-200 text-rose-700"
-                    : "bg-blue-50 border border-blue-200 text-blue-700"
+                    ? "bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/30 text-rose-700 dark:text-rose-450"
+                    : "bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/30 text-blue-700 dark:text-blue-450"
                 }`}
               >
                 <AlertCircle size={18} className="flex-shrink-0 mt-0.5" />
@@ -437,7 +437,7 @@ export default function ElitePaymentStep({
             <button
               disabled={isProcessing}
               onClick={handleConfirmBooking}
-              className="w-full py-6 bg-[#4F46E5] hover:bg-[#4F46E5]/90 disabled:bg-[#4F46E5]/50 text-white font-black uppercase rounded-3xl shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all"
+              className="w-full py-6 bg-[#4F46E5] hover:bg-[#4F46E5]/90 disabled:bg-[#4F46E5]/50 text-white font-black uppercase rounded-3xl shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all cursor-pointer"
             >
               {isProcessing ? (
                 <>
@@ -463,7 +463,7 @@ export default function ElitePaymentStep({
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", delay: 0.2 }}
-              className="w-24 h-24 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-emerald-200"
+              className="w-24 h-24 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-emerald-200 dark:shadow-none"
             >
               <CheckCircle2 size={48} className="text-white" />
             </motion.div>
@@ -474,13 +474,13 @@ export default function ElitePaymentStep({
               transition={{ delay: 0.3 }}
               className="space-y-3"
             >
-              <h2 className="text-4xl font-black text-[#0F172A]">
+              <h2 className="text-4xl font-black text-slate-900 dark:text-white">
                 Booking Confirmed!
               </h2>
-              <p className="text-sm font-bold text-[#0F172A]/50 uppercase tracking-widest">
+              <p className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                 Your booking has been successfully created.
               </p>
-              <p className="text-xs text-[#0F172A]/40 font-medium">
+              <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">
                 Redirecting to booking details...
               </p>
             </motion.div>

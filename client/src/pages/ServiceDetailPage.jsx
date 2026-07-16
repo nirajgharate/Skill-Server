@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ShieldCheck,
   Clock,
@@ -9,14 +9,9 @@ import {
   ArrowLeft,
   Star,
   Shield,
-  Zap,
-  CreditCard,
   Award,
-  Heart,
-  Check,
   Users,
   MapPin,
-  AlertCircle,
 } from "lucide-react";
 
 export default function ServiceDetailPage() {
@@ -426,6 +421,12 @@ export default function ServiceDetailPage() {
     },
   ];
 
+  const mockPros = [
+    { name: "Rahul S.", rating: 4.9, bookings: 218, img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&fit=crop", desc: "Certified pro. Specialized in fast diagnostics and high-precision fixes." },
+    { name: "Priya D.", rating: 4.8, bookings: 164, img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&fit=crop", desc: "Detail-oriented specialist with 5+ years experience in quality checks." },
+    { name: "Amit K.", rating: 4.7, bookings: 98, img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&fit=crop", desc: "Prompt response. Verified master handyman with all tools equipped." }
+  ];
+
   const service = allServices.find((s) => String(s.id) === String(id));
 
   if (!service) return null;
@@ -437,86 +438,88 @@ export default function ServiceDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 pt-32 pb-24 px-4 md:px-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#070B16] pt-32 pb-24 px-4 md:px-8 transition-colors duration-500">
       {/* Navigation */}
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
-        className="max-w-7xl mx-auto mb-10"
+        className="max-w-6xl mx-auto mb-8"
       >
         <Link
           to="/services"
-          className="inline-flex items-center gap-2 text-slate-600 hover:text-indigo-600 font-semibold transition-all group"
+          className="inline-flex items-center gap-2.5 text-xs font-black uppercase tracking-widest text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-all group"
         >
-          <div className="p-2 bg-white rounded-lg shadow-sm border border-slate-200 group-hover:bg-indigo-50 group-hover:scale-110 transition-all">
-            <ArrowLeft size={16} />
+          <div className="p-2.5 bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 group-hover:scale-105 transition-transform theme-transition">
+            <ArrowLeft size={14} />
           </div>
           Back to Services
         </Link>
       </motion.div>
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content */}
+        
+        {/* --- MAIN COLUMN (Span 2) --- */}
         <div className="lg:col-span-2 space-y-8">
-          {/* Hero Image */}
+          
+          {/* Service Banner Image */}
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="relative h-96 rounded-2xl overflow-hidden shadow-2xl"
+            className="relative h-80 md:h-96 rounded-[2rem] overflow-hidden shadow-sm border border-slate-200/30 dark:border-slate-850"
           >
             <img
               src={service.img}
               alt={service.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover brightness-90"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/20 to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/30 to-transparent"></div>
 
             <div className="absolute bottom-6 left-6 right-6">
               <div className="flex gap-2 mb-3">
-                <span className="px-3 py-1 bg-white/10 backdrop-blur-md text-white text-xs font-bold rounded-full border border-white/20">
+                <span className="px-3 py-1 bg-white/15 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-wider rounded-full border border-white/20">
                   {service.cat}
                 </span>
                 <span
-                  className={`px-3 py-1 text-white text-xs font-bold rounded-full ${
+                  className={`px-3 py-1 text-white text-[10px] font-black uppercase tracking-wider rounded-full ${
                     service.badge === "Popular"
-                      ? "bg-orange-500"
-                      : "bg-indigo-600"
+                      ? "bg-orange-500/90 animate-pulse"
+                      : "bg-indigo-600/90"
                   }`}
                 >
                   {service.badge}
                 </span>
               </div>
-              <h1 className="text-4xl font-black text-white">{service.name}</h1>
+              <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">{service.name}</h1>
             </div>
           </motion.div>
 
-          {/* Trust Section */}
+          {/* Quick Metrics Bar */}
           <motion.div {...fadeInUp} className="grid grid-cols-3 gap-4">
             {[
-              { label: "Rating", value: service.rating, icon: Star },
-              { label: "Reviews", value: service.reviews, icon: Users },
-              { label: "Response", value: "30min", icon: Clock },
+              { label: "Rating", value: `${service.rating} ★`, icon: Star },
+              { label: "Reviews", value: `${service.reviews} Verified`, icon: Users },
+              { label: "Response", value: "30 Mins", icon: Clock },
             ].map((item, i) => (
               <div
                 key={i}
-                className="bg-white p-4 rounded-xl border border-slate-100 text-center"
+                className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/50 dark:border-slate-800/60 text-center shadow-sm theme-transition"
               >
-                <item.icon className="w-5 h-5 text-indigo-600 mx-auto mb-2" />
-                <p className="text-lg font-bold text-slate-900">{item.value}</p>
-                <p className="text-xs text-slate-600">{item.label}</p>
+                <item.icon className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mx-auto mb-2" />
+                <p className="text-base font-extrabold text-slate-900 dark:text-white transition-colors">{item.value}</p>
+                <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">{item.label}</p>
               </div>
             ))}
           </motion.div>
 
-          {/* Description */}
+          {/* About Section */}
           <motion.div
             {...fadeInUp}
-            className="bg-white p-6 rounded-2xl border border-slate-100"
+            className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-3xl border border-slate-200/50 dark:border-slate-800/60 shadow-sm theme-transition"
           >
-            <h3 className="text-xl font-bold text-slate-900 mb-3">
-              About This Service
+            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white mb-4 tracking-tight">
+              About this service
             </h3>
-            <p className="text-slate-600 leading-relaxed">
+            <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium transition-colors">
               {service.fullDetail}
             </p>
           </motion.div>
@@ -524,168 +527,211 @@ export default function ServiceDetailPage() {
           {/* What's Included */}
           <motion.div
             {...fadeInUp}
-            className="bg-white p-6 rounded-2xl border border-slate-100"
+            className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-3xl border border-slate-200/50 dark:border-slate-800/60 shadow-sm theme-transition"
           >
-            <h3 className="text-xl font-bold text-slate-900 mb-4">
-              What's Included
+            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white mb-5 tracking-tight">
+              What's included in the box
             </h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {service.included.map((item, i) => (
-                <div key={i} className="flex gap-3">
+                <div key={i} className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200/30 dark:border-slate-800/60">
                   <CheckCircle2
-                    size={20}
-                    className="text-green-600 flex-shrink-0 mt-0.5"
+                    size={18}
+                    className="text-emerald-500 shrink-0 mt-0.5"
                   />
-                  <p className="text-sm text-slate-600">{item}</p>
+                  <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{item}</p>
                 </div>
               ))}
             </div>
           </motion.div>
 
-          {/* Features & Benefits */}
-          <motion.div {...fadeInUp} className="grid grid-cols-2 gap-4">
-            {service.features.map((feature, i) => (
-              <div
-                key={i}
-                className="bg-indigo-50 p-4 rounded-xl border border-indigo-100"
-              >
-                <Check size={20} className="text-indigo-600 mb-2" />
-                <p className="text-sm font-semibold text-indigo-900">
-                  {feature}
-                </p>
-              </div>
-            ))}
-          </motion.div>
-
-          {/* FAQ Section */}
+          {/* Featured Experts Carousel (SOUL COMPONENT) */}
           <motion.div
             {...fadeInUp}
-            className="bg-white p-6 rounded-2xl border border-slate-100"
+            className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-3xl border border-slate-200/50 dark:border-slate-800/60 shadow-sm theme-transition"
           >
-            <h3 className="text-xl font-bold text-slate-900 mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+              <div>
+                <h3 className="text-lg font-extrabold text-slate-900 dark:text-white tracking-tight">
+                  Featured Professionals Nearby
+                </h3>
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">
+                   KYC verified, top-rated local experts specializing in {service.cat}
+                </p>
+              </div>
+              <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-3 py-1 rounded-full shrink-0 h-fit w-fit uppercase tracking-widest">
+                Active Match Online
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {mockPros.map((pro, index) => (
+                <div 
+                  key={index}
+                  className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 rounded-2xl flex flex-col items-center text-center hover:shadow-md transition-all duration-300"
+                >
+                  <div className="relative w-16 h-16 rounded-full overflow-hidden mb-3 border border-slate-200 dark:border-slate-800">
+                    <img src={pro.img} alt={pro.name} className="w-full h-full object-cover" />
+                    <span className="w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900 absolute bottom-0.5 right-0.5" />
+                  </div>
+
+                  <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">{pro.name}</h4>
+                  <div className="flex items-center gap-1 mt-1 text-xs text-slate-500">
+                    <Star className="text-amber-500 fill-amber-500" size={12} />
+                    <span className="font-bold text-slate-700 dark:text-slate-300">{pro.rating}</span>
+                    <span className="text-[10px] text-slate-500">({pro.bookings} bookings)</span>
+                  </div>
+
+                  <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 leading-relaxed mt-3 line-clamp-2">
+                    {pro.desc}
+                  </p>
+
+                  <button 
+                    onClick={() => navigate(`/services/${id}/workers`)}
+                    className="mt-4 w-full py-2 bg-white dark:bg-slate-900 hover:bg-indigo-600 dark:hover:bg-indigo-500 hover:text-white dark:hover:text-white border border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+                  >
+                    Direct Match
+                  </button>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* How It Works Timeline */}
+          <motion.div
+            {...fadeInUp}
+            className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-3xl border border-slate-200/50 dark:border-slate-800/60 shadow-sm theme-transition"
+          >
+            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white mb-6 tracking-tight">
+              How booking works
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+              {[
+                { step: "01", title: "Select Slot", desc: "Choose date & time that suits your schedule." },
+                { step: "02", title: "Pro Assigned", desc: "KyC verified service expert accepts the job." },
+                { step: "03", title: "Secure Release", desc: "Funds held in escrow. Pay only after work approval." }
+              ].map((item, i) => (
+                <div key={i} className="flex gap-4 items-start relative">
+                  <div className="text-2xl font-black text-indigo-600/20 dark:text-indigo-400/20 tracking-tighter leading-none shrink-0 select-none">
+                    {item.step}
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-extrabold text-slate-900 dark:text-white mb-1">{item.title}</h4>
+                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400 leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* FAQs */}
+          <motion.div
+            {...fadeInUp}
+            className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-3xl border border-slate-200/50 dark:border-slate-800/60 shadow-sm theme-transition"
+          >
+            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white mb-5 tracking-tight">
               Frequently Asked Questions
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {[
-                {
-                  q: "How long does the service take?",
-                  a: "Usually 45 minutes to 2 hours depending on the scope.",
-                },
-                {
-                  q: "Is there a cancellation charge?",
-                  a: "Free cancellation up to 2 hours before appointment.",
-                },
-                {
-                  q: "Do you provide warranty?",
-                  a: "Yes, 1-2 years warranty on parts and workmanship.",
-                },
+                { q: "How long does the service take?", a: "Usually 45 minutes to 2 hours depending on the scope of work." },
+                { q: "Is there a cancellation charge?", a: "Free cancellation up to 2 hours before the scheduled appointment." },
+                { q: "Do you provide a warranty?", a: "Yes, we offer up to 6 months warranty on parts and workmanship." }
               ].map((item, i) => (
-                <div
-                  key={i}
-                  className="pb-3 border-b border-slate-100 last:border-b-0"
-                >
-                  <p className="font-semibold text-slate-900 text-sm mb-1">
-                    {item.q}
-                  </p>
-                  <p className="text-slate-600 text-sm">{item.a}</p>
+                <div key={i} className="pb-4 border-b border-slate-100 dark:border-slate-800 last:border-none last:pb-0">
+                  <p className="font-extrabold text-slate-800 dark:text-slate-200 text-sm mb-1">{item.q}</p>
+                  <p className="text-slate-500 dark:text-slate-400 text-xs font-medium leading-relaxed">{item.a}</p>
                 </div>
               ))}
             </div>
           </motion.div>
         </div>
 
-        {/* Booking Card */}
+        {/* --- STICKY SIDEBAR (Span 1) --- */}
         <aside className="lg:sticky lg:top-32 h-fit">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white p-6 rounded-2xl border border-slate-100 shadow-lg"
+            className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200/50 dark:border-slate-800/60 shadow-sm theme-transition"
           >
-            {/* Price */}
-            <div className="mb-6 pb-6 border-b border-slate-100">
-              <p className="text-sm text-slate-600 mb-1">Starting From</p>
-              <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-black text-slate-900">
+            {/* Pricing Section */}
+            <div className="mb-6 pb-6 border-b border-slate-100 dark:border-slate-800">
+              <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Starting From</span>
+              <div className="flex items-baseline gap-1 mt-1">
+                <span className="text-3xl font-black text-slate-900 dark:text-white">
                   {service.price}
                 </span>
-                <span className="text-slate-600">/visit</span>
+                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">/visit</span>
               </div>
             </div>
 
-            {/* Rating */}
-            <div className="mb-6 pb-6 border-b border-slate-100">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="flex gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      size={16}
-                      className={
-                        i < Math.floor(service.rating)
-                          ? "fill-amber-400 text-amber-400"
-                          : "text-slate-300"
-                      }
-                    />
-                  ))}
-                </div>
-                <p className="font-bold text-slate-900">{service.rating}</p>
+            {/* Rating Stars Summary */}
+            <div className="mb-6 pb-6 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2 mb-1">
+                <Star className="text-amber-500 fill-amber-500" size={16} />
+                <span className="font-extrabold text-slate-900 dark:text-white text-sm">{service.rating}</span>
               </div>
-              <p className="text-sm text-slate-600">
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
                 {service.reviews} verified reviews
               </p>
             </div>
 
-            {/* Booking Buttons */}
+            {/* CTAs */}
             <div className="space-y-3 mb-6">
               <button
                 onClick={() => navigate(`/services/${id}/workers`)}
-                className="w-full py-4 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition-all flex items-center justify-center gap-2"
+                className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
               >
-                Book Now <ChevronRight size={18} />
+                Book Now <ChevronRight size={16} />
               </button>
-              <button className="w-full py-3 bg-slate-100 text-slate-900 font-semibold rounded-lg hover:bg-slate-200 transition-all">
+              
+              <button className="w-full py-3 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-300 text-xs font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer border border-slate-200/50 dark:border-slate-800">
                 Save for Later
               </button>
+              
               <button
                 onClick={() => navigate("/map")}
-                className="w-full py-3 bg-green-100 text-green-700 font-semibold rounded-lg hover:bg-green-200 transition-all flex items-center justify-center gap-2"
+                className="w-full py-3 bg-green-50 dark:bg-green-950/20 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-black uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer border border-green-200/30 dark:border-green-800/40"
               >
-                <MapPin size={16} />
+                <MapPin size={14} />
                 View on Map
               </button>
             </div>
 
-            {/* Trust Indicators */}
-            <div className="space-y-3 pt-6 border-t border-slate-100">
+            {/* Trust List */}
+            <div className="space-y-3 pt-6 border-t border-slate-100 dark:border-slate-800">
               {[
                 { icon: Shield, text: "100% Secure Transaction" },
                 { icon: Clock, text: "Free Cancellation" },
                 { icon: Award, text: "Verified Professionals" },
               ].map((item, i) => (
-                <div key={i} className="flex items-center gap-3 text-sm">
+                <div key={i} className="flex items-center gap-3 text-xs">
                   <item.icon
-                    size={18}
-                    className="text-indigo-600 flex-shrink-0"
+                    size={16}
+                    className="text-indigo-600 dark:text-indigo-400 flex-shrink-0"
                   />
-                  <span className="text-slate-600 font-medium">
+                  <span className="text-slate-500 dark:text-slate-400 font-bold">
                     {item.text}
                   </span>
                 </div>
               ))}
             </div>
 
-            {/* Alert */}
-            <div className="mt-6 p-3 bg-green-50 rounded-lg border border-green-200 flex gap-2">
-              <AlertCircle
+            {/* Insured Alert */}
+            <div className="mt-6 p-3 bg-emerald-50 dark:bg-emerald-950/20 rounded-xl border border-emerald-100/40 dark:border-emerald-900/30 flex gap-2.5">
+              <ShieldCheck
                 size={18}
-                className="text-green-600 flex-shrink-0 mt-0.5"
+                className="text-emerald-500 flex-shrink-0 mt-0.5"
               />
-              <p className="text-xs text-green-700 font-semibold">
-                Expert verified and insured professionals only
+              <p className="text-[10px] text-emerald-800 dark:text-emerald-400 font-bold leading-normal">
+                Insured service matches with satisfaction protection.
               </p>
             </div>
+            
           </motion.div>
         </aside>
+
       </div>
     </div>
   );

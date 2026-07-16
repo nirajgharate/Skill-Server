@@ -276,7 +276,7 @@ export default function UberBookingFlow() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pt-32 pb-24 px-4">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#070B16] pt-32 pb-24 px-4 transition-colors duration-500">
       <div className="max-w-xl mx-auto">
         {/* 🏷️ PROGRESS BAR */}
         <div className="flex justify-between items-center mb-12 px-2">
@@ -286,14 +286,14 @@ export default function UberBookingFlow() {
                 className={`w-10 h-10 rounded-2xl flex items-center justify-center text-[10px] font-black border-2 transition-all duration-500 ${
                   step >= i
                     ? "bg-[#4F46E5] text-white border-[#4F46E5]"
-                    : "bg-white text-[#0F172A]/20 border-black/5"
+                    : "bg-white dark:bg-slate-900 text-slate-400/30 dark:text-slate-500/30 border-black/5 dark:border-slate-800"
                 }`}
               >
                 {step > i ? <CheckCircle2 size={16} /> : i}
               </div>
               {i < 5 && (
                 <div
-                  className={`flex-1 h-[2px] mx-2 ${step > i ? "bg-[#4F46E5]" : "bg-black/5"}`}
+                  className={`flex-1 h-[2px] mx-2 ${step > i ? "bg-[#4F46E5]" : "bg-black/5 dark:bg-slate-800"}`}
                 />
               )}
             </div>
@@ -305,7 +305,7 @@ export default function UberBookingFlow() {
           {step === 1 && (
             <motion.div key="st1" {...slideVariants} className="space-y-8">
               <div className="text-center space-y-2">
-                <h2 className="text-4xl font-black text-[#0F172A]">
+                <h2 className="text-4xl font-black text-slate-900 dark:text-white">
                   Book Your Expert
                 </h2>
                 <p className="text-sm text-[#0F172A]/50 font-bold">
@@ -830,7 +830,7 @@ export default function UberBookingFlow() {
             <motion.div key="st5" {...slideVariants}>
               <button
                 onClick={prevStep}
-                className="flex items-center gap-2 text-[10px] font-black text-[#0F172A]/40 uppercase tracking-widest mb-8"
+                className="flex items-center gap-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-8 cursor-pointer"
               >
                 <ArrowLeft size={14} /> Back
               </button>

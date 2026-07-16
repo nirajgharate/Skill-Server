@@ -372,9 +372,9 @@ export default function UserDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-[#070B16] dark:via-slate-950 dark:to-slate-900 transition-colors duration-500">
       {/* Enhanced Header */}
-      <div className="relative z-40 backdrop-blur-lg bg-white/80 border-b border-slate-200/50 mt-24">
+      <div className="relative z-40 backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-b border-slate-200/50 dark:border-slate-800/80 mt-24 transition-colors">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
           <div className="flex items-center justify-between gap-4">
             {/* Left Section */}
@@ -387,22 +387,22 @@ export default function UserDashboard() {
                     id: user._id,
                   })}
                   alt={user.name}
-                  className="w-14 h-14 rounded-full border border-slate-200 object-cover"
+                  className="w-14 h-14 rounded-full border border-slate-200 dark:border-slate-800 object-cover"
                 />
                 <button
                   type="button"
                   onClick={openAvatarPicker}
-                  className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-indigo-600 shadow-sm hover:bg-slate-50 transition-all"
+                  className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-indigo-655 dark:text-indigo-405 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-900 transition-all cursor-pointer"
                 >
                   <Sparkles size={14} />
                 </button>
               </div>
               <div>
-                <p className="text-slate-900 font-bold text-sm md:text-base">
+                <p className="text-slate-900 dark:text-white font-bold text-sm md:text-base">
                   {user.name}
                 </p>
-                <p className="text-slate-500 text-xs">Customer Portal</p>
-                <p className="mt-2 text-slate-500 text-[11px]">
+                <p className="text-slate-500 dark:text-slate-400 text-xs">Customer Portal</p>
+                <p className="mt-2 text-slate-500 dark:text-slate-400 text-[11px]">
                   Your current profile avatar is shown here. Tap the sparkle to
                   change it.
                 </p>
@@ -415,11 +415,11 @@ export default function UserDashboard() {
                 whileHover={{ scale: 1.1 }}
                 onClick={handleRefresh}
                 disabled={refreshing}
-                className="p-2.5 bg-slate-100 hover:bg-slate-200 rounded-full transition-all disabled:opacity-50"
+                className="p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-all disabled:opacity-50 cursor-pointer"
               >
                 <RefreshCw
                   size={18}
-                  className={`text-slate-600 ${refreshing ? "animate-spin" : ""}`}
+                  className={`text-slate-600 dark:text-slate-400 ${refreshing ? "animate-spin" : ""}`}
                 />
               </motion.button>
 
@@ -429,16 +429,16 @@ export default function UserDashboard() {
                     ? "/notifications/worker"
                     : "/notifications/user"
                 }
-                className="relative p-2.5 bg-slate-100 hover:bg-slate-200 rounded-full transition-all group"
+                className="relative p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-all group cursor-pointer"
               >
-                <Bell size={18} className="text-slate-600" />
+                <Bell size={18} className="text-slate-600 dark:text-slate-400" />
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
               </Link>
 
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 onClick={() => navigate("/user-profile")}
-                className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-lg font-semibold text-sm hover:shadow-lg hover:shadow-indigo-500/30 transition-all hidden sm:block"
+                className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-lg font-semibold text-sm hover:shadow-lg hover:shadow-indigo-500/30 dark:shadow-none transition-all hidden sm:block cursor-pointer"
               >
                 Edit Profile
               </motion.button>
@@ -448,7 +448,7 @@ export default function UserDashboard() {
                   localStorage.removeItem("skillserverUser");
                   navigate("/login");
                 }}
-                className="p-2.5 bg-slate-100 hover:bg-slate-200 rounded-full transition-all text-slate-600"
+                className="p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-all text-slate-600 dark:text-slate-400 cursor-pointer"
               >
                 <LogOut size={18} />
               </button>
@@ -470,14 +470,14 @@ export default function UserDashboard() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.96, opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="w-full max-w-3xl max-h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200"
+              className="w-full max-w-3xl max-h-[90vh] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden transition-colors duration-500"
             >
-              <div className="flex items-start justify-between gap-4 p-6 border-b border-slate-200">
+              <div className="flex items-start justify-between gap-4 p-6 border-b border-slate-200 dark:border-slate-800">
                 <div>
-                  <p className="text-slate-900 text-lg font-bold">
+                  <p className="text-slate-900 dark:text-white text-lg font-bold">
                     Select your dashboard avatar
                   </p>
-                  <p className="text-slate-500 text-sm mt-1">
+                  <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
                     This avatar will be used in booking details, worker pages,
                     and profile views.
                   </p>
@@ -485,7 +485,7 @@ export default function UserDashboard() {
                 <button
                   type="button"
                   onClick={closeAvatarPicker}
-                  className="text-slate-500 hover:text-slate-900 transition-all"
+                  className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -505,10 +505,10 @@ export default function UserDashboard() {
                         key={option.id}
                         type="button"
                         onClick={() => handleAvatarSelection(option)}
-                        className={`group relative rounded-3xl overflow-hidden border transition-all ${
+                        className={`group relative rounded-3xl overflow-hidden border transition-all cursor-pointer ${
                           isSelected
-                            ? "border-indigo-600 shadow-lg"
-                            : "border-slate-200 hover:border-slate-400"
+                            ? "border-indigo-650 shadow-lg dark:shadow-none"
+                            : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 hover:border-slate-400 dark:hover:border-slate-700"
                         }`}
                       >
                         <img
@@ -516,7 +516,7 @@ export default function UserDashboard() {
                           alt={option.label}
                           className="w-full h-24 object-cover"
                         />
-                        <span className="absolute inset-x-0 bottom-0 bg-slate-900/70 text-white text-[10px] uppercase tracking-[0.24em] text-center py-1">
+                        <span className="absolute inset-x-0 bottom-0 bg-slate-900/70 dark:bg-slate-950/80 text-white text-[10px] uppercase tracking-[0.24em] text-center py-1">
                           {option.label}
                         </span>
                         {isSelected && (
@@ -529,7 +529,7 @@ export default function UserDashboard() {
                   })}
                 </div>
                 <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-                  <div className="text-slate-600 text-sm">
+                  <div className="text-slate-600 dark:text-slate-400 text-sm">
                     {pendingAvatar ? (
                       <span>Selected avatar ready to save.</span>
                     ) : (
@@ -540,7 +540,7 @@ export default function UserDashboard() {
                     <button
                       type="button"
                       onClick={handleResetAvatar}
-                      className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-200 transition-all"
+                      className="inline-flex items-center justify-center rounded-full border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-205 dark:hover:bg-slate-750 transition-all cursor-pointer"
                     >
                       Reset
                     </button>
@@ -548,7 +548,7 @@ export default function UserDashboard() {
                       type="button"
                       onClick={saveAvatarSelection}
                       disabled={!pendingAvatar}
-                      className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-all disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-all disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
                     >
                       Save avatar
                     </button>
@@ -693,11 +693,11 @@ export default function UserDashboard() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
               whileHover={{ y: -5 }}
-              className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-lg hover:border-indigo-200 transition-all group cursor-pointer"
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 hover:shadow-lg hover:border-indigo-200 dark:hover:border-indigo-500/50 transition-all group cursor-pointer transition-colors duration-500"
             >
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <p className="text-slate-600 text-xs font-semibold uppercase tracking-wider">
+                  <p className="text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">
                     {stat.label}
                   </p>
                   {stat.trend && (
@@ -706,7 +706,7 @@ export default function UserDashboard() {
                         {stat.trend}
                       </span>
                       {stat.trendUp ? (
-                        <ArrowUpRight size={12} className="text-emerald-600" />
+                        <ArrowUpRight size={12} className="text-emerald-600 animate-none" />
                       ) : (
                         <ArrowDownRight size={12} className="text-red-600" />
                       )}
@@ -719,7 +719,7 @@ export default function UserDashboard() {
                   <stat.icon size={16} className="text-white" />
                 </div>
               </div>
-              <p className="text-slate-900 font-black text-2xl">{stat.value}</p>
+              <p className="text-slate-900 dark:text-white font-black text-2xl">{stat.value}</p>
             </motion.div>
           ))}
         </div>
@@ -729,7 +729,7 @@ export default function UserDashboard() {
           {/* Active Bookings Section */}
           <motion.div className="lg:col-span-2 space-y-6">
             <div>
-              <h2 className="text-slate-900 font-black text-2xl mb-4">
+              <h2 className="text-slate-900 dark:text-white font-black text-2xl mb-4">
                 Active Bookings
               </h2>
 
@@ -741,7 +741,7 @@ export default function UserDashboard() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.1 }}
-                      className="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-lg hover:border-indigo-200 transition-all group cursor-pointer overflow-hidden relative"
+                      className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 hover:shadow-lg hover:border-indigo-200 dark:hover:border-indigo-500/50 transition-all group cursor-pointer overflow-hidden relative transition-colors duration-500"
                       onClick={() => navigate(`/user/bookings/${booking._id}`)}
                     >
                       {/* Status Indicator Bar */}
@@ -749,7 +749,7 @@ export default function UserDashboard() {
 
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-start gap-4">
-                          <div className="w-16 h-16 rounded-xl bg-indigo-50 flex items-center justify-center overflow-hidden border border-indigo-100 group-hover:border-indigo-300 transition-all">
+                          <div className="w-16 h-16 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center overflow-hidden border border-indigo-100 dark:border-indigo-900/60 group-hover:border-indigo-300 transition-all">
                             <img
                               src={getBookingWorkerAvatar(
                                 booking,
@@ -761,7 +761,7 @@ export default function UserDashboard() {
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <h3 className="text-slate-900 font-bold text-lg">
+                              <h3 className="text-slate-900 dark:text-white font-bold text-lg">
                                 {booking.serviceId?.name || "Service"}
                               </h3>
                               <motion.div
@@ -770,10 +770,10 @@ export default function UserDashboard() {
                                 className="w-2 h-2 rounded-full bg-emerald-500"
                               />
                             </div>
-                            <p className="text-slate-600 text-sm mb-2">
+                            <p className="text-slate-600 dark:text-slate-300 text-sm mb-2">
                               {booking.workerId?.name || "Worker"}
                             </p>
-                            <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
+                            <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
                               <div className="flex items-center gap-1">
                                 <MapPin size={12} />
                                 {booking.address}
@@ -790,20 +790,20 @@ export default function UserDashboard() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-slate-900 font-black text-xl mb-2">
+                          <p className="text-slate-900 dark:text-white font-black text-xl mb-2">
                             {formatCurrency(getBookingAmount(booking))}
                           </p>
                           <motion.span
                             whileHover={{ scale: 1.05 }}
                             className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold capitalize transition-all ${
                               booking.status === "completed"
-                                ? "bg-emerald-50 text-emerald-600"
+                                ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400"
                                 : booking.status === "pending"
-                                  ? "bg-yellow-50 text-yellow-600 animate-pulse"
+                                  ? "bg-yellow-50 dark:bg-yellow-950/20 text-yellow-600 dark:text-yellow-400 animate-pulse"
                                   : booking.status === "confirmed" ||
                                       booking.status === "accepted"
-                                    ? "bg-blue-50 text-blue-600"
-                                    : "bg-slate-50 text-slate-600"
+                                    ? "bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400"
+                                    : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
                             }`}
                           >
                             {booking.status}
@@ -812,12 +812,12 @@ export default function UserDashboard() {
                       </div>
 
                       {/* Progress Bar */}
-                      <div className="mt-4 pt-4 border-t border-slate-100">
+                      <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-semibold text-slate-600">
+                          <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">
                             Progress
                           </span>
-                          <span className="text-xs font-bold text-indigo-600">
+                          <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
                             {booking.status === "completed"
                               ? "100%"
                               : booking.status === "in-progress"
@@ -827,7 +827,7 @@ export default function UserDashboard() {
                                   : "25%"}
                           </span>
                         </div>
-                        <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="w-full h-2 bg-slate-100 dark:bg-slate-950 rounded-full overflow-hidden">
                           <motion.div
                             initial={{ width: "0%" }}
                             animate={{
@@ -855,18 +855,18 @@ export default function UserDashboard() {
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="bg-white border border-slate-200 rounded-2xl p-8 text-center"
+                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 text-center transition-colors duration-500"
                   >
-                    <Wrench size={48} className="text-slate-300 mx-auto mb-4" />
-                    <h3 className="text-slate-900 font-bold text-lg mb-2">
+                    <Wrench size={48} className="text-slate-300 dark:text-slate-500 mx-auto mb-4" />
+                    <h3 className="text-slate-900 dark:text-white font-bold text-lg mb-2">
                       No Active Bookings
                     </h3>
-                    <p className="text-slate-600 mb-4">
+                    <p className="text-slate-600 dark:text-slate-400 mb-4">
                       Ready to book a service? Browse our available services.
                     </p>
                     <button
                       onClick={() => navigate("/services")}
-                      className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold transition-all"
+                      className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold transition-all cursor-pointer"
                     >
                       Browse Services
                     </button>
@@ -880,17 +880,17 @@ export default function UserDashboard() {
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
-                      <Activity size={16} className="text-indigo-600" />
+                    <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 flex items-center justify-center">
+                      <Activity size={16} className="text-indigo-650 dark:text-indigo-400" />
                     </div>
-                    <h2 className="text-slate-900 font-black text-2xl">
+                    <h2 className="text-slate-900 dark:text-white font-black text-2xl">
                       Recent Bookings
                     </h2>
                   </div>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     onClick={() => navigate("/dashboard")}
-                    className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+                    className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-350 flex items-center gap-1 cursor-pointer animate-none"
                   >
                     View All <ChevronRight size={14} />
                   </motion.button>
@@ -903,35 +903,35 @@ export default function UserDashboard() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.05 }}
                       whileHover={{ x: 5 }}
-                      className="bg-white border border-slate-200 rounded-xl p-4 hover:shadow-md hover:border-indigo-200 transition-all cursor-pointer group"
+                      className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-805 rounded-xl p-4 hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-500/50 transition-all cursor-pointer group transition-colors duration-500"
                       onClick={() => navigate(`/user/bookings/${booking._id}`)}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3 flex-1">
-                          <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-all">
-                            <Wrench size={16} className="text-indigo-600" />
+                          <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/40 transition-all">
+                            <Wrench size={16} className="text-indigo-650 dark:text-indigo-400" />
                           </div>
                           <div className="flex-1">
-                            <p className="text-slate-900 font-semibold text-sm">
+                            <p className="text-slate-900 dark:text-white font-semibold text-sm">
                               {booking.serviceId?.name || "Service"}
                             </p>
-                            <p className="text-slate-500 text-xs">
+                            <p className="text-slate-500 dark:text-slate-400 text-xs">
                               {new Date(booking.createdAt).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-slate-900 font-bold">
+                          <p className="text-slate-900 dark:text-white font-bold">
                             {formatCurrency(getBookingAmount(booking))}
                           </p>
                           <motion.span
                             whileHover={{ scale: 1.05 }}
                             className={`text-xs px-2 py-1 rounded-full font-semibold inline-block transition-all ${
                               booking.status === "completed"
-                                ? "bg-emerald-50 text-emerald-600"
+                                ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400"
                                 : booking.status === "pending"
-                                  ? "bg-yellow-50 text-yellow-600"
-                                  : "bg-blue-50 text-blue-600"
+                                  ? "bg-yellow-50 dark:bg-yellow-950/20 text-yellow-600 dark:text-yellow-400"
+                                  : "bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400"
                             }`}
                           >
                             {booking.status}
@@ -952,12 +952,12 @@ export default function UserDashboard() {
             className="space-y-6"
           >
             {/* Quick Actions */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-indigo-200 transition-all">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 hover:border-indigo-200 dark:hover:border-indigo-500/50 transition-all transition-colors duration-500">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
-                  <Zap size={16} className="text-indigo-600" />
+                <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 flex items-center justify-center">
+                  <Zap size={16} className="text-indigo-650 dark:text-indigo-400" />
                 </div>
-                <h3 className="text-slate-900 font-bold text-lg">
+                <h3 className="text-slate-900 dark:text-white font-bold text-lg">
                   Quick Actions
                 </h3>
               </div>
@@ -965,15 +965,15 @@ export default function UserDashboard() {
                 <motion.button
                   whileHover={{ x: 5 }}
                   onClick={() => navigate("/services")}
-                  className="w-full flex items-center gap-3 p-3 bg-gradient-to-br from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100 rounded-xl transition-all group border border-indigo-100 hover:border-indigo-300"
+                  className="w-full flex items-center gap-3 p-3 bg-gradient-to-br from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100 dark:from-indigo-950/10 dark:to-blue-950/10 dark:hover:from-indigo-950/20 dark:hover:to-blue-950/20 rounded-xl transition-all group border border-indigo-105 dark:border-indigo-900/30 hover:border-indigo-305 dark:hover:border-indigo-705 cursor-pointer"
                 >
-                  <div className="p-2 rounded-lg bg-white group-hover:bg-indigo-600 transition-all">
+                  <div className="p-2 rounded-lg bg-white dark:bg-slate-950 group-hover:bg-indigo-650 transition-all animate-none">
                     <Wrench
                       size={16}
-                      className="text-indigo-600 group-hover:text-white transition-all"
+                      className="text-indigo-650 group-hover:text-white transition-all"
                     />
                   </div>
-                  <span className="text-slate-900 font-semibold text-sm flex-1 text-left">
+                  <span className="text-slate-900 dark:text-white font-semibold text-sm flex-1 text-left">
                     Book Service
                   </span>
                   <ChevronRight
@@ -984,15 +984,15 @@ export default function UserDashboard() {
                 <motion.button
                   whileHover={{ x: 5 }}
                   onClick={() => navigate("/dashboard")}
-                  className="w-full flex items-center gap-3 p-3 bg-gradient-to-br from-slate-50 to-slate-100 hover:from-slate-100 hover:to-slate-200 rounded-xl transition-all group border border-slate-200 hover:border-slate-300"
+                  className="w-full flex items-center gap-3 p-3 bg-gradient-to-br from-slate-50 to-slate-100 hover:from-slate-100 hover:to-slate-200 dark:from-slate-900 dark:to-slate-950 dark:hover:from-slate-850 dark:hover:to-slate-900 rounded-xl transition-all group border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer"
                 >
-                  <div className="p-2 rounded-lg bg-white group-hover:bg-slate-600 transition-all">
+                  <div className="p-2 rounded-lg bg-white dark:bg-slate-955 group-hover:bg-slate-700 transition-all animate-none">
                     <Calendar
                       size={16}
                       className="text-slate-600 group-hover:text-white transition-all"
                     />
                   </div>
-                  <span className="text-slate-900 font-semibold text-sm flex-1 text-left">
+                  <span className="text-slate-900 dark:text-white font-semibold text-sm flex-1 text-left">
                     My Bookings
                   </span>
                   <ChevronRight
@@ -1003,15 +1003,15 @@ export default function UserDashboard() {
                 <motion.button
                   whileHover={{ x: 5 }}
                   onClick={() => navigate("/user-profile")}
-                  className="w-full flex items-center gap-3 p-3 bg-gradient-to-br from-slate-50 to-slate-100 hover:from-slate-100 hover:to-slate-200 rounded-xl transition-all group border border-slate-200 hover:border-slate-300"
+                  className="w-full flex items-center gap-3 p-3 bg-gradient-to-br from-slate-50 to-slate-100 hover:from-slate-100 hover:to-slate-200 dark:from-slate-900 dark:to-slate-950 dark:hover:from-slate-850 dark:hover:to-slate-900 rounded-xl transition-all group border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer"
                 >
-                  <div className="p-2 rounded-lg bg-white group-hover:bg-slate-600 transition-all">
+                  <div className="p-2 rounded-lg bg-white dark:bg-slate-955 group-hover:bg-slate-700 transition-all animate-none">
                     <UserIcon
                       size={16}
                       className="text-slate-600 group-hover:text-white transition-all"
                     />
                   </div>
-                  <span className="text-slate-900 font-semibold text-sm flex-1 text-left">
+                  <span className="text-slate-900 dark:text-white font-semibold text-sm flex-1 text-left">
                     Profile
                   </span>
                   <ChevronRight
@@ -1022,15 +1022,15 @@ export default function UserDashboard() {
                 <motion.button
                   whileHover={{ x: 5 }}
                   onClick={() => navigate("/map")}
-                  className="w-full flex items-center gap-3 p-3 bg-gradient-to-br from-slate-50 to-slate-100 hover:from-slate-100 hover:to-slate-200 rounded-xl transition-all group border border-slate-200 hover:border-slate-300"
+                  className="w-full flex items-center gap-3 p-3 bg-gradient-to-br from-slate-50 to-slate-100 hover:from-slate-100 hover:to-slate-200 dark:from-slate-900 dark:to-slate-950 dark:hover:from-slate-850 dark:hover:to-slate-900 rounded-xl transition-all group border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer"
                 >
-                  <div className="p-2 rounded-lg bg-white group-hover:bg-slate-600 transition-all">
+                  <div className="p-2 rounded-lg bg-white dark:bg-slate-955 group-hover:bg-slate-700 transition-all animate-none">
                     <MapPin
                       size={16}
                       className="text-slate-600 group-hover:text-white transition-all"
                     />
                   </div>
-                  <span className="text-slate-900 font-semibold text-sm flex-1 text-left">
+                  <span className="text-slate-900 dark:text-white font-semibold text-sm flex-1 text-left">
                     View Map
                   </span>
                   <ChevronRight
@@ -1042,30 +1042,30 @@ export default function UserDashboard() {
             </div>
 
             {/* Transaction Details */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-indigo-200 transition-all">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 hover:border-indigo-200 dark:hover:border-indigo-500/50 transition-all transition-colors duration-500">
               <div className="flex flex-col gap-4 mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-950/60 flex items-center justify-center">
                     <DollarSign size={16} className="text-green-600" />
                   </div>
-                  <h3 className="text-slate-900 font-bold text-lg">
+                  <h3 className="text-slate-900 dark:text-white font-bold text-lg">
                     Transactions
                   </h3>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-600">
-                  <div className="rounded-2xl bg-slate-50 p-3 border border-slate-200">
-                    <p className="text-slate-500 uppercase tracking-wider text-[11px] font-semibold">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-600 dark:text-slate-300">
+                  <div className="rounded-2xl bg-slate-50 dark:bg-slate-950 p-3 border border-slate-200 dark:border-slate-800">
+                    <p className="text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[11px] font-semibold">
                       Total transactions
                     </p>
-                    <p className="mt-2 text-slate-900 font-black text-xl">
+                    <p className="mt-2 text-slate-900 dark:text-white font-black text-xl">
                       {dashboardStats.totalBookings || 0}
                     </p>
                   </div>
-                  <div className="rounded-2xl bg-slate-50 p-3 border border-slate-200">
-                    <p className="text-slate-500 uppercase tracking-wider text-[11px] font-semibold">
+                  <div className="rounded-2xl bg-slate-50 dark:bg-slate-955 p-3 border border-slate-200 dark:border-slate-800">
+                    <p className="text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[11px] font-semibold">
                       Total amount
                     </p>
-                    <p className="mt-2 text-slate-900 font-black text-xl">
+                    <p className="mt-2 text-slate-900 dark:text-white font-black text-xl">
                       {formatCurrency(dashboardStats.totalSpent)}
                     </p>
                   </div>
@@ -1082,35 +1082,35 @@ export default function UserDashboard() {
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.05 }}
-                        className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all border border-slate-100 hover:border-green-200 group"
+                        className="p-3 bg-slate-50 dark:bg-slate-955 hover:bg-slate-100 dark:hover:bg-slate-850 rounded-xl transition-all border border-slate-100 dark:border-slate-800 hover:border-green-200 dark:hover:border-green-800/40 group cursor-pointer"
                       >
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-slate-900 truncate">
+                            <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
                               {booking.serviceId?.name ||
                                 booking.serviceName ||
                                 "Service"}
                             </p>
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
                               {new Date(
                                 booking.createdAt || booking.date,
                               ).toLocaleDateString()}
                             </p>
                           </div>
                           <div className="text-right flex-shrink-0">
-                            <p className="text-sm font-bold text-slate-900">
+                            <p className="text-sm font-bold text-slate-900 dark:text-white">
                               {formatCurrency(getBookingAmount(booking))}
                             </p>
                             <span
                               className={`text-xs font-semibold px-2 py-0.5 rounded inline-block mt-0.5 ${
                                 booking.status === "completed"
-                                  ? "bg-emerald-100 text-emerald-700"
+                                  ? "bg-emerald-100 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400"
                                   : booking.status === "pending"
-                                    ? "bg-yellow-100 text-yellow-700"
+                                    ? "bg-yellow-100 dark:bg-yellow-950/20 text-yellow-700 dark:text-yellow-400"
                                     : booking.status === "confirmed" ||
                                         booking.status === "accepted"
-                                      ? "bg-blue-100 text-blue-700"
-                                      : "bg-slate-100 text-slate-700"
+                                      ? "bg-blue-100 dark:bg-blue-950/20 text-blue-700 dark:text-blue-400"
+                                      : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400"
                               }`}
                             >
                               {booking.status}
@@ -1118,15 +1118,14 @@ export default function UserDashboard() {
                           </div>
                         </div>
                         {booking.workerId?.name && (
-                          <p className="text-xs text-slate-600">
+                          <p className="text-xs text-slate-600 dark:text-slate-400">
                             Worker: {booking.workerId.name}
                           </p>
                         )}
                       </motion.div>
-                    ))
-                ) : (
+                    ))) : (
                   <div className="text-center py-4">
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
                       No transactions yet
                     </p>
                   </div>
@@ -1135,19 +1134,19 @@ export default function UserDashboard() {
               <motion.button
                 whileHover={{ x: 5 }}
                 onClick={() => navigate("/transactions")}
-                className="w-full mt-4 flex items-center justify-center gap-2 p-2.5 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 rounded-lg transition-all group border border-green-200 hover:border-green-300 text-sm font-semibold text-green-700"
+                className="w-full mt-4 flex items-center justify-center gap-2 p-2.5 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 hover:from-green-100 dark:hover:from-green-900/35 hover:to-emerald-100 text-green-700 dark:text-green-400 rounded-lg transition-all group border border-green-200 dark:border-green-800/40 hover:border-green-300 dark:hover:border-green-700 text-sm font-semibold cursor-pointer shadow-sm"
               >
                 View All Transactions <ChevronRight size={14} />
               </motion.button>
             </div>
 
             {/* Service Recommendations */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-indigo-200 transition-all">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 hover:border-indigo-200 dark:hover:border-indigo-500/50 transition-all transition-colors duration-500">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
-                  <Sparkles size={16} className="text-amber-600" />
+                <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-950/60 flex items-center justify-center">
+                  <Sparkles size={16} className="text-amber-600 animate-none" />
                 </div>
-                <h3 className="text-slate-900 font-bold text-lg">
+                <h3 className="text-slate-900 dark:text-white font-bold text-lg">
                   Popular Services
                 </h3>
               </div>
@@ -1182,12 +1181,12 @@ export default function UserDashboard() {
                     key={idx}
                     whileHover={{ x: 5 }}
                     onClick={() => navigate("/services")}
-                    className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-xl transition-all group"
+                    className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 dark:hover:bg-slate-850 rounded-xl transition-all group cursor-pointer border border-transparent hover:border-slate-200/50 dark:hover:border-slate-800/80"
                   >
-                    <div className={`p-2 rounded-lg ${service.bg}`}>
+                    <div className={`p-2 rounded-lg ${service.bg} dark:bg-slate-800`}>
                       <service.icon size={16} className={service.color} />
                     </div>
-                    <span className="text-slate-900 font-semibold text-sm flex-1 text-left">
+                    <span className="text-slate-900 dark:text-white font-semibold text-sm flex-1 text-left">
                       {service.name}
                     </span>
                     <ChevronRight
@@ -1202,31 +1201,31 @@ export default function UserDashboard() {
             {/* Stats Summary Card */}
             <motion.div
               whileHover={{ y: -5 }}
-              className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-200 rounded-2xl p-6 relative overflow-hidden"
+              className="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/20 dark:to-blue-950/20 border border-indigo-200 dark:border-indigo-900/50 rounded-2xl p-6 relative overflow-hidden"
             >
               <div className="absolute top-0 right-0 w-40 h-40 bg-indigo-200/20 rounded-full -mr-20 -mt-20 blur-3xl" />
               <div className="relative z-10">
                 <div className="flex items-center gap-2 mb-4">
-                  <BarChart3 size={20} className="text-indigo-600" />
-                  <h3 className="text-slate-900 font-bold">Your Stats</h3>
+                  <BarChart3 size={20} className="text-indigo-650 dark:text-indigo-400" />
+                  <h3 className="text-slate-900 dark:text-white font-bold">Your Stats</h3>
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-slate-600 font-medium">
+                    <span className="text-sm text-slate-655 dark:text-slate-300 font-medium">
                       Total Services
                     </span>
-                    <span className="text-lg font-bold text-indigo-600">
+                    <span className="text-lg font-bold text-indigo-650 dark:text-indigo-400">
                       {dashboardStats.totalBookings}
                     </span>
                   </div>
-                  <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="w-full h-1 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                     <div className="h-full w-2/3 bg-gradient-to-r from-indigo-500 to-blue-500" />
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-slate-600 font-medium">
+                    <span className="text-sm text-slate-655 dark:text-slate-300 font-medium">
                       Success Rate
                     </span>
-                    <span className="text-lg font-bold text-emerald-600">
+                    <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
                       {dashboardStats.totalBookings > 0
                         ? Math.round(
                             (dashboardStats.completedBookings /

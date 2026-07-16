@@ -5,10 +5,10 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="relative bg-[#0F172A] pt-24 pb-12 px-4 md:px-8 overflow-hidden">
+    <footer className="relative bg-[#0F172A] dark:bg-[#060A13] pt-24 pb-12 px-4 md:px-8 overflow-hidden border-t border-slate-100/5 dark:border-slate-900/40 transition-colors duration-500">
       
       {/* Subtle Background Glow for Depth */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-[#4F46E5]/10 rounded-full blur-[120px] -z-0"></div>
+      <div className="absolute top-0 right-0 w-96 h-96 bg-[#4F46E5]/10 dark:bg-indigo-600/15 rounded-full blur-[120px] -z-0"></div>
       
       <div className="max-w-7xl mx-auto relative z-10">
         
@@ -96,7 +96,7 @@ export default function Footer() {
           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em]">
             © {currentYear} Synapthire. Excellence in Service.
           </p>
-          <div className="flex gap-10 text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em]">
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-10 text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em]">
             <a href="#" className="hover:text-white transition-colors">Privacy</a>
             <a href="#" className="hover:text-white transition-colors">Terms</a>
             <a href="#" className="hover:text-white transition-colors">Cookies</a>

@@ -10,6 +10,7 @@ import bookingRoutes from "./routes/booking.routes.js";
 import workerRoutes from "./routes/worker.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
 import chatRoutes from "./routes/chat.routes.js";
+import aiAgentRoutes from "./routes/aiAgent.routes.js";
 import { initializeSocketIO } from "./controllers/socketio.controller.js";
 
 dotenv.config();
@@ -45,6 +46,7 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/workers", workerRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/ai", aiAgentRoutes);
 
 // Base Route
 app.get("/", (req, res) => {

@@ -22,11 +22,11 @@ export default function Reviews() {
 
   return (
     // py-24 for vertical rhythm, bg-white to contrast slightly with the #F8FAFC sections
-    <section id="reviews" className="relative py-24 px-4 md:px-8 flex flex-col items-center bg-white">
+    <section id="reviews" className="relative py-24 px-4 md:px-8 flex flex-col items-center bg-[#FDFDFD] dark:bg-[#0A0F1D] transition-colors duration-500">
       
       {/* Section Header */}
       <div className="w-full max-w-3xl text-center mb-12 md:mb-16">
-        <h2 className="text-3xl md:text-4xl font-extrabold text-[#0F172A] tracking-tight">
+        <h2 className="text-3xl md:text-4xl font-extrabold text-[#0F172A] dark:text-white tracking-tight transition-colors">
           What our customers say
         </h2>
       </div>
@@ -38,12 +38,12 @@ export default function Reviews() {
           // Premium Glass Review Card
           <div 
             key={index}
-            className="group p-8 bg-[#F8FAFC]/80 backdrop-blur-lg border border-black/5 rounded-[1.5rem] shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col"
+            className="group p-8 bg-[#F8FAFC]/80 dark:bg-slate-900/60 backdrop-blur-lg border border-black/5 dark:border-slate-800/40 rounded-[1.5rem] shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col theme-transition"
           >
             {/* Header: Quote Icon & Stars */}
             <div className="flex items-center justify-between mb-6">
-              <div className="w-10 h-10 bg-[#4F46E5]/10 rounded-full flex items-center justify-center">
-                <Quote className="text-[#4F46E5]" size={18} fill="currentColor" />
+              <div className="w-10 h-10 bg-[#4F46E5]/10 dark:bg-[#4F46E5]/25 rounded-full flex items-center justify-center">
+                <Quote className="text-[#4F46E5] dark:text-indigo-400" size={18} fill="currentColor" />
               </div>
               <div className="flex gap-0.5">
                 {[...Array(5)].map((_, i) => (
@@ -53,19 +53,19 @@ export default function Reviews() {
             </div>
             
             {/* Review Body - flex-grow ensures the author block is pushed to the bottom */}
-            <p className="text-lg text-[#0F172A]/80 leading-relaxed font-medium mb-8 flex-grow">
+            <p className="text-lg text-[#0F172A]/80 dark:text-slate-350 leading-relaxed font-medium mb-8 flex-grow transition-colors">
               "{review.quote}"
             </p>
             
             {/* Author Footer */}
-            <div className="flex items-center gap-3 mt-auto pt-6 border-t border-black/5">
+            <div className="flex items-center gap-3 mt-auto pt-6 border-t border-black/5 dark:border-slate-850">
               {/* Optional Avatar Placeholder (Initials) */}
-              <div className="w-10 h-10 rounded-full bg-[#0F172A] flex items-center justify-center text-white font-bold text-sm shrink-0">
+              <div className="w-10 h-10 rounded-full bg-[#0F172A] dark:bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
                 {review.name.charAt(0)}
               </div>
               <div>
-                <h4 className="font-bold text-[#0F172A] text-sm">{review.name}</h4>
-                <p className="text-xs font-medium text-[#0F172A]/60">{review.role}</p>
+                <h4 className="font-bold text-[#0F172A] dark:text-white text-sm transition-colors">{review.name}</h4>
+                <p className="text-xs font-medium text-[#0F172A]/60 dark:text-slate-500 transition-colors">{review.role}</p>
               </div>
             </div>
           </div>

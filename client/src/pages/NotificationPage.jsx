@@ -185,9 +185,9 @@ export default function NotificationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 pt-28 md:pt-32 pb-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-[#070B16] dark:via-slate-950 dark:to-slate-900 pt-28 md:pt-32 pb-12 transition-colors duration-500">
       {/* Header */}
-      <div className="sticky top-28 md:top-32 z-40 backdrop-blur-xl bg-white/90 border-b border-slate-200/60 shadow-sm">
+      <div className="sticky top-28 md:top-32 z-40 backdrop-blur-xl bg-white/90 dark:bg-slate-900/90 border-b border-slate-200/60 dark:border-slate-800/80 shadow-sm transition-colors">
         <div className="max-w-5xl mx-auto px-6 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-5">
@@ -197,11 +197,11 @@ export default function NotificationPage() {
                     role === "worker" ? "/worker-dashboard" : "/user-dashboard",
                   )
                 }
-                className="group p-3 hover:bg-slate-100 rounded-xl transition-all duration-200 hover:scale-105"
+                className="group p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all duration-200 hover:scale-105 cursor-pointer"
               >
                 <ArrowLeft
                   size={22}
-                  className="text-slate-600 group-hover:text-slate-800"
+                  className="text-slate-600 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white"
                 />
               </button>
               <div className="flex items-center gap-4">
@@ -209,10 +209,10 @@ export default function NotificationPage() {
                   <Bell size={24} className="text-white" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+                  <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
                     Notifications
                   </h1>
-                  <p className="text-sm font-medium text-slate-600 mt-1">
+                  <p className="text-sm font-medium text-slate-650 dark:text-slate-400 mt-1">
                     {role === "worker"
                       ? "Stay updated with new requests and messages"
                       : "Track your booking updates and conversations"}
@@ -222,7 +222,7 @@ export default function NotificationPage() {
                       className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide transition-all duration-200 ${
                         notifications.length > 0
                           ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg"
-                          : "bg-slate-100 text-slate-600"
+                          : "bg-slate-100 dark:bg-slate-850 text-slate-650 dark:text-slate-400"
                       }`}
                     >
                       {notifications.length > 0
@@ -240,7 +240,7 @@ export default function NotificationPage() {
             {notifications.length > 0 && (
               <button
                 onClick={clearNotifications}
-                className="px-5 py-2.5 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white text-sm font-semibold rounded-xl transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
+                className="px-5 py-2.5 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white text-sm font-semibold rounded-xl transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl cursor-pointer"
               >
                 Clear All
               </button>
@@ -257,7 +257,7 @@ export default function NotificationPage() {
               <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
               <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-blue-400 rounded-full animate-spin animation-delay-150"></div>
             </div>
-            <p className="text-sm font-medium text-slate-600 mt-6 animate-pulse">
+            <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mt-6 animate-pulse">
               Loading notifications...
             </p>
           </div>
@@ -269,10 +269,10 @@ export default function NotificationPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className={`group bg-white rounded-2xl p-6 border border-slate-200/60 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1 relative overflow-hidden ${
+                className={`group bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200/60 dark:border-slate-800/80 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1 relative overflow-hidden ${
                   notification.type === "message"
-                    ? "hover:border-blue-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-gradient-to-b before:from-blue-500 before:to-indigo-600"
-                    : "hover:border-emerald-200 hover:bg-gradient-to-r hover:from-emerald-50 hover:to-green-50 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-gradient-to-b before:from-emerald-500 before:to-green-600"
+                    ? "hover:border-blue-200 dark:hover:border-blue-805/50 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-950/20 dark:hover:to-indigo-950/10 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-gradient-to-b before:from-blue-500 before:to-indigo-600"
+                    : "hover:border-emerald-200 dark:hover:border-emerald-805/50 hover:bg-gradient-to-r hover:from-emerald-50 hover:to-green-50 dark:hover:from-emerald-950/20 dark:hover:to-green-950/10 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-gradient-to-b before:from-emerald-500 before:to-green-600"
                 }`}
                 onClick={() => {
                   if (
@@ -293,8 +293,8 @@ export default function NotificationPage() {
                   <div
                     className={`flex-shrink-0 p-4 rounded-2xl shadow-lg transform group-hover:scale-110 transition-transform duration-300 ${
                       notification.type === "booking"
-                        ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-blue-200"
-                        : "bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-emerald-200"
+                        ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-blue-205 dark:shadow-none"
+                        : "bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-emerald-205 dark:shadow-none"
                     }`}
                   >
                     {notification.type === "booking" ? (
@@ -306,7 +306,7 @@ export default function NotificationPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
-                        <p className="text-slate-900 font-semibold leading-relaxed text-lg">
+                        <p className="text-slate-900 dark:text-slate-105 font-semibold leading-relaxed text-lg">
                           {notification.message}
                         </p>
                         <div className="flex items-center gap-3 mt-3">
@@ -321,7 +321,7 @@ export default function NotificationPage() {
                               ? "📋 Booking"
                               : "💬 Message"}
                           </div>
-                          <span className="text-sm text-slate-500 font-medium flex items-center gap-2">
+                          <span className="text-sm text-slate-500 dark:text-slate-400 font-medium flex items-center gap-2">
                             <div className="w-1 h-1 bg-slate-400 rounded-full"></div>
                             {notification.timestamp.toLocaleDateString()} at{" "}
                             {notification.timestamp.toLocaleTimeString([], {
@@ -331,17 +331,17 @@ export default function NotificationPage() {
                           </span>
                         </div>
                         {notification.type === "message" && (
-                          <p className="text-sm text-blue-600 mt-2 font-medium flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+                           <p className="text-sm text-blue-600 dark:text-blue-400 mt-2 font-medium flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full"></span>
                             Click to view conversation
                           </p>
                         )}
                       </div>
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="p-2 rounded-full bg-slate-100 group-hover:bg-slate-200 transition-colors">
+                        <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-colors">
                           <ArrowLeft
                             size={16}
-                            className="text-slate-600 rotate-180"
+                            className="text-slate-600 dark:text-slate-400 rotate-180"
                           />
                         </div>
                       </div>
@@ -355,18 +355,18 @@ export default function NotificationPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-3xl p-16 border border-slate-200/60 shadow-xl text-center max-w-2xl mx-auto"
+            className="bg-white dark:bg-slate-900 rounded-3xl p-16 border border-slate-200/60 dark:border-slate-800/80 shadow-xl text-center max-w-2xl mx-auto transition-colors"
           >
             <div className="relative mb-8">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full blur-2xl opacity-20"></div>
-              <div className="relative p-8 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full w-fit mx-auto shadow-lg">
-                <Bell size={64} className="text-slate-400" />
+              <div className="relative p-8 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-850 rounded-full w-fit mx-auto shadow-lg">
+                <Bell size={64} className="text-slate-400 dark:text-slate-500" />
               </div>
             </div>
-            <h3 className="text-3xl font-bold text-slate-900 mb-4 tracking-tight">
+            <h3 className="text-3xl font-bold text-slate-900 dark:text-white mb-4 tracking-tight">
               All Caught Up!
             </h3>
-            <p className="text-slate-600 text-lg leading-relaxed mb-6">
+            <p className="text-slate-655 dark:text-slate-400 text-lg leading-relaxed mb-6">
               {role === "worker"
                 ? "No new booking requests or messages at the moment. We'll notify you when something arrives!"
                 : "No booking updates or messages right now. Check back later for the latest updates!"}
@@ -378,7 +378,7 @@ export default function NotificationPage() {
                     role === "worker" ? "/worker-dashboard" : "/user-dashboard",
                   )
                 }
-                className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
+                className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl cursor-pointer"
               >
                 Go to Dashboard
               </button>

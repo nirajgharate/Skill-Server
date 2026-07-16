@@ -1,12 +1,12 @@
 import React from 'react';
-import { CheckCircle2, ShieldCheck, Star } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, Star } from 'lucide-react';
 
 export default function About() {
   const valuePoints = [
-    'Verified & skilled workers',
-    'Simple booking process',
-    'Local community focus',
-    '100% satisfaction guarantee'
+    'Rigorous KYC & background checks',
+    'Upfront, flat-rate pricing models',
+    'Escrow-protected safe transactions',
+    '100% Satisfaction Guarantee'
   ];
 
   const stats = [
@@ -16,49 +16,47 @@ export default function About() {
   ];
 
   return (
-    <section id="about" className="relative py-24 md:py-32 px-4 md:px-8 flex justify-center bg-white">
+    <section id="about" className="relative py-24 md:py-32 px-6 md:px-12 bg-slate-50/70 dark:bg-[#070B16] border-t border-slate-100 dark:border-slate-900/60 flex justify-center transition-colors duration-500 overflow-hidden">
+      {/* Light Mode Soft Ambient Glow Circle */}
+      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-indigo-500/5 dark:bg-transparent rounded-full blur-3xl pointer-events-none z-0 animate-pulse-slow" />
       
-      <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center">
+      <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-20 items-center relative z-10">
         
-        {/* Left Column: Story, Stats & Values */}
-        <div className="flex flex-col gap-8 lg:pr-4 order-2 lg:order-1">
+        {/* --- LEFT COLUMN: STORY, STATS & DETAILS (Span 7) --- */}
+        <div className="lg:col-span-7 flex flex-col gap-8">
           
           <div className="flex flex-col gap-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#4F46E5]/10 rounded-full w-fit">
-              <span className="text-sm font-bold tracking-wide uppercase text-[#4F46E5]">
-                Why Choose Us
-              </span>
-            </div>
-            
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#0F172A] tracking-tight leading-[1.15]">
-              Building a network of trust in your local community.
+            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-indigo-600 dark:text-indigo-400">
+              Who We Are
+            </span>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white mt-1 tracking-tight leading-none transition-colors">
+              Your home, cared for by local experts.
             </h2>
-            
-            <p className="text-lg text-[#0F172A]/70 leading-relaxed md:max-w-[95%]">
-              Synapthire isn't just a directory; it's a commitment to quality. We connect homeowners with rigorously vetted local professionals, ensuring every repair, installation, and maintenance job is done right the first time.
+            <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 font-medium leading-relaxed transition-colors">
+              We connect homeowners with trusted, background-checked neighborhood professionals. Our secure platform guarantees pricing transparency and secure escrow payouts.
             </p>
           </div>
 
-          {/* Professional Metrics Grid */}
-          <div className="grid grid-cols-3 gap-6 py-6 border-y border-black/5">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-3 gap-6 py-6 border-y border-slate-100 dark:border-slate-800 transition-colors">
             {stats.map((stat, index) => (
               <div key={index} className="flex flex-col gap-1">
-                <span className="text-2xl md:text-3xl font-extrabold text-[#4F46E5]">
+                <span className="text-2xl md:text-3xl font-extrabold text-indigo-600 dark:text-indigo-450 transition-colors">
                   {stat.value}
                 </span>
-                <span className="text-sm font-medium text-[#0F172A]/60">
+                <span className="text-xs font-bold text-slate-400 dark:text-slate-500 transition-colors">
                   {stat.label}
                 </span>
               </div>
             ))}
           </div>
 
-          {/* 2x2 Value Grid (Looks much cleaner than a long vertical list) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+          {/* 2x2 Value List Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {valuePoints.map((point, index) => (
-              <div key={index} className="flex items-start gap-3 p-3 bg-[#F8FAFC] rounded-xl border border-black/5 transition-colors hover:border-[#4F46E5]/20">
-                <CheckCircle2 className="text-[#4F46E5] shrink-0 mt-0.5" size={20} strokeWidth={2.5} />
-                <span className="text-sm font-semibold text-[#0F172A]/85">
+              <div key={index} className="flex items-start gap-3 p-3 bg-white dark:bg-slate-900/40 rounded-xl border border-slate-200/50 dark:border-slate-800/65 transition-all">
+                <CheckCircle2 className="text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" size={18} strokeWidth={2.5} />
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-300 transition-colors">
                   {point}
                 </span>
               </div>
@@ -67,31 +65,31 @@ export default function About() {
           
         </div>
 
-        {/* Right Column: Premium Offset Image Composition */}
-        <div className="relative w-full flex justify-center items-center order-1 lg:order-2 mb-8 lg:mb-0 lg:pl-10">
+        {/* --- RIGHT COLUMN: OFFSET TRUST DECK (Span 5) --- */}
+        <div className="lg:col-span-5 relative w-full flex justify-center items-center">
           
-          {/* Main Glass Frame */}
-          <div className="relative w-full max-w-md lg:max-w-full p-4 bg-[#F8FAFC] border border-black/5 rounded-[2.5rem] shadow-sm">
+          <div className="relative w-full max-w-sm p-4 bg-white dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800/40 rounded-[2.5rem] shadow-sm theme-transition">
             
-            {/* The Image */}
+            {/* Vetted worker action image */}
             <img 
-              src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=1000&auto=format&fit=crop" 
-              alt="Local professional providing service" 
+              src="https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=600&auto=format&fit=crop" 
+              alt="Verified technician performing repair service" 
               className="w-full aspect-[4/3] lg:aspect-square object-cover rounded-[1.5rem]"
             />
 
-            {/* Premium Trust Badge (Redesigned to look like a UI component) */}
-            <div className="absolute top-8 -left-4 md:-left-8 flex flex-col gap-1 p-4 bg-white/90 backdrop-blur-xl border border-black/5 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
-              <div className="flex items-center gap-2 mb-1">
-                <ShieldCheck className="text-[#4F46E5]" size={20} strokeWidth={2.5} />
-                <span className="text-sm font-extrabold text-[#0F172A]">SkillServer Guarantee</span>
+            {/* Floating verification badge overlay */}
+            <div className="absolute top-8 left-4 sm:-left-4 md:-left-8 flex flex-col gap-1.5 p-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/60 rounded-2xl shadow-lg theme-transition">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="text-indigo-600 dark:text-indigo-400" size={20} strokeWidth={2.5} />
+                <span className="text-xs font-extrabold text-slate-900 dark:text-white transition-colors">Safety Assured</span>
               </div>
-              <div className="flex items-center gap-1 text-[#0F172A]/70">
-                <Star className="text-yellow-500 fill-yellow-500" size={14} />
-                <Star className="text-yellow-500 fill-yellow-500" size={14} />
-                <Star className="text-yellow-500 fill-yellow-500" size={14} />
-                <Star className="text-yellow-500 fill-yellow-500" size={14} />
-                <Star className="text-yellow-500 fill-yellow-500" size={14} />
+              <div className="flex items-center gap-1 text-[#0F172A]/70 dark:text-slate-400 text-[10px] font-bold">
+                <Star className="text-yellow-500 fill-yellow-500" size={12} />
+                <Star className="text-yellow-500 fill-yellow-500" size={12} />
+                <Star className="text-yellow-500 fill-yellow-500" size={12} />
+                <Star className="text-yellow-500 fill-yellow-500" size={12} />
+                <Star className="text-yellow-500 fill-yellow-500" size={12} />
+                <span className="ml-1 text-slate-500">5.0 Pros</span>
               </div>
             </div>
             

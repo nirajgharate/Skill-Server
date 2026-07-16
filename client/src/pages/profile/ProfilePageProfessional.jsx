@@ -328,11 +328,11 @@ export default function ProfilePageProfessional() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-[#070B16] dark:via-slate-950 dark:to-slate-900 flex items-center justify-center transition-colors duration-500">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 2, repeat: Infinity }}
-          className="w-16 h-16 border-4 border-slate-300 border-t-blue-600 rounded-full"
+          className="w-16 h-16 border-4 border-slate-300 dark:border-slate-800 border-t-blue-600 rounded-full"
         />
       </div>
     );
@@ -340,14 +340,14 @@ export default function ProfilePageProfessional() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-[#070B16] dark:via-slate-950 dark:to-slate-900 flex items-center justify-center transition-colors duration-500">
         <AlertCircle size={48} className="text-red-500" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-[#070B16] dark:via-slate-950 dark:to-slate-900 transition-colors duration-500">
       {/* Hero Header - Professional Design */}
       <div className="relative z-10 mt-24">
         <div
@@ -402,7 +402,7 @@ export default function ProfilePageProfessional() {
             initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="bg-white border border-slate-200 rounded-3xl p-8 -mt-28 relative z-20 shadow-2xl"
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 -mt-28 relative z-20 shadow-2xl transition-colors duration-500"
           >
             <div className="flex flex-col md:flex-row gap-8 items-start">
               {/* Avatar Section */}
@@ -414,7 +414,7 @@ export default function ProfilePageProfessional() {
                       : "from-blue-400 to-blue-600"
                   }`}
                 >
-                  <div className="w-full h-full rounded-3xl overflow-hidden bg-white flex items-center justify-center">
+                  <div className="w-full h-full rounded-3xl overflow-hidden bg-white dark:bg-slate-950 flex items-center justify-center">
                     <img
                       src={
                         user.profilePhoto ||
@@ -434,7 +434,7 @@ export default function ProfilePageProfessional() {
                         setIsEditing(true);
                         setShowAvatarPicker(true);
                       }}
-                      className="absolute bottom-4 right-4 z-20 h-12 w-12 rounded-full bg-white shadow-lg grid place-items-center text-slate-900 hover:bg-slate-100 transition-all"
+                      className="absolute bottom-4 right-4 z-20 h-12 w-12 rounded-full bg-white dark:bg-slate-950 shadow-lg grid place-items-center text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-900 transition-all border border-slate-200 dark:border-slate-800/80 cursor-pointer"
                       aria-label="Choose avatar"
                     >
                       <Sparkles size={20} />
@@ -447,7 +447,7 @@ export default function ProfilePageProfessional() {
                     animate={{ scale: isAvailable ? [1, 1.15, 1] : 1 }}
                     transition={{ repeat: Infinity, duration: 2 }}
                     onClick={() => setIsAvailable(!isAvailable)}
-                    className={`absolute bottom-3 right-3 w-10 h-10 rounded-full border-4 border-white flex items-center justify-center cursor-pointer transition-all hover:scale-125 ${
+                    className={`absolute bottom-3 right-3 w-10 h-10 rounded-full border-4 border-white dark:border-slate-900 flex items-center justify-center cursor-pointer transition-all hover:scale-125 ${
                       isAvailable
                         ? "bg-green-500 shadow-lg shadow-green-500/50"
                         : "bg-slate-400"
@@ -461,7 +461,7 @@ export default function ProfilePageProfessional() {
               {/* Info Section */}
               <div className="flex-1">
                 <div className="mb-2 flex items-center gap-3">
-                  <h1 className="text-5xl font-black text-slate-900">
+                  <h1 className="text-5xl font-black text-slate-900 dark:text-white">
                     {user.name}
                   </h1>
                   <motion.div
@@ -474,7 +474,7 @@ export default function ProfilePageProfessional() {
                 </div>
 
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="text-lg text-slate-600 font-semibold">
+                  <p className="text-lg text-slate-600 dark:text-slate-300 font-semibold">
                     {isWorker
                       ? "Professional Service Provider"
                       : "Premium Member"}
@@ -485,7 +485,7 @@ export default function ProfilePageProfessional() {
                   />
                 </div>
 
-                <p className="text-slate-500 mb-6 text-sm">
+                <p className="text-slate-500 dark:text-slate-400 mb-6 text-sm">
                   Member since{" "}
                   {new Date(user.createdAt).toLocaleDateString("en-US", {
                     year: "numeric",
@@ -499,8 +499,8 @@ export default function ProfilePageProfessional() {
                   animate={{ opacity: 1, x: 0 }}
                   className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm border ${
                     isWorker
-                      ? "bg-purple-100 text-purple-700 border-purple-200"
-                      : "bg-blue-100 text-blue-700 border-blue-200"
+                      ? "bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-900/50"
+                      : "bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-900/50"
                   }`}
                 >
                   <CheckCircle2 size={16} />✓ Verified{" "}
@@ -576,17 +576,17 @@ export default function ProfilePageProfessional() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.1 }}
-                      className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-4 border border-slate-200 hover:border-slate-300 transition-all group"
+                      className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all group"
                     >
                       <div
-                        className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center mb-2 group-hover:scale-110 transition-transform`}
+                        className={`w-10 h-10 rounded-lg ${stat.bgColor} dark:bg-slate-850 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform`}
                       >
                         <stat.icon size={20} className={stat.textColor} />
                       </div>
-                      <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                      <p className="text-xs font-bold text-slate-555 dark:text-slate-400 uppercase tracking-wider">
                         {stat.label}
                       </p>
-                      <p className="text-2xl font-black text-slate-900 mt-1">
+                      <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">
                         {stat.value}
                       </p>
                     </motion.div>
@@ -612,12 +612,12 @@ export default function ProfilePageProfessional() {
               onClick={() => setActiveTab(tab.id)}
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.98 }}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold whitespace-nowrap transition-all border ${
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold whitespace-nowrap transition-all border cursor-pointer ${
                 activeTab === tab.id
                   ? isWorker
                     ? "bg-purple-600 text-white shadow-lg shadow-purple-600/30 border-transparent"
                     : "bg-blue-600 text-white shadow-lg shadow-blue-600/30 border-transparent"
-                  : "bg-white text-slate-700 border-slate-200 hover:border-slate-300"
+                  : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
               }`}
             >
               <tab.icon size={18} />
@@ -635,12 +635,12 @@ export default function ProfilePageProfessional() {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white border border-slate-200 rounded-2xl p-8 hover:shadow-lg transition-all"
+                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 hover:shadow-lg transition-all duration-500"
                 >
-                  <h2 className="text-2xl font-black text-slate-900 mb-4">
+                  <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-4">
                     About
                   </h2>
-                  <p className="text-slate-600 leading-relaxed text-lg">
+                  <p className="text-slate-655 dark:text-slate-300 leading-relaxed text-lg">
                     {user.bio ||
                       user.about ||
                       user.description ||
@@ -654,9 +654,9 @@ export default function ProfilePageProfessional() {
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white border border-slate-200 rounded-2xl p-8 hover:shadow-lg transition-all"
+                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 hover:shadow-lg transition-all duration-500"
                   >
-                    <h2 className="text-2xl font-black text-slate-900 mb-6">
+                    <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-6">
                       Performance
                     </h2>
                     <div className="space-y-6">
@@ -679,16 +679,16 @@ export default function ProfilePageProfessional() {
                       ].map((item, idx) => (
                         <div
                           key={idx}
-                          className="flex items-center gap-4 pb-4 border-b border-slate-100 last:border-0"
+                          className="flex items-center gap-4 pb-4 border-b border-slate-100 dark:border-slate-800 last:border-0"
                         >
-                          <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center">
-                            <item.icon size={20} className="text-slate-600" />
+                          <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-950 flex items-center justify-center">
+                            <item.icon size={20} className="text-slate-600 dark:text-slate-400" />
                           </div>
                           <div className="flex-1">
-                            <p className="text-sm font-semibold text-slate-600">
+                            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
                               {item.label}
                             </p>
-                            <p className="text-2xl font-black text-slate-900">
+                            <p className="text-2xl font-black text-slate-900 dark:text-white">
                               {item.value}
                             </p>
                           </div>
@@ -704,9 +704,9 @@ export default function ProfilePageProfessional() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white border border-slate-200 rounded-2xl p-8 hover:shadow-lg transition-all"
+                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 hover:shadow-lg transition-all duration-500"
               >
-                <h2 className="text-2xl font-black text-slate-900 mb-6">
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-6">
                   Contact Information
                 </h2>
                 <div className="space-y-4">
@@ -731,29 +731,29 @@ export default function ProfilePageProfessional() {
                   ].map((item, idx) => (
                     <div
                       key={idx}
-                      className={`flex items-center gap-4 p-4 rounded-xl border hover:border-slate-300 transition-all ${
+                      className={`flex items-center gap-4 p-4 rounded-xl border hover:border-slate-350 dark:hover:border-slate-700 transition-all ${
                         isWorker
-                          ? "bg-purple-50 border-purple-200"
-                          : "bg-blue-50 border-blue-200"
+                          ? "bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900/50"
+                          : "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900/50"
                       }`}
                     >
                       <div
                         className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                          isWorker ? "bg-purple-100" : "bg-blue-100"
+                          isWorker ? "bg-purple-100 dark:bg-purple-950/60" : "bg-blue-100 dark:bg-blue-950/60"
                         }`}
                       >
                         <item.icon
                           size={20}
                           className={
-                            isWorker ? "text-purple-600" : "text-blue-600"
+                            isWorker ? "text-purple-600 dark:text-purple-400" : "text-blue-600 dark:text-blue-400"
                           }
                         />
                       </div>
                       <div className="flex-1">
-                        <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                        <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                           {item.label}
                         </p>
-                        <p className="text-slate-900 font-semibold text-lg">
+                        <p className="text-slate-900 dark:text-white font-semibold text-lg">
                           {item.value}
                         </p>
                       </div>
@@ -762,7 +762,7 @@ export default function ProfilePageProfessional() {
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => navigate("/map")}
-                          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
+                          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer ${
                             isWorker
                               ? "bg-purple-600 hover:bg-purple-700 text-white"
                               : "bg-blue-600 hover:bg-blue-700 text-white"
@@ -782,26 +782,26 @@ export default function ProfilePageProfessional() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white border border-slate-200 rounded-2xl p-8 hover:shadow-lg transition-all"
+                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 hover:shadow-lg transition-all duration-500"
               >
-                <h2 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-2">
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                   <Shield size={24} />
                   Security Settings
                 </h2>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                       Current Password
                     </label>
                     <div className="relative">
                       <input
                         type={showPassword ? "text" : "password"}
-                        className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                        className="w-full px-4 py-3 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-900 transition-all"
                         placeholder="Enter current password"
                       />
                       <button
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-3.5 text-slate-500 hover:text-slate-700"
+                        className="absolute right-4 top-3.5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer animate-none"
                       >
                         {showPassword ? (
                           <EyeOff size={20} />
@@ -812,19 +812,19 @@ export default function ProfilePageProfessional() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                       New Password
                     </label>
                     <input
                       type="password"
-                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                      className="w-full px-4 py-3 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-900 transition-all"
                       placeholder="Enter new password"
                     />
                   </div>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`w-full px-6 py-3 text-white rounded-lg font-bold transition-all shadow-lg ${
+                    className={`w-full px-6 py-3 text-white rounded-lg font-bold transition-all shadow-lg cursor-pointer ${
                       isWorker
                         ? "bg-purple-600 hover:bg-purple-700"
                         : "bg-blue-600 hover:bg-blue-700"
@@ -843,9 +843,9 @@ export default function ProfilePageProfessional() {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-lg transition-all"
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 hover:shadow-lg transition-all duration-500"
             >
-              <h3 className="text-lg font-black text-slate-900 mb-4">
+              <h3 className="text-lg font-black text-slate-900 dark:text-white mb-4">
                 Quick Actions
               </h3>
               <div className="space-y-3">
@@ -868,12 +868,12 @@ export default function ProfilePageProfessional() {
                     whileHover={{ x: 5 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={action.onClick}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg font-semibold transition-all border ${
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg font-semibold transition-all border cursor-pointer ${
                       action.danger
-                        ? "bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
+                        ? "bg-red-50 dark:bg-red-950/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-650 dark:text-red-400 border-red-200 dark:border-red-900/40"
                         : isWorker
-                          ? "bg-purple-50 hover:bg-purple-100 text-purple-600 border-purple-200"
-                          : "bg-blue-50 hover:bg-blue-100 text-blue-600 border-blue-200"
+                          ? "bg-purple-50 dark:bg-purple-950/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-900/40"
+                          : "bg-blue-50 dark:bg-blue-950/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900/40"
                     }`}
                   >
                     <action.icon size={18} />
@@ -932,17 +932,17 @@ export default function ProfilePageProfessional() {
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white rounded-3xl max-w-2xl w-full max-h-screen overflow-y-auto shadow-2xl"
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full max-h-screen overflow-y-auto shadow-2xl transition-colors duration-500"
           >
-            <div className="sticky top-0 bg-white border-b border-slate-200 p-6 flex items-center justify-between">
-              <h2 className="text-2xl font-black text-slate-900">
+            <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-6 flex items-center justify-between z-10">
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white">
                 Edit Profile
               </h2>
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsEditing(false)}
-                className="p-2 hover:bg-slate-100 rounded-lg transition-all"
+                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg transition-all cursor-pointer"
               >
                 <X size={24} />
               </motion.button>
@@ -954,21 +954,21 @@ export default function ProfilePageProfessional() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
-                  className="rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm"
+                  className="rounded-3xl border border-slate-200 dark:border-slate-805 bg-slate-50 dark:bg-slate-950 p-6 shadow-sm"
                 >
                   <div className="flex items-center justify-between gap-4 mb-4">
                     <div>
-                      <p className="text-sm font-bold text-slate-900">
+                      <p className="text-sm font-bold text-slate-900 dark:text-white">
                         Pick a professional avatar
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         Choose a polished avatar for your profile and bookings.
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => setShowAvatarPicker(false)}
-                      className="px-3 py-2 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 transition-all"
+                      className="px-3 py-2 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-650 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
                     >
                       Close
                     </button>
@@ -986,10 +986,10 @@ export default function ProfilePageProfessional() {
                           key={option.id}
                           type="button"
                           onClick={() => handleAvatarSelect(option)}
-                          className={`group overflow-hidden rounded-3xl border p-1 transition-all ${
+                          className={`group overflow-hidden rounded-3xl border p-1 transition-all cursor-pointer ${
                             selected
-                              ? "border-indigo-600 bg-indigo-50"
-                              : "border-slate-200 bg-white hover:border-slate-400"
+                              ? "border-indigo-650 bg-indigo-50 dark:bg-indigo-950/20 text-white"
+                              : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-400 dark:hover:border-slate-700"
                           }`}
                         >
                           <img
@@ -997,7 +997,7 @@ export default function ProfilePageProfessional() {
                             alt={option.label}
                             className="aspect-square w-full rounded-3xl object-cover"
                           />
-                          <div className="mt-2 text-center text-xs font-semibold uppercase tracking-[0.2em] text-slate-700">
+                          <div className="mt-2 text-center text-xs font-semibold uppercase tracking-[0.2em] text-slate-700 dark:text-slate-300">
                             {option.label}
                           </div>
                         </button>
@@ -1008,14 +1008,14 @@ export default function ProfilePageProfessional() {
                     <button
                       type="button"
                       onClick={() => setShowAvatarPicker(false)}
-                      className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-all"
+                      className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
                     >
                       Keep current
                     </button>
                     <button
                       type="button"
                       onClick={handleAvatarPickerSave}
-                      className="rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition-all"
+                      className="rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition-all cursor-pointer"
                     >
                       Save selected avatar
                     </button>
@@ -1023,7 +1023,7 @@ export default function ProfilePageProfessional() {
                 </motion.div>
               )}
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-3">
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">
                   Profile Photo
                 </label>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -1044,7 +1044,7 @@ export default function ProfilePageProfessional() {
                     <button
                       type="button"
                       onClick={() => setShowAvatarPicker(true)}
-                      className="absolute bottom-0 right-0 h-10 w-10 rounded-full bg-slate-900 text-white grid place-items-center shadow-lg hover:bg-slate-800 transition-all"
+                      className="absolute bottom-0 right-0 h-10 w-10 rounded-full bg-slate-900 dark:bg-slate-800 text-white grid place-items-center shadow-lg hover:bg-slate-800 dark:hover:bg-slate-700 transition-all border border-slate-900 dark:border-slate-800 cursor-pointer"
                       aria-label="Open avatar options"
                     >
                       <Sparkles size={18} />
@@ -1054,10 +1054,10 @@ export default function ProfilePageProfessional() {
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:shadow-lg transition-all ${
+                      className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:shadow-lg transition-all cursor-pointer ${
                         isWorker
-                          ? "bg-purple-600 hover:bg-purple-700"
-                          : "bg-blue-600 hover:bg-blue-700"
+                          ? "bg-purple-650 hover:bg-purple-700"
+                          : "bg-blue-650 hover:bg-blue-700"
                       }`}
                     >
                       <Upload size={18} />
@@ -1071,7 +1071,7 @@ export default function ProfilePageProfessional() {
                       onChange={handlePhotoChange}
                     />
                     {formData.profilePhoto && (
-                      <p className="text-xs text-slate-500">Photo selected</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Photo selected</p>
                     )}
                   </div>
                 </div>
@@ -1079,7 +1079,7 @@ export default function ProfilePageProfessional() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                     Name
                   </label>
                   <input
@@ -1087,11 +1087,11 @@ export default function ProfilePageProfessional() {
                     name="name"
                     value={formData.name || ""}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-900/50 transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                     Email
                   </label>
                   <input
@@ -1099,14 +1099,14 @@ export default function ProfilePageProfessional() {
                     name="email"
                     value={formData.email || ""}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-900/50 transition-all"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                     Phone
                   </label>
                   <input
@@ -1114,11 +1114,11 @@ export default function ProfilePageProfessional() {
                     name="phone"
                     value={formData.phone || ""}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-900/50 transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                     Location
                   </label>
                   <input
@@ -1126,14 +1126,14 @@ export default function ProfilePageProfessional() {
                     name="location"
                     value={formData.location || ""}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-900/50 transition-all"
                   />
                 </div>
               </div>
 
               {isWorker && (
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                     Service Area
                   </label>
                   <input
@@ -1141,18 +1141,18 @@ export default function ProfilePageProfessional() {
                     name="serviceArea"
                     value={formData.serviceArea || ""}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-955 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-900/50 transition-all"
                     placeholder="e.g., Entire City, Specific Areas"
                   />
                 </div>
               )}
 
-              <div className="flex gap-4 pt-6 border-t border-slate-200">
+              <div className="flex gap-4 pt-6 border-t border-slate-200 dark:border-slate-800">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setIsEditing(false)}
-                  className="flex-1 px-6 py-3 bg-slate-100 text-slate-900 rounded-lg font-bold hover:bg-slate-200 transition-all"
+                  className="flex-1 px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-200 rounded-lg font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer"
                 >
                   Cancel
                 </motion.button>
@@ -1161,7 +1161,7 @@ export default function ProfilePageProfessional() {
                   whileTap={{ scale: 0.98 }}
                   onClick={handleSave}
                   disabled={saving}
-                  className={`flex-1 px-6 py-3 text-white rounded-lg font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg ${
+                  className={`flex-1 px-6 py-3 text-white rounded-lg font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg cursor-pointer ${
                     isWorker
                       ? "bg-purple-600 hover:bg-purple-700"
                       : "bg-blue-600 hover:bg-blue-700"

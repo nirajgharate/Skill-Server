@@ -219,8 +219,8 @@ export default function TrackingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FDFDFD] pt-36 pb-24 px-4 flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#FDFDFD] dark:bg-[#070B16] pt-36 pb-24 px-4 flex items-center justify-center transition-colors duration-500">
+        <div className="w-16 h-16 border-4 border-slate-200 dark:border-slate-800 border-t-indigo-600 rounded-full animate-spin" />
       </div>
     );
   }
@@ -229,14 +229,14 @@ export default function TrackingPage() {
 
   if (showErrorPage) {
     return (
-      <div className="min-h-screen bg-[#FDFDFD] pt-36 pb-24 px-4 flex items-center justify-center">
-        <div className="max-w-lg w-full bg-white rounded-3xl p-8 shadow-xl border border-slate-200 text-center">
-          <p className="text-slate-900 text-lg font-bold mb-4">
+      <div className="min-h-screen bg-[#FDFDFD] dark:bg-[#070B16] pt-36 pb-24 px-4 flex items-center justify-center transition-colors duration-500">
+        <div className="max-w-lg w-full bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-xl border border-slate-200 dark:border-slate-800 text-center transition-colors">
+          <p className="text-slate-900 dark:text-white text-lg font-bold mb-4">
             Unable to load tracking
           </p>
-          <p className="text-slate-600 mb-2">{error}</p>
+          <p className="text-slate-600 dark:text-slate-350 mb-2">{error}</p>
           {serverMessage && (
-            <p className="text-slate-500 text-sm mb-6">{serverMessage}</p>
+            <p className="text-slate-505 dark:text-slate-450 text-sm mb-6">{serverMessage}</p>
           )}
           <button
             onClick={() => {
@@ -248,7 +248,7 @@ export default function TrackingPage() {
                 loadFallbackBooking();
               }
             }}
-            className="px-6 py-3 bg-indigo-600 text-white rounded-2xl font-semibold hover:bg-indigo-700 transition-all"
+            className="px-6 py-3 bg-indigo-600 text-white rounded-2xl font-semibold hover:bg-indigo-700 transition-all cursor-pointer"
           >
             Retry
           </button>
@@ -263,16 +263,16 @@ export default function TrackingPage() {
 
   return (
     /* 🛠️ FIX: Increased pt-32 to pt-40 for desktop and added responsive padding */
-    <div className="min-h-screen bg-[#FDFDFD] pt-36 md:pt-49 pb-24 px-4 relative overflow-hidden">
+    <div className="min-h-screen bg-[#FDFDFD] dark:bg-[#070B16] pt-36 md:pt-40 pb-24 px-4 relative overflow-hidden transition-colors duration-500">
       {/* 1. ATMOSPHERE: Decorative Glow adjusted to stay below navbar area */}
       <div className="absolute top-20 right-[-10%] w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute top-40 left-[-10%] w-[400px] h-[400px] bg-blue-400/5 rounded-full blur-[100px] pointer-events-none" />
 
       <div className="max-w-xl mx-auto space-y-8 relative z-10">
         {error && booking && (
-          <div className="rounded-[2rem] border border-rose-100 bg-rose-50/70 p-5 text-rose-700 shadow-sm">
+          <div className="rounded-[2rem] border border-rose-100 dark:border-rose-950/20 bg-rose-50/70 dark:bg-rose-950/10 p-5 text-rose-700 dark:text-rose-450 shadow-sm">
             <p className="text-sm font-semibold">Live refresh failed.</p>
-            <p className="text-sm text-rose-600 mt-2">
+            <p className="text-sm text-rose-600 dark:text-rose-450 mt-2">
               Showing the last known booking details. Refresh or retry to update
               live status.
             </p>
@@ -285,15 +285,15 @@ export default function TrackingPage() {
         <div className="flex items-center justify-between px-2">
           <button
             onClick={() => navigate(-1)}
-            className="p-3 bg-white rounded-2xl shadow-sm border border-black/5 text-slate-400 hover:text-indigo-600 transition-colors"
+            className="p-3 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-black/5 dark:border-slate-800 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
           >
             <ChevronLeft size={20} />
           </button>
           <div className="text-right">
-            <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
+            <p className="text-[10px] font-black text-slate-300 dark:text-slate-500 uppercase tracking-widest">
               Tracking ID
             </p>
-            <p className="text-sm font-bold text-slate-900">
+            <p className="text-sm font-bold text-slate-900 dark:text-white">
               {currentBooking.id}
             </p>
           </div>
@@ -305,16 +305,16 @@ export default function TrackingPage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center space-y-4"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-50 text-emerald-600 rounded-full border border-emerald-100">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-full border border-emerald-100 dark:border-emerald-900/30">
             <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
             <span className="text-[10px] font-black uppercase tracking-[0.2em]">
               Live Tracking
             </span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter leading-tight">
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter leading-tight">
             {bookingTitle}
           </h1>
-          <p className="text-sm font-medium text-slate-400">
+          <p className="text-sm font-medium text-slate-400 dark:text-slate-550">
             {bookingDescription}
           </p>
         </motion.div>
@@ -324,24 +324,24 @@ export default function TrackingPage() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
-          className="p-6 bg-white/80 backdrop-blur-xl border border-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.03)] flex items-center justify-between"
+          className="p-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white dark:border-slate-800 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.03)] dark:shadow-none flex items-center justify-between transition-colors duration-500"
         >
           <div className="flex items-center gap-4">
             <div className="relative">
               <img
                 src={currentBooking.worker.img}
-                className="w-16 h-16 rounded-2xl object-cover shadow-sm"
+                className="w-16 h-16 rounded-2xl object-cover shadow-sm border border-slate-100 dark:border-slate-800"
                 alt={currentBooking.worker.name}
               />
-              <div className="absolute -bottom-1 -right-1 p-1 bg-emerald-500 text-white rounded-lg border-2 border-white">
+              <div className="absolute -bottom-1 -right-1 p-1 bg-emerald-500 text-white rounded-lg border-2 border-white dark:border-slate-900">
                 <ShieldCheck size={12} />
               </div>
             </div>
             <div>
-              <h3 className="font-black text-slate-900 tracking-tight">
+              <h3 className="font-black text-slate-900 dark:text-white tracking-tight">
                 {currentBooking.worker.name}
               </h3>
-              <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
                 <Star size={12} className="fill-amber-400 text-amber-400" />{" "}
                 {currentBooking.worker.rating} • {currentBooking.worker.role}
               </div>
@@ -352,28 +352,28 @@ export default function TrackingPage() {
               href={
                 currentBooking.phone ? `tel:${currentBooking.phone}` : "tel:+"
               }
-              className="p-4 bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-100 hover:scale-105 transition-transform"
+              className="p-4 bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-100 dark:shadow-none hover:scale-105 transition-transform cursor-pointer"
             >
               <Phone size={20} />
             </a>
-            <button className="p-4 bg-slate-50 text-slate-400 rounded-2xl hover:bg-slate-100 transition-colors">
+            <button className="p-4 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-300 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer">
               <MessageSquare size={20} />
             </button>
           </div>
         </motion.div>
 
         {/* 📍 PROGRESS TIMELINE */}
-        <div className="p-10 bg-white rounded-[3rem] border border-slate-100 shadow-sm relative overflow-hidden">
+        <div className="p-10 bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden transition-colors duration-500">
           <div className="space-y-12 relative">
-            <div className="absolute left-[15px] top-2 bottom-2 w-0.5 bg-slate-50" />
+            <div className="absolute left-[15px] top-2 bottom-2 w-0.5 bg-slate-50 dark:bg-slate-800" />
 
             {steps.map((step, i) => (
               <div key={i} className="flex gap-8 relative z-10">
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 ${
                     currentStatus >= i
-                      ? "bg-indigo-600 text-white shadow-xl shadow-indigo-100"
-                      : "bg-white border-2 border-slate-100 text-transparent"
+                      ? "bg-indigo-600 text-white shadow-xl shadow-indigo-100 dark:shadow-none"
+                      : "bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 text-transparent"
                   }`}
                 >
                   {currentStatus >= i && <CheckCircle2 size={16} />}
@@ -381,10 +381,10 @@ export default function TrackingPage() {
                 <div
                   className={currentStatus >= i ? "opacity-100" : "opacity-30"}
                 >
-                  <h4 className="text-sm font-black text-slate-900 tracking-tight uppercase">
+                  <h4 className="text-sm font-black text-slate-900 dark:text-white tracking-tight uppercase">
                     {step.title}
                   </h4>
-                  <p className="text-xs font-medium text-slate-400 mt-1">
+                  <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mt-1">
                     {step.desc}
                   </p>
                 </div>
@@ -394,7 +394,7 @@ export default function TrackingPage() {
         </div>
 
         {/* 📋 BOOKING INFO SUMMARY */}
-        <div className="p-8 bg-slate-900 rounded-[3rem] shadow-2xl shadow-slate-200 text-white space-y-6 relative overflow-hidden">
+        <div className="p-8 bg-slate-900 dark:bg-slate-950 rounded-[3rem] shadow-2xl dark:shadow-none shadow-slate-200 text-white space-y-6 relative overflow-hidden border border-transparent dark:border-slate-800">
           <div className="flex items-center gap-4 relative z-10">
             <div className="p-3 bg-white/10 rounded-2xl text-indigo-400">
               <MapPin size={20} />
@@ -415,16 +415,16 @@ export default function TrackingPage() {
           <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl" />
         </div>
 
-        {/* �️ LIVE TRACKING MAP */}
+        {/* ️ LIVE TRACKING MAP */}
         {currentBooking.workerId?.location?.coordinates ||
         currentBooking.userId?.location?.coordinates ? (
-          <div className="p-8 bg-white rounded-[3rem] border border-slate-100 shadow-sm">
+          <div className="p-8 bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-sm transition-colors duration-500">
             <div className="flex items-center justify-between gap-4 mb-6">
               <div>
-                <h3 className="text-xl font-black text-slate-900">
+                <h3 className="text-xl font-black text-slate-900 dark:text-white">
                   Live Worker Location
                 </h3>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-slate-500 dark:text-slate-400">
                   See the worker and booking locations on the map.
                 </p>
               </div>
@@ -501,8 +501,8 @@ export default function TrackingPage() {
             />
           </div>
         ) : (
-          <div className="p-8 bg-white rounded-[3rem] border border-slate-100 shadow-sm text-slate-600">
-            <h3 className="text-xl font-black text-slate-900 mb-3">
+          <div className="p-8 bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-sm text-slate-600 dark:text-slate-400 transition-colors duration-500">
+            <h3 className="text-xl font-black text-slate-900 dark:text-white mb-3">
               Live location unavailable
             </h3>
             <p className="text-sm leading-relaxed">
@@ -513,16 +513,16 @@ export default function TrackingPage() {
           </div>
         )}
 
-        {/* �📞 HELP AREA */}
-        <div className="text-center p-10 border-2 border-dashed border-slate-100 rounded-[3rem] bg-slate-50/30">
-          <AlertCircle size={24} className="mx-auto text-slate-200 mb-4" />
-          <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">
+        {/* 📞 HELP AREA */}
+        <div className="text-center p-10 border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-[3rem] bg-slate-50/30 dark:bg-slate-900/10">
+          <AlertCircle size={24} className="mx-auto text-slate-200 dark:text-slate-700 mb-4" />
+          <h4 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-2">
             Need Assistance?
           </h4>
-          <p className="text-[11px] font-medium text-slate-400 leading-loose">
+          <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 leading-loose">
             Contact support for rescheduling or safety queries.
             <br />
-            <span className="text-indigo-600 font-black cursor-pointer underline underline-offset-4">
+            <span className="text-indigo-600 dark:text-indigo-400 font-black cursor-pointer underline underline-offset-4">
               Open Support Portal
             </span>
           </p>

@@ -38,6 +38,44 @@ export default function WorkerListingPage() {
   const [error, setError] = useState("");
   const [socket, setSocket] = useState(null);
   const [showStickyControls, setShowStickyControls] = useState(true);
+  const [onlyNearby, setOnlyNearby] = useState(false);
+  const [userCoords, setUserCoords] = useState(null);
+
+  const toRadians = (degrees) => degrees * (Math.PI / 180);
+  const getDistanceKm = (coordA, coordB) => {
+    const [lat1, lon1] = coordA;
+    const [lat2, lon2] = coordB;
+    const dLat = toRadians(lat2 - lat1);
+    const dLon = toRadians(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRadians(lat1)) *
+        Math.cos(toRadians(lat2)) *
+        Math.sin(dLon / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return 6371 * c;
+  };
+
+  const handleNearbyToggle = () => {
+    if (onlyNearby) {
+      setOnlyNearby(false);
+    } else {
+      if (!navigator.geolocation) {
+        alert("Geolocation is not supported by your browser");
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserCoords([position.coords.latitude, position.coords.longitude]);
+          setOnlyNearby(true);
+        },
+        (err) => {
+          console.error("Geolocation error:", err);
+          alert("Could not access your location. Please check browser permissions.");
+        }
+      );
+    }
+  };
 
   const serviceCategories = [
     { id: "All", label: "All Services", icon: "⚙️" },
@@ -82,18 +120,7 @@ export default function WorkerListingPage() {
     fetchWorkers();
   }, []);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowStickyControls(window.scrollY < 1);
-    };
 
-    if (typeof window !== "undefined") {
-      window.addEventListener("scroll", handleScroll, { passive: true });
-      return () => window.removeEventListener("scroll", handleScroll);
-    }
-
-    return undefined;
-  }, []);
 
   const fetchWorkers = async () => {
     try {
@@ -130,18 +157,43 @@ export default function WorkerListingPage() {
     });
 
     // Apply sorting
-    if (sortBy === "rating") {
-      filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-    } else if (sortBy === "price-low") {
-      filtered.sort((a, b) => (a.hourlyRate || 0) - (b.hourlyRate || 0));
-    } else if (sortBy === "price-high") {
-      filtered.sort((a, b) => (b.hourlyRate || 0) - (a.hourlyRate || 0));
-    } else if (sortBy === "experience") {
-      filtered.sort(
-        (a, b) => (b.experienceYears || 0) - (a.experienceYears || 0),
-      );
-    } else if (sortBy === "jobs") {
-      filtered.sort((a, b) => getWorkerJobsCount(b) - getWorkerJobsCount(a));
+    if (onlyNearby && userCoords) {
+      filtered = filtered.map(worker => {
+        if (worker.location?.coordinates) {
+          const [lng, lat] = worker.location.coordinates;
+          const distance = getDistanceKm(userCoords, [lat, lng]);
+          return { ...worker, distance };
+        }
+        return worker;
+      });
+
+      // Sort by distance (closest first)
+      filtered.sort((a, b) => {
+        if (a.distance !== undefined && b.distance !== undefined) {
+          return a.distance - b.distance;
+        }
+        return 0;
+      });
+    } else {
+      // Remove temporary distance property if onlyNearby is false
+      filtered = filtered.map(worker => {
+        const { distance, ...rest } = worker;
+        return rest;
+      });
+
+      if (sortBy === "rating") {
+        filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      } else if (sortBy === "price-low") {
+        filtered.sort((a, b) => (a.hourlyRate || 0) - (b.hourlyRate || 0));
+      } else if (sortBy === "price-high") {
+        filtered.sort((a, b) => (b.hourlyRate || 0) - (a.hourlyRate || 0));
+      } else if (sortBy === "experience") {
+        filtered.sort(
+          (a, b) => (b.experienceYears || 0) - (a.experienceYears || 0),
+        );
+      } else if (sortBy === "jobs") {
+        filtered.sort((a, b) => getWorkerJobsCount(b) - getWorkerJobsCount(a));
+      }
     }
 
     setFilteredWorkers(filtered);
@@ -152,7 +204,7 @@ export default function WorkerListingPage() {
 
   useEffect(() => {
     applyFilters(workers);
-  }, [serviceFilter, activeArea, sortBy]);
+  }, [serviceFilter, activeArea, sortBy, onlyNearby, userCoords]);
 
   const clearFilters = () => {
     setServiceFilter("All");
@@ -181,17 +233,17 @@ export default function WorkerListingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pt-32 pb-24 px-4 md:px-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#070B16] pt-32 pb-24 px-4 md:px-8 transition-colors duration-500">
       <div className="max-w-7xl mx-auto">
         {/* HEADER */}
         <header className="mb-10 space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#4F46E5]/10 rounded-full">
-            <UserCheck size={14} className="text-[#4F46E5]" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#4F46E5]">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#4F46E5]/10 dark:bg-[#4F46E5]/20 rounded-full">
+            <UserCheck size={14} className="text-[#4F46E5] dark:text-indigo-400" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#4F46E5] dark:text-indigo-400">
               Direct Matching
             </span>
           </div>
-          <h1 className="text-4xl md:text-6xl font-black text-[#0F172A] tracking-tighter">
+          <h1 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter">
             Choose your <span className="text-[#4F46E5]">Expert</span>
           </h1>
         </header>
@@ -199,8 +251,7 @@ export default function WorkerListingPage() {
         {/* SEARCH + FILTER */}
         {showStickyControls && (
           <div
-            className="sticky z-50 mb-12 bg-[#F8FAFC] py-4 -mx-4 md:-mx-8 px-4 md:px-8 space-y-4"
-            style={{ top: "7rem" }}
+            className="relative z-10 mb-12 bg-slate-50 dark:bg-[#070B16] py-4 -mx-4 md:-mx-8 px-4 md:px-8 space-y-4 transition-colors"
           >
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
               {serviceCategories.map((cat) => (
@@ -208,10 +259,10 @@ export default function WorkerListingPage() {
                   key={cat.id}
                   whileHover={{ scale: 1.05 }}
                   onClick={() => setServiceFilter(cat.id)}
-                  className={`px-4 py-3 rounded-2xl font-bold text-sm whitespace-nowrap transition-all flex items-center gap-2 ${
+                  className={`px-4 py-3 rounded-2xl font-bold text-sm whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer ${
                     serviceFilter === cat.id
-                      ? "bg-[#4F46E5] text-white shadow-lg shadow-indigo-200/30"
-                      : "bg-white text-[#0F172A] border border-black/5 hover:border-[#4F46E5]/30"
+                      ? "bg-[#4F46E5] text-white shadow-lg shadow-indigo-200/30 dark:shadow-none"
+                      : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-200/60 dark:border-slate-800/80 hover:border-[#4F46E5]/30"
                   }`}
                 >
                   <span className="text-lg">{cat.icon}</span>
@@ -223,7 +274,7 @@ export default function WorkerListingPage() {
             <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              className="p-4 bg-white/70 backdrop-blur-2xl border border-white rounded-[2rem] shadow-xl shadow-indigo-100/20 flex flex-col md:flex-row items-center gap-4"
+              className="p-4 bg-white/75 dark:bg-slate-900/80 backdrop-blur-2xl border border-white dark:border-slate-805 rounded-[2rem] shadow-xl shadow-indigo-100/20 dark:shadow-none flex flex-col md:flex-row items-center gap-4 transition-colors"
             >
               {/* Area Filter */}
               <div className="relative w-full md:flex-grow">
@@ -239,11 +290,11 @@ export default function WorkerListingPage() {
                   onKeyDown={(e) =>
                     e.key === "Enter" && setActiveArea(areaInput)
                   }
-                  className="w-full pl-12 pr-4 py-4 bg-white border border-black/5 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-[#4F46E5]/5 transition-all"
+                  className="w-full pl-12 pr-24 py-4 bg-white dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 rounded-2xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-4 focus:ring-[#4F46E5]/5 transition-all"
                 />
                 <button
                   onClick={() => setActiveArea(areaInput || "All Areas")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 px-4 py-2 bg-[#0F172A] text-white text-[10px] font-black uppercase rounded-xl hover:bg-[#4F46E5] transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 px-4 py-2 bg-slate-900 dark:bg-indigo-650 text-white text-[10px] font-black uppercase rounded-xl hover:bg-[#4F46E5] dark:hover:bg-indigo-700 transition-colors cursor-pointer"
                 >
                   Apply
                 </button>
@@ -258,7 +309,7 @@ export default function WorkerListingPage() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full pl-12 pr-10 py-4 bg-white border border-black/5 rounded-2xl text-xs font-bold text-[#0F172A] uppercase tracking-widest outline-none appearance-none cursor-pointer"
+                  className="w-full pl-12 pr-10 py-4 bg-white dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 rounded-2xl text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest outline-none appearance-none cursor-pointer"
                 >
                   <option value="rating">Top Rated</option>
                   <option value="price-low">Price: Low to High</option>
@@ -269,32 +320,31 @@ export default function WorkerListingPage() {
               </div>
 
               {/* Clear Button */}
-              {(serviceFilter !== "All" || activeArea !== "All Areas") && (
+              {(serviceFilter !== "All" || activeArea !== "All Areas" || onlyNearby) && (
                 <button
-                  onClick={clearFilters}
-                  className="px-4 py-2 text-[10px] font-black text-red-500 uppercase tracking-widest hover:bg-red-50 rounded-xl transition-all"
+                  onClick={() => {
+                    clearFilters();
+                    setOnlyNearby(false);
+                  }}
+                  className="px-4 py-2 text-[10px] font-black text-red-500 dark:text-red-400 uppercase tracking-widest hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-all cursor-pointer"
                 >
                   Clear All
                 </button>
               )}
 
-              {/* View Map Button */}
+              {/* Nearby Workers Toggle Button */}
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() =>
-                  navigate("/map", {
-                    state: {
-                      workerList: filteredWorkers,
-                      serviceFilter,
-                      activeArea,
-                    },
-                  })
-                }
-                className="px-4 py-2 bg-green-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-green-700 transition-all flex items-center gap-2"
+                onClick={handleNearbyToggle}
+                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+                  onlyNearby
+                    ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200/30"
+                    : "bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 text-slate-800"
+                }`}
               >
-                <MapPin size={14} />
-                View on Map
+                <MapPin size={14} className={onlyNearby ? "text-white" : "text-[#4F46E5]"} />
+                {onlyNearby ? "Showing Nearby" : "Nearby Workers"}
               </motion.button>
             </motion.div>
           </div>
@@ -353,10 +403,10 @@ export default function WorkerListingPage() {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  className="group bg-white rounded-[2rem] overflow-hidden border border-slate-200/50 hover:shadow-2xl transition-all duration-300 flex flex-col"
+                  className="group bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden border border-slate-200/50 dark:border-slate-800/60 hover:shadow-2xl transition-all duration-300 flex flex-col"
                 >
                   {/* PROFILE PHOTO SECTION */}
-                  <div className="relative h-56 bg-gradient-to-br from-[#4F46E5]/20 to-[#0F172A]/20 overflow-hidden">
+                  <div className="relative h-44 bg-gradient-to-br from-[#4F46E5]/20 to-[#0F172A]/20 overflow-hidden">
                     {worker.profilePhoto ? (
                       <motion.img
                         src={worker.profilePhoto}
@@ -367,10 +417,10 @@ export default function WorkerListingPage() {
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-[#4F46E5] to-[#0F172A] flex items-center justify-center">
                         <div className="text-center">
-                          <div className="text-6xl font-black text-white mb-2">
+                          <div className="text-5xl font-black text-white mb-1">
                             {worker.name.charAt(0).toUpperCase()}
                           </div>
-                          <p className="text-white/60 text-sm font-bold">
+                          <p className="text-white/60 text-xs font-bold">
                             {worker.profession}
                           </p>
                         </div>
@@ -380,13 +430,13 @@ export default function WorkerListingPage() {
                     <motion.div
                       initial={{ scale: 0.8 }}
                       whileHover={{ scale: 1.1 }}
-                      className="absolute top-4 right-4 px-3 py-1.5 bg-white/95 backdrop-blur rounded-full flex items-center gap-1.5 shadow-lg"
+                      className="absolute top-3 right-3 px-2.5 py-1 bg-white/95 dark:bg-slate-905/95 backdrop-blur rounded-full flex items-center gap-1 shadow-lg"
                     >
                       <Star
-                        size={12}
+                        size={10}
                         className="fill-amber-400 text-amber-400"
                       />
-                      <span className="text-xs font-black text-slate-900">
+                      <span className="text-[10px] font-black text-slate-900 dark:text-white">
                         {worker.rating || 4.8}
                       </span>
                     </motion.div>
@@ -396,10 +446,10 @@ export default function WorkerListingPage() {
                       <motion.div
                         initial={{ scale: 0.8 }}
                         whileHover={{ scale: 1.1 }}
-                        className="absolute top-4 left-4 px-3 py-1.5 bg-gradient-to-r from-amber-400 to-orange-400 backdrop-blur rounded-full flex items-center gap-2 shadow-lg"
+                        className="absolute top-3 left-3 px-2.5 py-1 bg-gradient-to-r from-amber-400 to-orange-400 backdrop-blur rounded-full flex items-center gap-1.5 shadow-lg"
                       >
-                        <Award size={14} className="text-white" />
-                        <span className="text-xs font-black text-white">
+                        <Award size={12} className="text-white" />
+                        <span className="text-[10px] font-black text-white">
                           Expert
                         </span>
                       </motion.div>
@@ -410,10 +460,10 @@ export default function WorkerListingPage() {
                       <motion.div
                         initial={{ scale: 0.8 }}
                         whileHover={{ scale: 1.1 }}
-                        className="absolute bottom-4 left-4 px-3 py-1.5 bg-emerald-500/95 backdrop-blur rounded-full flex items-center gap-2 shadow-lg"
+                        className="absolute bottom-3 left-3 px-2.5 py-1 bg-emerald-500/95 backdrop-blur rounded-full flex items-center gap-1.5 shadow-lg"
                       >
-                        <CheckCircle2 size={14} className="text-white" />
-                        <span className="text-xs font-black text-white">
+                        <CheckCircle2 size={12} className="text-white" />
+                        <span className="text-[10px] font-black text-white">
                           Verified
                         </span>
                       </motion.div>
@@ -421,54 +471,62 @@ export default function WorkerListingPage() {
                   </div>
 
                   {/* CONTENT SECTION */}
-                  <div className="p-6 flex-1 flex flex-col">
-                    <h3 className="text-2xl font-black text-slate-900 mb-1.5 tracking-tight">
+                  <div className="p-5 flex-1 flex flex-col">
+                    <h3 className="text-lg font-black text-slate-900 dark:text-white mb-1 tracking-tight">
                       {worker.name}
                     </h3>
-                    <p className="text-[11px] font-black text-[#4F46E5] uppercase tracking-[0.15em] mb-4">
+                    <p className="text-[10px] font-black text-indigo-650 dark:text-indigo-400 uppercase tracking-[0.15em] mb-3">
                       {worker.profession} • {worker.experienceYears} yrs exp
                     </p>
 
+                    {/* DISTANCE BADGE */}
+                    {worker.distance !== undefined && (
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/20 text-emerald-600 dark:text-emerald-450 text-[9px] font-black uppercase tracking-widest rounded-full self-start mb-2.5 transition-colors">
+                        <span className="w-1.2 h-1.2 bg-emerald-500 rounded-full animate-pulse" />
+                        {worker.distance.toFixed(1)} km away
+                      </div>
+                    )}
+
                     {/* STATS */}
-                    <div className="grid grid-cols-3 gap-3 mb-6 p-3 bg-slate-50 rounded-xl">
+                    <div className="grid grid-cols-3 gap-2 mb-4 p-2.5 bg-slate-50 dark:bg-slate-950/40 rounded-xl transition-colors">
                       <div className="text-center">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">
+                        <p className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-0.5">
                           Rate
                         </p>
-                        <p className="text-sm font-black text-slate-900">
+                        <p className="text-xs font-black text-slate-900 dark:text-slate-200">
                           ₹{worker.hourlyRate}
-                          <span className="text-[9px] text-slate-500">/hr</span>
+                          <span className="text-[8px] text-slate-550 dark:text-slate-400">/hr</span>
                         </p>
                       </div>
-                      <div className="text-center border-l border-r border-slate-200">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">
+                      <div className="text-center border-l border-r border-slate-200 dark:border-slate-800">
+                        <p className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-0.5">
                           Jobs
                         </p>
-                        <p className="text-sm font-black text-slate-900">
+                        <p className="text-xs font-black text-slate-900 dark:text-slate-200">
                           {getWorkerJobsCount(worker)}
                         </p>
                       </div>
                       <div className="text-center">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">
+                        <p className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-0.5">
                           Completed
                         </p>
-                        <p className="text-sm font-black text-emerald-600">
+                        <p className="text-xs font-black text-emerald-600 dark:text-emerald-400">
                           {getWorkerCompletedJobsCount(worker)}
                         </p>
                       </div>
                     </div>
 
                     {/* LOCATION */}
-                    <div className="flex items-center gap-2 mb-4 text-sm">
-                      <MapPin size={14} className="text-[#4F46E5]" />
-                      <span className="font-bold text-slate-700">
+                    <div className="flex items-center gap-2 mb-3 text-xs">
+                      <MapPin size={12} className="text-indigo-650 dark:text-indigo-400" />
+                      <span className="font-bold text-slate-700 dark:text-slate-355">
                         {worker.serviceArea}
                       </span>
                     </div>
 
                     {/* BIO */}
                     {worker.bio && (
-                      <p className="text-xs text-slate-600 mb-6 line-clamp-2 flex-1">
+                      <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 line-clamp-2 flex-1">
                         {worker.bio}
                       </p>
                     )}
@@ -482,7 +540,7 @@ export default function WorkerListingPage() {
                       }
                       whileHover={{ y: -2 }}
                       whileTap={{ scale: 0.95 }}
-                      className="w-full py-4 bg-[#4F46E5] text-white font-black text-sm uppercase tracking-widest rounded-xl shadow-lg shadow-indigo-200/30 hover:bg-[#0F172A] transition-all"
+                      className="w-full py-3 bg-[#4F46E5] text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-indigo-200/30 dark:shadow-none hover:bg-slate-900 dark:hover:bg-slate-800 transition-all cursor-pointer"
                     >
                       View Profile
                     </motion.button>

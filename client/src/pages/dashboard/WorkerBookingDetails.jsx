@@ -128,25 +128,25 @@ export default function WorkerBookingDetails() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-slate-300 border-t-indigo-600 rounded-full animate-spin" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-[#070B16] dark:via-slate-950 dark:to-slate-900 flex items-center justify-center transition-colors duration-500">
+        <div className="w-16 h-16 border-4 border-slate-300 dark:border-slate-800 border-t-indigo-600 rounded-full animate-spin" />
       </div>
     );
   }
 
   if (error || !booking) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center px-4">
-        <div className="max-w-lg w-full bg-white rounded-3xl p-8 shadow-xl border border-slate-200 text-center">
-          <p className="text-slate-900 text-lg font-bold mb-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-[#070B16] dark:via-slate-950 dark:to-slate-900 flex items-center justify-center px-4 transition-colors duration-500">
+        <div className="max-w-lg w-full bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-xl border border-slate-200 dark:border-slate-800 text-center">
+          <p className="text-slate-900 dark:text-white text-lg font-bold mb-4">
             Unable to load booking
           </p>
-          <p className="text-slate-600 mb-6">
+          <p className="text-slate-600 dark:text-slate-400 mb-6">
             {error || "Booking information is unavailable."}
           </p>
           <button
             onClick={loadBooking}
-            className="px-5 py-3 bg-indigo-600 text-white rounded-2xl font-semibold hover:bg-indigo-700 transition-all"
+            className="px-5 py-3 bg-indigo-600 text-white rounded-2xl font-semibold hover:bg-indigo-700 transition-all cursor-pointer"
           >
             Retry
           </button>
@@ -156,21 +156,21 @@ export default function WorkerBookingDetails() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 pb-12">
-      <div className="relative z-40 backdrop-blur-md bg-white/95 border-b border-slate-200/80 mt-24">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-[#070B16] dark:via-slate-950 dark:to-slate-900 pb-12 transition-colors duration-500">
+      <div className="relative z-40 backdrop-blur-md bg-white/95 dark:bg-slate-900/95 border-b border-slate-200/80 dark:border-slate-800 mt-24">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate("/worker-dashboard")}
-              className="p-2 bg-slate-100 hover:bg-slate-200 rounded-2xl transition-all"
+              className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-2xl transition-all cursor-pointer text-slate-600 dark:text-slate-350"
             >
-              <ArrowLeft size={24} className="text-slate-600" />
+              <ArrowLeft size={24} />
             </button>
             <div>
-              <h1 className="text-2xl font-black text-slate-900">
+              <h1 className="text-2xl font-black text-slate-900 dark:text-white">
                 Booking Details
               </h1>
-              <p className="text-xs font-semibold text-slate-500">
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                 Professional booking overview and contact options.
               </p>
             </div>
@@ -178,13 +178,13 @@ export default function WorkerBookingDetails() {
           <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
             <button
               onClick={handleCall}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition-all"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition-all cursor-pointer"
             >
               <Phone size={16} /> Call
             </button>
             <button
               onClick={() => navigate(`/messages/${bookingId}`)}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 transition-all"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 transition-all cursor-pointer"
             >
               <MessageSquare size={16} /> Message
             </button>
@@ -194,14 +194,14 @@ export default function WorkerBookingDetails() {
               <button
                 onClick={handleMarkDone}
                 disabled={actionLoading}
-                className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-700 transition-all disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-700 transition-all disabled:opacity-60 cursor-pointer"
               >
                 {actionLoading ? "Updating..." : "Work Done"}
               </button>
             )}
           </div>
           {actionError && (
-            <div className="mt-3 rounded-2xl bg-rose-50 border border-rose-200 p-4 text-sm text-rose-700">
+            <div className="mt-3 rounded-2xl bg-rose-50 dark:bg-rose-950/20 border border-rose-200/50 dark:border-rose-900/30 p-4 text-sm text-rose-700 dark:text-rose-455">
               {actionError}
             </div>
           )}
@@ -212,7 +212,7 @@ export default function WorkerBookingDetails() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-[36px] overflow-hidden shadow-2xl border border-slate-200 bg-white"
+          className="rounded-[36px] overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-805 bg-white dark:bg-slate-900 transition-colors duration-500"
         >
           <div className="bg-gradient-to-r from-indigo-600 to-blue-600 px-6 py-8 sm:px-8 sm:py-10 text-white">
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
@@ -262,10 +262,10 @@ export default function WorkerBookingDetails() {
             </div>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-[1.4fr_0.9fr] p-6 sm:p-8 bg-slate-50">
+          <div className="grid gap-6 lg:grid-cols-[1.4fr_0.9fr] p-6 sm:p-8 bg-slate-50 dark:bg-slate-950/40 transition-colors duration-500">
             <div className="space-y-6">
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h3 className="text-xl font-black text-slate-900 mb-4">
+              <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm transition-colors duration-500">
+                <h3 className="text-xl font-black text-slate-900 dark:text-white mb-4">
                   Booking overview
                 </h3>
                 <BookingDetailsCard
@@ -275,32 +275,32 @@ export default function WorkerBookingDetails() {
                 />
               </div>
 
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h3 className="text-xl font-black text-slate-900 mb-4">
+              <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm transition-colors duration-500">
+                <h3 className="text-xl font-black text-slate-900 dark:text-white mb-4">
                   Customer details
                 </h3>
-                <div className="space-y-4 text-slate-700">
+                <div className="space-y-4 text-slate-700 dark:text-slate-300">
                   <div>
-                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
                       Name
                     </p>
-                    <p className="font-semibold text-slate-900">
+                    <p className="font-semibold text-slate-900 dark:text-white">
                       {booking.userId?.name || booking.userName}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
                       Email
                     </p>
-                    <p className="font-medium">
+                    <p className="font-medium text-slate-900 dark:text-slate-200">
                       {booking.userId?.email || booking.email || "Not provided"}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
                       Phone
                     </p>
-                    <p className="font-medium">
+                    <p className="font-medium text-slate-900 dark:text-slate-200">
                       {booking.phone || "Not provided"}
                     </p>
                   </div>
@@ -310,12 +310,12 @@ export default function WorkerBookingDetails() {
               {/* Map Section */}
               {(booking.userId?.location?.coordinates ||
                 booking.workerId?.location?.coordinates) && (
-                <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                  <h3 className="text-xl font-black text-slate-900 mb-4 flex items-center gap-2">
-                    <Map size={20} className="text-indigo-600" />
+                <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm transition-colors duration-500">
+                  <h3 className="text-xl font-black text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                    <Map size={20} className="text-indigo-600 dark:text-indigo-400" />
                     Location Map
                   </h3>
-                  <div className="h-64 rounded-2xl overflow-hidden border border-slate-200">
+                  <div className="h-64 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-805">
                     <MapComponent
                       center={
                         booking.workerId?.location?.coordinates
@@ -384,8 +384,8 @@ export default function WorkerBookingDetails() {
                   </div>
                   {booking.userId?.location?.coordinates &&
                     booking.workerId?.location?.coordinates && (
-                      <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                        <p className="text-sm font-semibold text-slate-700">
+                      <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                           Distance:{" "}
                           {(() => {
                             const toRadians = (deg) => deg * (Math.PI / 180);
@@ -413,52 +413,52 @@ export default function WorkerBookingDetails() {
             </div>
 
             <div className="space-y-6">
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h3 className="text-xl font-black text-slate-900 mb-4">
+              <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm transition-colors duration-500">
+                <h3 className="text-xl font-black text-slate-900 dark:text-white mb-4">
                   Booking reference
                 </h3>
-                <div className="space-y-4 text-slate-700">
-                  <div className="rounded-3xl bg-slate-50 p-4">
-                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">
+                <div className="space-y-4 text-slate-700 dark:text-slate-300">
+                  <div className="rounded-3xl bg-slate-50 dark:bg-slate-900 p-4 border border-transparent dark:border-slate-800">
+                    <p className="text-xs text-slate-555 dark:text-slate-400 uppercase tracking-wide mb-1">
                       Reference
                     </p>
-                    <p className="font-semibold text-slate-900">
+                    <p className="font-semibold text-slate-900 dark:text-white">
                       {booking._id?.substring(0, 14)}
                     </p>
                   </div>
-                  <div className="rounded-3xl bg-slate-50 p-4">
-                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">
+                  <div className="rounded-3xl bg-slate-50 dark:bg-slate-900 p-4 border border-transparent dark:border-slate-800">
+                    <p className="text-xs text-slate-555 dark:text-slate-400 uppercase tracking-wide mb-1">
                       Status
                     </p>
-                    <p className="font-semibold text-slate-900">
+                    <p className="font-semibold text-slate-900 dark:text-white">
                       {booking.status}
                     </p>
                   </div>
-                  <div className="rounded-3xl bg-slate-50 p-4">
-                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">
+                  <div className="rounded-3xl bg-slate-50 dark:bg-slate-900 p-4 border border-transparent dark:border-slate-800">
+                    <p className="text-xs text-slate-555 dark:text-slate-400 uppercase tracking-wide mb-1">
                       Payment method
                     </p>
-                    <p className="font-semibold text-slate-900">
+                    <p className="font-semibold text-slate-900 dark:text-white">
                       {booking.paymentMethod || "Not available"}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm">
-                <h3 className="text-xl font-black text-slate-900 mb-4">
+              <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-6 shadow-sm transition-colors duration-500">
+                <h3 className="text-xl font-black text-slate-900 dark:text-white mb-4">
                   Support actions
                 </h3>
                 <div className="grid gap-3">
                   <button
                     onClick={handleCall}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition-all"
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition-all cursor-pointer"
                   >
                     <Phone size={16} /> Call customer
                   </button>
                   <button
                     onClick={handleMessage}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800 transition-all"
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 dark:bg-slate-950 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800 dark:hover:bg-slate-900 transition-all border border-transparent dark:border-slate-800 cursor-pointer"
                   >
                     <MessageSquare size={16} /> Send message
                   </button>
@@ -476,7 +476,7 @@ export default function WorkerBookingDetails() {
                           state: { bookingId, booking },
                         })
                       }
-                      className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-all"
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-all cursor-pointer"
                     >
                       <Map size={16} /> Track booking
                     </button>
@@ -485,24 +485,24 @@ export default function WorkerBookingDetails() {
                   {/* Location Information */}
                   {(booking.userId?.location?.coordinates ||
                     booking.workerId?.location?.coordinates) && (
-                    <div className="rounded-2xl bg-white border border-slate-200 p-4">
+                    <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 transition-colors">
                       <div className="flex items-center gap-2 mb-3">
-                        <MapPin size={16} className="text-indigo-600" />
-                        <span className="text-sm font-semibold text-slate-900">
+                        <MapPin size={16} className="text-indigo-600 dark:text-indigo-400" />
+                        <span className="text-sm font-semibold text-slate-900 dark:text-white">
                           Location Info
                         </span>
                       </div>
-                      <div className="space-y-2 text-xs text-slate-600">
+                      <div className="space-y-2 text-xs text-slate-650 dark:text-slate-400">
                         {booking.userId?.location?.coordinates && (
                           <div>
-                            <span className="font-medium">Customer:</span>{" "}
+                            <span className="font-semibold text-slate-900 dark:text-white">Customer:</span>{" "}
                             {booking.userId.location.coordinates[1].toFixed(4)},{" "}
                             {booking.userId.location.coordinates[0].toFixed(4)}
                           </div>
                         )}
                         {booking.workerId?.location?.coordinates && (
                           <div>
-                            <span className="font-medium">Your location:</span>{" "}
+                            <span className="font-semibold text-slate-900 dark:text-white">Your location:</span>{" "}
                             {booking.workerId.location.coordinates[1].toFixed(
                               4,
                             )}
@@ -514,8 +514,8 @@ export default function WorkerBookingDetails() {
                         )}
                         {booking.userId?.location?.coordinates &&
                           booking.workerId?.location?.coordinates && (
-                            <div className="pt-2 border-t border-slate-200">
-                              <span className="font-semibold text-slate-900">
+                            <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+                              <span className="font-bold text-slate-900 dark:text-white">
                                 Distance:{" "}
                                 {(() => {
                                   const toRadians = (deg) =>
@@ -561,7 +561,7 @@ export default function WorkerBookingDetails() {
                             },
                           })
                         }
-                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-green-600 px-4 py-3 text-sm font-semibold text-white hover:bg-green-700 transition-all"
+                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-green-600 px-4 py-3 text-sm font-semibold text-white hover:bg-green-700 transition-all cursor-pointer"
                       >
                         <MapPin size={16} /> View on Map
                       </button>
